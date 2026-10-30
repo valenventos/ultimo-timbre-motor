@@ -1,27 +1,61 @@
 <!--
 Sync Impact Report
 ==================
-Versión: (plantilla) → 1.0.0
-Tipo de cambio: Ratificación inicial (MAJOR).
-Principios definidos: I–X (todos nuevos).
-Secciones agregadas: Marco normativo, Alcance de la v1, Cuestiones abiertas del dominio,
-Restricciones técnicas, Flujo de trabajo, Licenciamiento y aspectos legales, Gobernanza.
-Plantillas sincronizadas el 2026-10-30 (sin cambios en principios ni contenido normativo):
+Versión: 1.0.0 → 1.1.0
+Tipo de cambio: Enmienda MINOR. Se amplía materialmente el Marco normativo de referencia y la
+lista de Cuestiones abiertas del dominio. **Los diez principios no se modificaron** (ni su texto,
+ni su orden, ni su numeración), como tampoco el Alcance de la v1, las Restricciones técnicas, el
+Flujo de trabajo, el Licenciamiento ni la Gobernanza.
+
+Principios modificados: ninguno.
+Secciones agregadas: ninguna.
+Secciones removidas: ninguna.
+
+Secciones ampliadas:
+  • Marco normativo de referencia — dos filas nuevas:
+      1. Cargos considerados al frente de alumnos (Ley 13469 preceptores y bibliotecarios;
+         Ley 10745 técnico-docentes de Psicología y Educación Especial; Ley 11860 visitadoras de
+         higiene escolar). Verificado para los cargos nombrados; el alcance de la Ley 13469 a
+         otros cargos del escalafón queda NO_VERIFICADA (SCBA, causa A 74801, 2020).
+      2. Cómputo del excedente de 3 / 5 años contado desde que se alcanzan todas las condiciones
+         del inciso (Res. IPS 995/2021, Anexo, punto 2.1.a). Registrado como Interpretación IPS:
+         es el criterio aplicado por defecto, y la lectura literal de los arts. 42 y 43 se informa
+         como advertencia con impacto al alza.
+  • Cuestiones abiertas del dominio — nueva #8: alcance de la Ley 13469 a cargos no nombrados,
+    con impacto 70 % vs 75 % sobre elegibilidad y porcentaje.
+
+Origen de la enmienda: especificación 001-motor-calculo-jubilacion, que detectó ambas cuestiones
+al desarrollar los requisitos de elegibilidad (FR-002a a FR-002c, FR-027a, FR-027b).
+
+Plantillas sincronizadas el 2026-10-30 (sin cambios requeridos por esta enmienda):
   ✅ .specify/templates/plan-template.md   → "Constitution Check" con tabla de gates I–X
      (estado PASA/NO APLICA/VIOLACIÓN por principio), chequeo de Alcance v1 y de Cuestiones
-     abiertas del dominio; "Complexity Tracking" ahora exige nombrar el principio violado.
+     abiertas del dominio; "Complexity Tracking" exige nombrar el principio violado.
+     Sin cambios: referencia las cuestiones abiertas de forma genérica, no por número.
   ✅ .specify/templates/spec-template.md   → cita normativa obligatoria (ley, art., inc. /
-     resolución) en todo requisito de cálculo, con ejemplos; nueva sección "Fundamento normativo"
+     resolución) en todo requisito de cálculo, con ejemplos; sección "Fundamento normativo"
      (norma, tipo letra-de-la-ley vs interpretación, estado Verificado/NO_VERIFICADA, fecha de
-     verificación) y listado de reglas NO_VERIFICADA y cuestiones abiertas que la afectan;
-     edge cases de fuera-de-alcance y de resultado parcial.
+     verificación) y listado de reglas NO_VERIFICADA y cuestiones abiertas que la afectan.
+     Sin cambios: ya contempla el tipo "Interpretación" que usan las dos filas nuevas.
   ✅ .specify/templates/tasks-template.md  → tests OBLIGATORIOS y antes de la implementación
-     (Principio VI): se eliminó el carácter "OPTIONAL", cada fase de historia declara que la
-     implementación requiere sus tests escritos y fallando, se agregaron tareas de caso dorado
-     con cita normativa y de property-based testing, y gates de cobertura (≥95 % motor/parser,
-     ≥80 % resto) y de seguridad (Principio VII) en la fase de Polish.
+     (Principio VI), tareas de caso dorado con cita normativa, property-based testing y gates de
+     cobertura (≥95 % motor/parser, ≥80 % resto) y de seguridad (Principio VII).
+     Sin cambios.
   ○ .specify/templates/checklist-template.md → sin cambios requeridos (genérica).
-TODOs diferidos: ninguno.
+
+Artefactos aguas abajo a revisar tras esta enmienda:
+  ⚠ specs/001-motor-calculo-jubilacion/spec.md → la "Nota de gobernanza" bajo la Cuestión
+    abierta #8 dice que la #8 todavía no está en la constitución y que requiere una enmienda
+    MINOR. Esta enmienda la incorporó: la nota quedó obsoleta y conviene actualizarla.
+  ⚠ specs/001-motor-calculo-jubilacion/checklists/requirements.md → el ítem "Pendiente de
+    gobernanza" quedó cumplido en lo relativo a la #8.
+
+TODOs diferidos:
+  • La ampliación de la Cuestión abierta #5 propuesta por la spec 001 (si la situación de revista
+    —titular, provisional, suplente— condiciona la elección del cargo base, dado que el art. 41
+    habla del cargo "de que era titular") NO fue incluida en esta enmienda: el pedido del usuario
+    abarcó solo las dos filas del Marco normativo y la Cuestión abierta #8. Queda disponible para
+    una próxima enmienda.
 -->
 
 # Último Timbre — Constitución
@@ -186,11 +220,13 @@ régimen previsional de la Provincia de Buenos Aires, administrado por el IPS.
 | Tema | Norma | Estado |
 |---|---|---|
 | Requisitos de jubilación ordinaria docente (50/25 al frente de alumnos o 20 hs cátedra; 50/25 con 10 al frente; 55/30) y mínimo general de 22 años con aportes | DL 9650/80, art. 24 incs. b, c, d | Verificado |
+| Cargos considerados al frente de alumnos: preceptores y bibliotecarios (Ley 13469), técnico-docentes de Psicología y Educación Especial (Ley 10745), visitadoras de higiene escolar (Ley 11860) | Ley 13469; Ley 10745; Ley 11860 | Verificado para los cargos nombrados; alcance de la Ley 13469 a otros cargos del escalafón NO_VERIFICADA (SCBA, causa A 74801, 2020) |
 | Prorrateo con servicios de distinta naturaleza | DL 9650/80, art. 27 | Verificado |
 | Concepto de remuneración | DL 9650/80, art. 40 | Verificado |
 | Haber base 70 % del cargo; cargo de mayor jerarquía con 36 meses consecutivos o 60 alternados | DL 9650/80, art. 41 (texto Ley 13968; ver Ley 14025 y Res. IPS 14/10) | Verificado (alcance de Ley 14025 a revisar) |
 | 75 % / 80 % por excedente de edad de 3 / 5 años | DL 9650/80, art. 42 | Verificado |
 | Docente inc. b): 75 % base, +5 % y +10 % por excedente de 3 / 5 años (75 / 80 / 85 %) | DL 9650/80, art. 43 | Verificado |
+| Cómputo del excedente de 3 / 5 años: se cuenta desde que se alcanzan **todas** las condiciones del inciso (edad y servicios), no solo la edad requerida | Res. IPS 995/2021, Anexo, punto 2.1.a | Interpretación IPS (criterio aplicado por defecto; la lectura literal de los arts. 42 y 43 se informa como advertencia, impacto al alza) |
 | Cargos simultáneos (mínimo 3 años continuos, proporcional) | DL 9650/80, art. 47; Res. IPS 995/2021 | Verificado, fórmula a detallar |
 | Horas cátedra y módulos como "carrera" | Res. HD IPS 8/14 | NO_VERIFICADA |
 | Movilidad del haber por correlación de cargos | DL 9650/80, arts. 50 y 51 | Verificado |
@@ -253,6 +289,11 @@ dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICA
 6. **Redondeo:** política de redondeo que aplica el IPS en la liquidación del haber.
 7. **Formato de recibos:** variantes históricas del recibo digital de la DGCyE y su
    correspondencia de códigos de concepto.
+8. **Alcance de la Ley 13469:** si la condición de "al frente de alumnos" alcanza a cargos del
+   escalafón no nombrados explícitamente en la norma. La interpretación está discutida (SCBA,
+   causa A 74801, 2020). Decide si el acceso es por el inciso b (art. 43, 75 % de base) o por los
+   incisos c y d (art. 41, 70 % de base), de modo que su impacto es de **70 % vs 75 %** y alcanza
+   tanto a la elegibilidad como al porcentaje.
 
 ---
 
@@ -319,4 +360,4 @@ dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICA
   se justifica contra el Principio X.
 - Las cuestiones abiertas del dominio se revisan antes de cada release del motor.
 
-**Versión**: 1.0.0 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-10-30
+**Versión**: 1.1.0 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-10-30
