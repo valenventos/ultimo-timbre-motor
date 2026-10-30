@@ -14,7 +14,7 @@ las tareas de test NO son opcionales: toda tarea de test DEBE aparecer **antes**
 implementación que cubre, y DEBE fallar antes de implementar. Una lista de tareas que ponga
 implementación antes que su test no pasa `/speckit-analyze`.
 
-**Cobertura exigida**: ramas ≥95 % en motor y parser, ≥80 % en el resto.
+**Cobertura exigida**: ramas ≥95 % en motor y reglas (`ultimo_timbre/engine` y `ultimo_timbre/rules`), ≥80 % en el resto. Esta funcionalidad no tiene parser: no lee PDF ni recibos (FR-005).
 
 **Casos dorados**: cada regla de cálculo necesita al menos un caso de prueba con su fundamento
 normativo citado. Los casos reales del IPS (anonimizados) son la prueba de aceptación máxima.
@@ -41,7 +41,7 @@ Los fixtures de recibos DEBEN estar anonimizados — nunca se suben recibos con 
 **Purpose**: Esqueleto del paquete, licencia y el pipeline de CI completo. El CI se arma **antes**
 que el código para que los gates existan desde el primer commit, no después.
 
-- [ ] T001 Crear estructura `src/ultimo_timbre/{models,rules,engine,render,cli}/`, `tests/{golden,properties,contract,unit}/`, `rules/`, `grids/`, `schemas/`, `examples/`, `docs/adr/` con sus `__init__.py`
+- [ ] T001 Crear estructura `src/ultimo_timbre/{models,rules,engine,render,cli}/`, `tests/{golden,properties,contract,unit,cli,fixtures}/`, `rules/`, `grids/`, `schemas/`, `examples/`, `docs/adr/` con sus `__init__.py`
 - [ ] T002 Configurar `pyproject.toml` con uv: Python 3.12, dependencias (pydantic>=2, python-dateutil, pyyaml, typer) y extras de desarrollo (pytest, hypothesis, pytest-cov, jsonschema, check-jsonschema, ruff, mypy, bandit, pip-audit, reuse, cyclonedx-py)
 - [ ] T003 [P] Crear `LICENSE` con el texto AGPL-3.0-or-later y declarar `license = "AGPL-3.0-or-later"` en `pyproject.toml`
 - [ ] T004 [P] Agregar encabezado `SPDX-License-Identifier: AGPL-3.0-or-later` como primera línea de todo archivo fuente y configurar `REUSE.toml`
@@ -102,13 +102,13 @@ historia puede empezar.
 - [ ] T029 [P] Implementar `Caso`, `PeriodoDeServicio`, `Licencia`, `Establecimiento` en `src/ultimo_timbre/models/caso.py` con `ConfigDict(strict=True, frozen=True)`: `Caso.fecha_de_calculo` requerido, `fecha_nacimiento` anterior a `fecha_de_calculo`, `fechas_cese` con ≥1 elemento y únicas; `PeriodoDeServicio.hasta` es `date | None` (`None` = período en curso), `caja_aportes` requerido, `al_frente_override` y `naturaleza_override` por defecto `None`; el modelo no admite rutas de carga de PDF (FR-001, FR-002, FR-003, FR-005)
 - [ ] T030 [P] Implementar `Regla`, `Norma`, `ConjuntoDeReglas`, `CatalogoDeCargos`, `EntradaCatalogo` en `src/ultimo_timbre/models/normativa.py`, con validador que exige `impacto_si_no_verificada` cuando `estado == no_verificada` (FR-006)
 - [ ] T031 [P] Implementar `GrillaSalarial`, `ValorCargo` y `ComponenteSalarial` en `src/ultimo_timbre/models/grilla.py` (FR-031a)
-- [ ] T032 Implementar `Monto`, `Condicionante`, `Advertencia`, `Procedencia`, `PasoDelDesglose`, `Escenario`, `Elegibilidad`, `CargoBase`, `Informe` en `src/ultimo_timbre/models/informe.py`, con validador que rechaza `estado=provisional` con `condicionantes` vacía y deriva `Informe.estado_general` en lugar de aceptarlo como entrada (FR-046a, FR-046c)
-- [ ] T033 Implementar `HistoriaDeServicios` en `src/ultimo_timbre/models/caso.py` con normalización (orden por `(desde, hasta, cargo)` y asignación de `idx`) y los métodos `tramos_unidos(hasta)` y `meses_cubiertos(hasta)` que computan sobre la **unión**, nunca sumando duraciones (FR-004a, I9)
+- [ ] T032 Implementar `Monto`, `Condicionante`, `Advertencia`, `Procedencia`, `PasoDelDesglose`, `Escenario`, `Elegibilidad`, `CargoBase`, `Informe` y los tipos auxiliares `ResultadoInciso`, `ResultadoRequisito`, `Faltante`, `CandidatoDescartado`, `LecturaAlternativa` y `Versiones` en `src/ultimo_timbre/models/informe.py`, con validador que rechaza `estado=provisional` con `condicionantes` vacía y deriva `Informe.estado_general` en lugar de aceptarlo como entrada (FR-046a, FR-046c)
+- [ ] T033 Implementar `HistoriaDeServicios` en `src/ultimo_timbre/models/caso.py` con normalización (orden por `(desde, hasta, cargo)` y asignación de `idx`) y los métodos `tramos_unidos(hasta)` y `meses_cubiertos(hasta)` que computan sobre la **unión**, nunca sumando duraciones (FR-004a, I9). Definir también los tipos auxiliares `Tramo` (par de fechas de un intervalo unido), `MesCalendario` (año-mes, serializado `YYYY-MM`) y `CargoRef` (alias de `str` validado contra el catálogo: un cargo ausente **no invalida el caso**, se advierte `cargo_fuera_de_catalogo`)
 - [ ] T034 Implementar `src/ultimo_timbre/errors.py`: `UltimoTimbreError`, `CasoInvalido`, `ReglasNoDisponibles` y `FueraDeAlcance` (reservada para errores de programación, no para casos de usuario)
 - [ ] T035 Implementar los loaders en `src/ultimo_timbre/rules/loader.py`: `yaml.safe_load` con resolver que desactiva la conversión implícita a float y `json.load(parse_float=Decimal)` (research R1)
 - [ ] T036 Implementar `src/ultimo_timbre/rules/versiones.py` con `cargar_reglas`, `cargar_grilla`, `grilla_vigente_a` y `versiones_disponibles`, rechazando con error toda grilla cargada desde `grids/` que declare `ficticia: true` (Principio IX)
 - [ ] T037 Implementar `src/ultimo_timbre/rules/catalogo.py` con la derivación de `al_frente_de_alumnos` y `naturaleza` desde el cargo, respetando los `*_override` y marcando su uso como dato manual (FR-002a, FR-002b, FR-002d)
-- [ ] T038 Crear `tests/fixtures/grilla-ficticia-test.yaml` con `ficticia: true` y valores **redondos y evidentemente inventados** (por ejemplo componentes de `"100000.00"` y `"50000.00"`), con la estructura completa de `schemas/grid.schema.json`. Es la grilla que usan los tests de US4 y US5; vive en `tests/fixtures/`, **nunca** en `grids/`, y el loader la rechaza si alguien la mueve allí (T024, T036)
+- [ ] T038 Crear `tests/fixtures/grilla-ficticia-test.yaml` con `ficticia: true` y valores **redondos y evidentemente inventados** (por ejemplo componentes de `"100000.00"` y `"50000.00"`), con la estructura completa de `schemas/grid.schema.json`. Debe incluir **como mínimo** los cargos `maestro_de_grado`, `vicedirector`, `director`, `preceptor` y `horas_catedra_secundario`, cada uno con **al menos un componente bonificable y uno no bonificable**, más todo cargo que usen los golden de US4 y US5. Es la grilla que usan esos tests; vive en `tests/fixtures/`, **nunca** en `grids/`, y el loader la rechaza si alguien la mueve allí (T024, T036)
 - [ ] T039 [P] Crear `rules/v1/requisitos.yaml` con el art. 24 incs. b, c y d (50/25, 50/25 con 10 al frente, 55/30) y el mínimo de 22 años con aportes, cada regla con su norma y `estado: verificado` `[DL 9650/80, art. 24]`. Estos umbrales sí están documentados: transcribilos literalmente y no agregues ningún otro
 - [ ] T040 [P] Crear `rules/v1/haber.yaml` con el 70 % del art. 41, los 75 %/80 % del art. 42, los 75/80/85 % del art. 43 y el criterio de cómputo del excedente `[Res. IPS 995/2021, Anexo, punto 2.1.a]` marcado `tipo: interpretacion` (FR-027a). Son los únicos porcentajes documentados: la política de redondeo y los conceptos que integran la remuneración quedan `NO_VERIFICADA`, no se estiman
 - [ ] T041 [P] Crear `rules/v1/cargos.yaml` con el catálogo: preceptores y bibliotecarios `[Ley 13469]`, técnico-docentes de Psicología y Educación Especial `[Ley 10745]`, visitadoras de higiene escolar `[Ley 11860]`, y la regla de extensión de la Ley 13469 a otros cargos con `estado: no_verificada` e `impacto_si_no_verificada` de 70 % vs 75 % `[SCBA causa A 74801 (2020), Cuestión abierta #8]`. **`jerarquia` queda en `null` para todos los cargos**: el criterio de comparación es la Cuestión abierta #4 y no hay ningún orden numérico documentado que transcribir
@@ -376,10 +376,26 @@ y el código de salida correcto, con la máquina desconectada de la red.
 - [ ] T155 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)
 - [ ] T156 [P] Completar los ADR faltantes en `docs/adr/` para R2, R5, R7, R12 y R13
 - [ ] T157 Agregar al CI el test de determinismo multiplataforma que compara el informe del mismo caso producido en Linux, macOS y Windows (SC-003, SC-007)
-- [ ] T158 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
-- [ ] T159 Verificar cobertura de ramas: ≥95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, ≥80 % resto (Principio VI)
-- [ ] T160 Security hardening: confirmar bandit, pip-audit, gitleaks y SBOM sin hallazgos altos/críticos (Principio VII)
-- [ ] T161 Ejecutar la validación completa de `quickstart.md` (verificaciones 1 a 8) y corregir desvíos
+- [ ] T158 Test de rendimiento en `tests/test_rendimiento.py`: un caso sintético de **30 años de historia de servicios con 5 escenarios de cese** produce su informe completo en **menos de 5 segundos**, y el test falla si lo supera (SC-006). Usa la grilla ficticia de T038 y mide solo `calcular()`, sin el tiempo de carga de reglas
+- [ ] T159 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
+- [ ] T160 Verificar cobertura de ramas: ≥95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, ≥80 % resto (Principio VI)
+- [ ] T161 Security hardening: confirmar bandit, pip-audit, gitleaks y SBOM sin hallazgos altos/críticos (Principio VII)
+- [ ] T162 Ejecutar la validación completa de `quickstart.md` (verificaciones 1 a 8) y corregir desvíos
+
+---
+
+## Gate de release
+
+**Decisión del mantenedor (2026-10-30)**: el **MVP técnico (US1 a US3)** puede completarse y
+demostrarse **sin validación contra el IPS**. Su mecánica se verifica con casos sintéticos y la
+grilla ficticia de T038.
+
+El **release comercial queda bloqueado** hasta que **SC-002** se cumpla con al menos **un caso
+real del IPS anonimizado** (T111). Hasta entonces el motor puede usarse internamente y para
+demostración, pero no ofrecerse a gremios ni estudios: ningún informe producido por una versión
+que no reprodujo un cálculo real del IPS puede presentarse como estimación profesional.
+
+- [ ] T163 [MANUAL] Verificar el gate de release antes de habilitar acceso a organizaciones: T111 en verde con al menos un caso real del IPS anonimizado, SC-002 cumplido con diferencia cero
 
 ---
 

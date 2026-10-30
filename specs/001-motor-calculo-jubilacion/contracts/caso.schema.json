@@ -68,7 +68,7 @@
         "cargo": {
           "type": "string",
           "minLength": 1,
-          "description": "Debe existir en el catálogo de cargos versionado. Si no existe, el motor advierte (cargo_fuera_de_catalogo) y el resultado sale provisional."
+          "description": "Nombre del cargo tal como lo nombra el catálogo de cargos versionado (CargoRef es un string, no un objeto). Se valida contra el catálogo, pero un cargo ausente NO invalida el caso: se advierte cargo_fuera_de_catalogo, su condición de al frente de alumnos y su naturaleza quedan indeterminadas y el resultado sale provisional."
         },
         "horas_catedra": {
           "type": "integer",

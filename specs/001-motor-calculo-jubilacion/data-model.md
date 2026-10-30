@@ -43,7 +43,7 @@ la exige.
 | Campo | Tipo | Reglas | Origen |
 |---|---|---|---|
 | `idx` | `int` | asignado al normalizar; único; es el identificador anónimo usado en diagnóstico | FR-054 |
-| `cargo` | `CargoRef` | requerido | FR-002 |
+| `cargo` | `CargoRef` (`str`) | requerido; validado contra el catálogo | FR-002 |
 | `establecimiento` | `Establecimiento` | requerido | FR-002 |
 | `desde` | `date` | requerido | FR-002 |
 | `hasta` | `date \| None` | `None` = **período en curso**; si se declara, `>= desde` | FR-002e |
@@ -52,6 +52,13 @@ la exige.
 | `licencias` | `list[Licencia]` | puede ser vacía | FR-002 |
 | `al_frente_override` | `bool \| None` | `None` = derivar del catálogo | FR-002b |
 | `naturaleza_override` | `NaturalezaServicio \| None` | `None` = derivar del catálogo | FR-002d |
+
+**`CargoRef`** es un **`str`**: el nombre del cargo tal como lo nombra el catálogo versionado.
+Se valida contra el catálogo, pero **un cargo ausente no invalida el caso**: se advierte
+`cargo_fuera_de_catalogo`, su condición de al frente de alumnos y su naturaleza quedan
+indeterminadas y el resultado sale provisional. Rechazar el caso obligaría al profesional a
+esperar una actualización del catálogo para obtener cualquier análisis, cuando el resto de la
+historia de servicios sí es computable (Principio IV).
 
 **Nota de diseño — qué se deriva y qué se carga**: ni `al_frente_de_alumnos` ni `naturaleza`
 (docente / no docente) son campos de entrada. Ambos **se derivan del cargo** vía el catálogo

@@ -122,6 +122,7 @@ specs/001-motor-calculo-jubilacion/
 src/ultimo_timbre/
 ├── __init__.py          # superficie pública: __all__, py.typed
 ├── models/              # Pydantic v2, frozen, strict
+│   ├── enums.py         # SituacionRevista, CajaAportes, CodigoAdvertencia, ...
 │   ├── caso.py          # Caso, HistoriaDeServicios, PeriodoDeServicio, Licencia
 │   ├── normativa.py     # Regla, Norma, ConjuntoDeReglas, CatalogoDeCargos
 │   ├── grilla.py        # GrillaSalarial, ValorCargo
@@ -137,7 +138,9 @@ src/ultimo_timbre/
 │   ├── porcentaje.py    # arts. 41-43 + excedente según Res. 995/2021 (FR-027a)
 │   ├── haber.py         # valuación por componentes, antigüedad sobre bonificables, quantize
 │   ├── escenarios.py    # habilitación, excedentes 3 y 5 años
-│   ├── alcance.py       # detección y advertencias bloqueantes (FR-043 a FR-045b, FR-020b)
+│   ├── alcance.py       # detección de situaciones fuera de alcance (FR-043 a FR-045b, FR-020b)
+│   ├── advertencias.py  # emisión de advertencias con norma y bloquea_calculo (FR-041)
+│   ├── condicionantes.py # condicionantes de regla y de situación del caso (FR-046a/b)
 │   └── desglose.py      # trazado de pasos con norma
 ├── render/
 │   ├── json_out.py      # determinista: sort_keys, Decimal como str

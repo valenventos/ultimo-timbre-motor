@@ -580,6 +580,7 @@ desconectada de la red.
 | FR-012 | DL 9650/80, art. 24 inc. c | Letra de la ley | Verificado | 2026-10-30 |
 | FR-013 | DL 9650/80, art. 24 inc. d | Letra de la ley | Verificado | 2026-10-30 |
 | FR-014 | DL 9650/80, art. 24 (mínimo 22 años con aportes) | Letra de la ley | Verificado | 2026-10-30 |
+| FR-004 | DL 9650/80, art. 47; Res. IPS 995/2021 (clasificación de la simultaneidad) | Letra de la ley + interpretación | Verificado — se clasifica y se advierte, no se computa | 2026-10-30 |
 | FR-015, FR-015a | DL 9650/80, art. 27 (prorrateo) | Letra de la ley | Verificado — fuera de alcance v1 (se detecta y se advierte, no se computa) | 2026-10-30 |
 | FR-018 | DL 9650/80, arts. 71 y 72 (cese y cierre de cómputos) | Letra de la ley | Verificado | 2026-10-30 |
 | FR-019, FR-020 | DL 9650/80, art. 41 (texto Ley 13968) | Letra de la ley | Verificado (alcance de Ley 14025 a revisar) | 2026-10-30 |
@@ -595,7 +596,7 @@ desconectada de la red.
 | FR-027a | Res. IPS 995/2021, Anexo, punto 2.1.a (excedente contado desde que se cumplen todas las condiciones) | Interpretación | Verificado — criterio aplicado por defecto | 2026-10-30 |
 | FR-027b | DL 9650/80, arts. 42 y 43 — lectura literal (excedente medido solo por edad) | Letra de la ley (lectura alternativa) | Se informa como advertencia, impacto al alza | 2026-10-30 |
 | FR-031 | DL 9650/80, art. 40 (concepto de remuneración) | Letra de la ley + interpretación de conceptos | NO_VERIFICADA | — |
-| FR-030b, FR-032 | Ley 10579 art. 33; Decreto 818/13 y posteriores | Letra de la ley | NO_VERIFICADA (tope 120 % vs 125 %) | — |
+| FR-030b, FR-031b, FR-032 | Ley 10579 art. 33; Decreto 818/13 y posteriores (bonificación por antigüedad sobre componentes bonificables) | Letra de la ley | NO_VERIFICADA (tope 120 % vs 125 %) | — |
 | FR-030c | DL 9650/80, art. 50 (movilidad por correlación de cargos) | Letra de la ley | Verificado — solo se informa, no se calcula | 2026-10-30 |
 | FR-033 | Política de redondeo aplicada por el IPS | Práctica administrativa | NO_VERIFICADA | — |
 | FR-043 | DL 9650/80, art. 47; Res. IPS 995/2021 | Letra de la ley + interpretación | Verificado (fórmula a detallar) — fuera de alcance v1 | 2026-10-30 |
@@ -759,6 +760,13 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
 - La proyección de un período en curso asume continuidad en el **mismo cargo**, sin ascensos ni
   cambios de situación de revista. Es el supuesto más conservador disponible y queda explícito en
   el informe.
+- **Validación contra el IPS y alcance del release** (decisión del mantenedor, 2026-10-30): el
+  **MVP técnico** (historias US1 a US3) puede completarse y demostrarse **sin** validación contra
+  un cálculo real del IPS; su mecánica se verifica con casos sintéticos y una grilla de prueba
+  explícitamente ficticia. El **release comercial queda bloqueado** hasta que **SC-002** se cumpla
+  con al menos **un caso real del IPS anonimizado**. Hasta entonces el motor se usa internamente
+  y para demostración, y ningún informe producido por una versión que no reprodujo un cálculo
+  real del IPS puede presentarse como estimación profesional a gremios o estudios.
 
 ## Clarifications
 
