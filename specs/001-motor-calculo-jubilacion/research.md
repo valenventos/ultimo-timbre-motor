@@ -47,6 +47,19 @@ alternados" es la cardinalidad de un conjunto, y "36 consecutivos" es la racha m
 secuencia ordenada. Además permite exponer en el desglose **qué meses concretos** sustentan el
 cargo base, que es lo que exige FR-020.
 
+**Cómputo sobre la unión, nunca sobre la suma** (FR-004a): los años de servicio y los meses del
+cargo base se calculan sobre la **unión** de los tramos cubiertos. La representación por conjunto
+de meses hace esto gratis —`set.union` es la operación— mientras que una implementación por
+duraciones tendría que descontar solapamientos a mano en cada camino. Es la razón principal para
+elegir conjuntos de meses antes que intervalos con duración: el invariante I9 se vuelve difícil de
+violar por accidente.
+
+**Períodos en curso y recorte** (FR-002e, FR-018a): un período sin fecha de fin se proyecta hasta
+cada fecha de cese bajo supuesto de continuidad en el mismo cargo. Un período que excede la fecha
+de cese **se recorta**, no se rechaza. Ambas operaciones son por fecha de cese, de modo que el
+mismo caso evaluado contra tres ceses produce tres proyecciones distintas de la misma historia sin
+mutarla (los modelos son `frozen`).
+
 **Pendiente normativo**: qué meses aporta un período con licencia, suplencia o interinato es la
 Cuestión abierta #5 (ampliada con la situación de revista). El proyector mes-a-mes recibe esa
 regla como dato; mientras sea `NO_VERIFICADA`, el resultado se marca provisional (FR-024,
@@ -66,7 +79,13 @@ JSON Schema en `schemas/`:
 |---|---|---|---|
 | Reglas del régimen | `rules/<version>/*.yaml` | `schemas/rule.schema.json` | norma, vigencia desde/hasta, fecha de verificación, estado, tipo |
 | Catálogo de cargos | `rules/<version>/cargos.yaml` | `schemas/cargo.schema.json` | cargo, jerarquía, condición al frente de alumnos, norma que la sostiene, estado |
-| Grillas salariales | `grids/<version>.yaml` | `schemas/grid.schema.json` | norma de origen, enlace, vigencia, fecha de extracción, aprobador, valores por cargo |
+| Grillas salariales | `grids/<version>.yaml` | `schemas/grid.schema.json` | norma de origen, enlace, vigencia, fecha de extracción, aprobador, valores por cargo **descompuestos en componentes** |
+
+El valor de un cargo no es un importe único: es una lista de componentes con `codigo_concepto`,
+`importe`, `bonificable` y `remunerativo` (FR-031a). La antigüedad se aplica solo sobre los
+bonificables (FR-031b). Un importe indiviso haría imposible aplicarla correctamente y, sobre todo,
+mostrar en el desglose sobre qué base se calculó — y el desglose es el producto (Principio IV).
+Qué componentes integran la remuneración del cargo sigue siendo la Cuestión abierta #2.
 
 Validación en CI con `check-jsonschema`. Los montos y porcentajes se escriben **siempre entre
 comillas** en el YAML para que lleguen como `str` al loader (ver R1); el schema lo fuerza con
@@ -93,9 +112,25 @@ Principio I); base de datos (viola la restricción de "sin base de datos" y el P
 4. El motor **solo carga grillas presentes en `grids/`**: no existe mecanismo para inyectar una
    grilla en tiempo de ejecución.
 
-**Por qué**: el Principio IX dice que ninguna grilla no aprobada puede usarse. Un campo booleano
-`aprobada: true` dentro del archivo sería autodeclarado y falsificable por quien edita el archivo;
-atarlo al control de versiones lo hace auditable por un tercero sin confiar en el contenido.
+**Política según cantidad de mantenedores** (a documentar en el ADR):
+
+| Situación | Qué exige el check de CI |
+|---|---|
+| **Un solo mantenedor** (hoy) | `aprobada_por` coincide con **quien fusiona** el PR, y `aprobada_en` con la fecha del merge. CODEOWNERS queda configurado pero no puede exigir revisión de un tercero. |
+| **Más de un mantenedor** | Se activa la exigencia de revisión por un tercero vía CODEOWNERS: `aprobada_por` debe ser alguien **distinto** del autor del PR. |
+
+**Por qué este escalón**: el Principio IX exige revisión humana, no revisión de un segundo humano
+que todavía no existe. Pedir hoy un aprobador distinto del autor dejaría al proyecto sin forma de
+aprobar ninguna grilla, y la salida habitual a ese bloqueo —deshabilitar el check— es peor que no
+tenerlo. Atar la aprobación a quien fusiona mantiene el rastro auditable y verificable desde el
+primer día, y el escalón a dos personas es un cambio de configuración, no de arquitectura.
+
+El ADR debe registrar explícitamente el disparador del cambio: **el segundo mantenedor con
+permiso de merge**.
+
+**Por qué no un campo autodeclarado**: un `aprobada: true` dentro del archivo sería declarado por
+quien edita el archivo; atarlo al control de versiones lo hace auditable por un tercero sin
+confiar en el contenido.
 
 **Consecuencia para el motor**: no hay estado "pendiente" en tiempo de ejecución. Si la grilla
 vigente a la fecha de cese no está en el repo, se aplica FR-034 (advertir, indicar con qué grilla
@@ -112,8 +147,16 @@ se calculó, marcar provisional).
 - **Texto para terminal**, renderizado desde el mismo modelo, sin lógica de cálculo propia.
 
 El monto nunca es un escalar suelto: se modela como un objeto `Monto { valor, moneda, estado,
-reglas_condicionantes[] }`. Esto implementa FR-046a a nivel de tipo — no existe una representación
-del monto sin su marca, así que ninguna vía de salida puede perderla por olvido.
+condicionantes[], grilla_version, a_valores_de }`. Esto implementa FR-046a a nivel de tipo — no
+existe una representación del monto sin su marca, así que ninguna vía de salida puede perderla por
+olvido.
+
+**Condicionantes, no solo reglas** (FR-046b): un condicionante es una regla `NO_VERIFICADA`
+**o** una situación del caso —`grilla_ausente`, `cargo_fuera_de_catalogo`, `override_manual`,
+`supuesto_continuidad`—. Si solo se modelaran las reglas, esas cuatro situaciones tendrían que
+marcar el monto como provisional sin poder explicar por qué, que es exactamente lo que FR-046b
+prohíbe. El tipo lleva `clase` para discriminarlas y `norma` opcional, porque una situación del
+caso no tiene norma asociada.
 
 **Por qué**: FR-046a exige que la marca sea inseparable del monto "en toda vía de salida". Un
 `Decimal` desnudo más un flag aparte depende de que cada serializador recuerde incluir el flag;
@@ -146,6 +189,14 @@ lo usan para errores no controlados, y reservarlo evita que un fallo del runtime
 un caso fuera de alcance. Un resultado provisional sale con **0**, porque es un resultado válido
 del motor (decisión Q3) — lo que lo distingue es `estado_general`, no el exit code.
 
+**El código 3 se deriva del informe, no de una excepción** (FR-045a, FR-045b): el motor **siempre
+devuelve un `Informe`** con lo que sí puede sostener, y la CLI emite 3 cuando ese informe contiene
+al menos una advertencia con `bloquea_calculo`. Abortar con excepción le quitaría al profesional
+el análisis parcial que el motor ya tenía calculado —qué dicen los 25 años que sí son del IPS—, y
+eso contradice el Principio IV, que prefiere un resultado parcial explicado a ninguno. La
+excepción `FueraDeAlcance` queda reservada para **errores de programación**: que una ruta interna
+llegue a calcular un haber sobre un tramo fuera de alcance es un bug, no un caso de usuario.
+
 ---
 
 ## R7 — Interfaz pública de librería
@@ -157,8 +208,9 @@ del motor (decisión Q3) — lo que lo distingue es `estado_general`, no el exit
 calcular(caso: Caso, *, reglas: VersionReglas, grilla: VersionGrilla) -> Informe
 ```
 
-Sin I/O, sin red, sin lectura de disco: los cargadores de reglas y grillas son funciones
-separadas que el llamador invoca antes. El motor recibe datos ya cargados.
+Sin I/O, sin red, sin lectura de disco **y sin reloj**: los cargadores de reglas y grillas son
+funciones separadas que el llamador invoca antes, y la fecha de cálculo entra dentro del `Caso`
+(R13). El motor recibe todo lo que necesita como dato.
 
 **Por qué**: el Principio V exige que el motor no dependa de la app web ni de nada propietario, y
 que corra igual como librería y por CLI. Si `calcular()` no hace I/O, la equivalencia entre ambas
@@ -254,6 +306,29 @@ diagnóstico (SC-008).
 librería loguee libremente delega el cumplimiento en cada `logger.debug()` que alguien escriba; no
 loguear desde la librería lo hace cumplible por construcción. El test con datos marcados
 ("canarios") es lo que lo convierte en verificable y no en una promesa.
+
+---
+
+## R13 — El reloj como entrada, no como ambiente
+
+**Decisión**: `Caso.fecha_de_calculo` es obligatoria y el motor **nunca llama a `date.today()`**.
+Toda comparación relativa a "hoy" —plausibilidad de fechas, proyección de períodos en curso,
+elección de la última grilla aprobada— usa ese campo. La CLI lo completa con la fecha del sistema
+cuando el usuario no lo provee; la librería lo exige. El informe lo declara.
+
+**Por qué**: sin esto, el determinismo del Principio II valdría solo dentro de la misma jornada.
+Un caso archivado junto a un expediente debe producir el mismo informe cuando se lo vuelva a
+correr dentro de un año, tanto para auditar el consejo que se dio como para reproducir un
+resultado discutido. Un `date.today()` escondido en una validación rompe eso de un modo
+particularmente difícil de detectar, porque los tests pasan todos los días menos uno.
+
+**Verificación**: un test prohíbe `date.today()` y `datetime.now()` en `engine/` y `rules/` por
+inspección del AST, y un caso dorado se corre con dos fechas de cálculo distintas para confirmar
+que solo cambian los campos que dependen de ella.
+
+**Alternativa descartada**: inyectar un `clock` como parámetro de `calcular()`. Equivalente en
+determinismo, pero deja la fecha fuera del archivo de caso, y entonces el caso archivado no es
+autosuficiente: reproducir el informe exigiría recordar con qué fecha se corrió.
 
 ---
 

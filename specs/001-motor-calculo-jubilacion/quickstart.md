@@ -103,17 +103,24 @@ uv run ultimo-timbre calcular examples/caso-simultaneo.yaml --formato json | jq 
 ```
 
 **Esperado**:
-- Los dos primeros salen con **exit 3** y explican la situación sin emitir monto.
-- El tercero detecta la simultaneidad, advierte el impacto citando `art. 47; Res. IPS 995/2021`,
-  y **no** calcula el incremento (FR-043).
+- Los dos primeros salen con **exit 3** y **emiten igualmente un informe** con el análisis parcial
+  que el motor sí puede sostener (elegibilidad de los tramos computables, detecciones, desglose),
+  sin haber y con advertencias `bloquea_calculo` (FR-045a, FR-045b). El exit 3 dice "no confíes en
+  el monto", no "no hay análisis".
+- El tercero clasifica la simultaneidad como `simultaneidad_computable_art47` si dura ≥3 años
+  continuos y alcanza al cargo base, advierte el impacto citando `art. 47; Res. IPS 995/2021`, y
+  **no** calcula el incremento (FR-043). Verificá que un solapamiento del mismo cargo en el mismo
+  establecimiento se clasifique como `posible_error_carga` y no como simultaneidad (FR-004).
 
 ```bash
 uv run ultimo-timbre calcular examples/caso-provisional.yaml --formato json \
-  | jq '{estado: .estado_general, reglas: [.escenarios[].haber.reglas_condicionantes[]?.regla_id]}'
+  | jq '{estado: .estado_general, cond: [.escenarios[].haber.condicionantes[]?.referencia]}'
 ```
 
-**Esperado**: `estado_general: "provisional"`, exit **0**, y cada monto con sus
-`reglas_condicionantes` pobladas y su `sentido_impacto` (FR-046a, FR-046b).
+**Esperado**: `estado_general: "provisional"`, exit **0**, y cada monto con sus `condicionantes`
+poblados y su `sentido_impacto` (FR-046a, FR-046b). Verificá que aparecen las dos clases:
+`regla_no_verificada` y `situacion_del_caso` (por ejemplo `grilla_ausente` o
+`supuesto_continuidad`).
 
 **Prueba clave**: no debe existir ninguna forma de obtener el valor del monto sin su estado. Si
 encontrás una ruta de salida que lo entregue desnudo, es un defecto bloqueante (FR-046a).
@@ -122,13 +129,31 @@ encontrás una ruta de salida que lo entregue desnudo, es un defecto bloqueante 
 
 ```bash
 uv run pytest tests/properties/test_determinismo.py tests/properties/test_orden_carga.py
+uv run pytest tests/properties/test_union_tramos.py
 uv run pytest tests/properties/test_canarios.py
+uv run pytest tests/test_sin_reloj.py
 ```
 
 **Esperado**:
 - Dos corridas del mismo caso producen JSON idéntico byte a byte (SC-003).
 - Permutar el orden de los períodos no cambia ningún valor (SC-010).
+- Períodos superpuestos nunca computan más años ni más meses que la unión de sus tramos
+  (invariante I9, SC-014). Este es el test que protege contra el error clásico del dominio:
+  sumar duraciones y producir 40 años de servicio sobre una carrera de 25.
 - Ningún dato marcado como canario aparece en la salida de diagnóstico (SC-008).
+- No existe `date.today()` ni `datetime.now()` en `engine/` ni `rules/`, y el mismo caso corrido
+  con dos fechas de cálculo distintas solo cambia en los campos que dependen de ellas (FR-001a).
+
+### Reproducibilidad en el tiempo
+
+```bash
+uv run ultimo-timbre calcular examples/caso-inc-b.yaml --formato json --fecha-calculo 2026-10-30 > a.json
+uv run ultimo-timbre calcular examples/caso-inc-b.yaml --formato json --fecha-calculo 2026-10-30 > b.json
+diff a.json b.json && echo "idénticos"
+```
+
+**Esperado**: idénticos. Con `--fecha-calculo` fija, el informe es reproducible años después —que
+es el punto de que el motor no lea el reloj.
 
 ### Sin red
 
@@ -165,6 +190,6 @@ gitleaks detect --no-git
 | 3 | Cobertura ≥95 % motor | VI |
 | 4 | Elegibilidad sin grilla | V, US1 |
 | 5 | Escenarios comparables, misma grilla | FR-036a, SC-003 |
-| 6 | Fuera de alcance con exit 3, sin monto | X, I7 |
-| 7 | Determinismo, orden, canarios, sin red | II, III, SC-003/007/008/010 |
+| 6 | Fuera de alcance: exit 3 **con** informe parcial, sin monto | X, I7, FR-045a |
+| 7 | Determinismo, orden, unión de tramos, canarios, sin red ni reloj | II, III, I9, SC-003/007/008/010/014 |
 | 8 | bandit, pip-audit, gitleaks, reuse, SBOM | V, VII |

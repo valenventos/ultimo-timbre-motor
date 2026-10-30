@@ -20,10 +20,15 @@ def calcular(
 ) -> Informe: ...
 ```
 
-**`calcular` no hace I/O**: no lee archivos, no abre sockets, no escribe logs. Recibe datos ya
-cargados y devuelve un `Informe`. Es lo que hace que la equivalencia entre CLI y librería
+**`calcular` no hace I/O ni consulta el reloj**: no lee archivos, no abre sockets, no escribe
+logs y no llama a `date.today()`. Recibe datos ya cargados —incluida `caso.fecha_de_calculo`
+(FR-001a)— y devuelve un `Informe`. Es lo que hace que la equivalencia entre CLI y librería
 (FR-051) sea estructural y no una coincidencia: la CLI es un cargador más un renderizador
 alrededor de esta misma función.
+
+**`calcular` siempre devuelve un `Informe`**, incluso cuando el caso está fuera de alcance: en ese
+caso el informe trae el análisis parcial que sí puede sostenerse, sin haber, con advertencias
+marcadas `bloquea_calculo` (FR-045a). No lanza excepción por casos de usuario.
 
 `grilla=None` es válido: produce un informe sin montos, que es exactamente lo que necesitan las
 historias US1 a US3 (elegibilidad, cargo base y porcentaje sin grilla).
@@ -58,13 +63,15 @@ Ambas renderizan el **mismo** modelo `Informe`. Ninguna recalcula nada.
 ### Modelos exportados
 
 `Caso`, `HistoriaDeServicios`, `PeriodoDeServicio`, `Licencia`, `Establecimiento`,
-`ConjuntoDeReglas`, `Regla`, `Norma`, `CatalogoDeCargos`, `GrillaSalarial`,
-`Informe`, `Elegibilidad`, `CargoBase`, `Escenario`, `Monto`, `ReglaCondicionante`,
-`PasoDelDesglose`, `Procedencia`, `Advertencia`, `Versiones`.
+`ConjuntoDeReglas`, `Regla`, `Norma`, `CatalogoDeCargos`,
+`GrillaSalarial`, `ValorCargo`, `ComponenteSalarial`,
+`Informe`, `Elegibilidad`, `CargoBase`, `Escenario`, `Monto`, `Condicionante`,
+`PasoDelDesglose`, `Procedencia`, `Advertencia`, `Superposicion`, `Versiones`.
 
 Enums: `SituacionRevista`, `TipoLicencia`, `TipoEstablecimiento`, `CajaAportes`,
-`NaturalezaServicio`, `EstadoResultado`, `SentidoImpacto`, `CodigoAdvertencia`, `TipoFuente`,
-`ViaCargoBase`, `TipoEscenario`, `Formato`.
+`NaturalezaServicio`, `ClasificacionSuperposicion`, `EstadoResultado`, `SentidoImpacto`,
+`ClaseCondicionante`, `CodigoAdvertencia`, `TipoFuente`, `ViaCargoBase`, `TipoEscenario`,
+`Formato`.
 
 Ver [`data-model.md`](../data-model.md) para los campos de cada uno.
 
@@ -73,15 +80,21 @@ Ver [`data-model.md`](../data-model.md) para los campos de cada uno.
 | Excepción | Cuándo | Exit code CLI |
 |---|---|---|
 | `CasoInvalido` | Schema o coherencia temporal (FR-003) | 2 |
-| `FueraDeAlcance` | Otra caja, privado, promedio art. 41 (FR-044, FR-045, FR-020b) | 3 |
 | `ReglasNoDisponibles` | Versión de reglas inexistente | 2 |
+| `FueraDeAlcance` | **Solo error de programación** (ver abajo) | 4 |
 
 Todas derivan de `UltimoTimbreError`. Llevan el `periodo_idx` y el campo afectado, nunca valores
 de dominio (FR-054).
 
-**`FueraDeAlcance` es una excepción y no un informe vacío** a propósito: el Principio X exige que
-esos casos se detecten e informen sin calcular, y una excepción tipada hace imposible que el flujo
-continúe y produzca un número por accidente.
+**Un caso fuera de alcance NO es una excepción.** El motor devuelve un `Informe` con lo que sí
+puede sostener y advertencias bloqueantes (FR-045a); la CLI traduce eso a exit 3 (FR-045b).
+Abortar con excepción le quitaría al profesional el análisis parcial que el motor ya tenía
+calculado —qué dicen los 25 años que sí son del IPS—, y el Principio IV prefiere un resultado
+parcial explicado a ninguno.
+
+`FueraDeAlcance` queda reservada para **errores de programación**: que una ruta interna llegue a
+valuar un tramo marcado fuera de alcance es un bug del motor, no un caso de usuario. Si se
+dispara en producción, es un 4.
 
 ## Garantías
 
@@ -92,7 +105,9 @@ continúe y produzca un número por accidente.
 | Sin red en ninguna ruta | test con sockets bloqueados |
 | Sin logging propio (solo `NullHandler`) | test de canarios (I8) |
 | Sin escritura a disco desde `calcular` | test con filesystem de solo lectura |
-| `Monto` nunca existe sin su estado | invariante de tipo (I5) |
+| Sin reloj: no hay `date.today()` en `engine/` ni `rules/` | inspección de AST + doble corrida con fechas de cálculo distintas |
+| `Monto` nunca existe sin su estado y sus condicionantes | invariante de tipo (I5) |
+| Los cómputos usan la unión de tramos, nunca la suma de duraciones | property test (I9) |
 
 ## Estabilidad
 

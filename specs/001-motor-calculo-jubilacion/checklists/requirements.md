@@ -102,11 +102,15 @@ Totales finales: 6 historias, **73 requisitos funcionales**, 13 criterios de éx
   salen marcados como provisionales. Conviene atacar la #1 (tope de antigüedad) y la #2
   (conceptos que integran la remuneración) antes de implementar la US4, porque son las dos que
   más montos condicionan.
-- **Pendiente de gobernanza**: la constitución v1.0.0 enumera 7 cuestiones abiertas. Esta spec
-  introduce la **#8** (alcance de la Ley 13469 a otros cargos del escalafón, impacto 70 % vs
-  75 %) y **amplía la #5** (incidencia de la situación de revista en el cargo base). Ambas están
-  registradas en la spec con su nota de gobernanza, pero formalizarlas en la constitución
-  requiere una enmienda **MINOR** vía `/speckit-constitution`. No bloquea `/speckit-plan`.
+- **Gobernanza — resuelto**: la Cuestión abierta **#8** (alcance de la Ley 13469, impacto 70 % vs
+  75 %) fue incorporada a la constitución en la enmienda **v1.1.0** (2026-10-30), junto con las
+  dos filas del Marco normativo que la sostienen. La constitución enumera ahora 8 cuestiones
+  abiertas.
+- **Gobernanza — pendiente**: la **ampliación de la Cuestión abierta #5** (si la situación de
+  revista condiciona la elección del cargo base, art. 41 "de que era titular", FR-024a) todavía
+  NO está en la constitución. Vive en esta spec y el motor la trata como cualquier otra regla
+  `NO_VERIFICADA`; formalizarla requiere otra enmienda MINOR vía `/speckit-constitution`. No
+  bloquea `/speckit-tasks`.
 - La #8 es, de las cuestiones abiertas, la de mayor impacto sobre la elegibilidad: no mueve el
   monto al margen, decide si el acceso es por el inciso b (art. 43, 75 % base) o por los incisos
   c/d (art. 41, 70 % base).

@@ -241,8 +241,20 @@ desconectada de la red.
   parcial se explica con su advertencia (Principio IV).
 - ¿Qué pasa si dos períodos de la historia de servicios se superponen en el tiempo? Se detecta
   como posible simultaneidad o como error de carga, y se pide al usuario que lo confirme.
-- ¿Qué pasa si un período tiene fecha de fin anterior a la de inicio, o se extiende más allá de
-  la fecha de cese evaluada? Se rechaza con un mensaje que nombra el período.
+- ¿Qué pasa si un período tiene fecha de fin anterior a la de inicio? Se rechaza con un mensaje
+  que nombra el período y el campo (FR-003).
+- ¿Qué pasa si un período se extiende más allá de la fecha de cese evaluada? No se rechaza: se
+  **recorta** a esa fecha, y cada fecha de cese del mismo caso recorta de forma independiente
+  (FR-018a).
+- ¿Qué pasa si un período no declara fecha de fin? Es un período en curso: se proyecta hasta cada
+  fecha de cese bajo supuesto de continuidad en el mismo cargo, el supuesto queda en la
+  procedencia y como advertencia, y condiciona todo monto que dependa de él (FR-002e).
+- ¿Qué pasa si dos períodos simultáneos cubren el mismo año? Aporta **un** año de servicio, no
+  dos: el cómputo es sobre la unión de tramos temporales (FR-004a).
+- ¿Qué pasa si el mismo cargo en el mismo establecimiento aparece dos veces solapado? Se clasifica
+  como posible error de carga, no como simultaneidad, y se pide confirmación (FR-004).
+- ¿Qué pasa si el caso no declara fecha de cálculo? La línea de comandos la completa con la fecha
+  del sistema; el motor como librería la exige. El motor nunca lee el reloj (FR-001a).
 - ¿Qué pasa con las licencias sin goce de haberes dentro del cómputo de los 36/60 meses y de los
   años de servicio? Depende de la Cuestión abierta #5; hasta resolverla la regla es
   `NO_VERIFICADA` y el motor advierte el impacto.
@@ -283,10 +295,24 @@ desconectada de la red.
 
 - **FR-001**: El motor DEBE aceptar la fecha de nacimiento de la persona y una o más fechas de
   cese a evaluar.
+- **FR-001a**: El caso DEBE declarar una **fecha de cálculo** explícita. El motor NUNCA consulta
+  el reloj del sistema: toda validación o derivación relativa a "hoy" usa esa fecha. La interfaz
+  de línea de comandos la completa con la fecha del sistema cuando el usuario no la provee, y el
+  informe la declara `[Principio II]`.
 - **FR-002**: El motor DEBE aceptar una historia de servicios como lista de períodos, donde cada
   período declara: cargo u horas cátedra/módulos, establecimiento estatal de la DGCyE, fecha de
-  inicio, fecha de fin, situación de revista y las licencias con su tipo y fechas. La condición
-  de **al frente de alumnos NO es un dato de entrada libre**: se deriva del cargo (FR-002a).
+  inicio, fecha de fin (**opcional**), caja de aportes, situación de revista y las licencias con
+  su tipo y fechas. La condición de **al frente de alumnos** y la **naturaleza del servicio**
+  (docente / no docente) NO son datos de entrada libres: se derivan del cargo (FR-002a, FR-002d).
+- **FR-002d**: La **naturaleza del servicio** (docente o no docente) DEBE derivarse del cargo
+  mediante el mismo catálogo versionado que resuelve la condición de al frente de alumnos. Es
+  corregible por el usuario con el mismo tratamiento de dato manual que FR-002b. La **caja de
+  aportes** sí es un dato de entrada del período, porque depende de la relación de empleo y no
+  del cargo.
+- **FR-002e**: Un período PUEDE no declarar fecha de fin, representando un **período en curso**.
+  Para cada fecha de cese evaluada, el motor DEBE proyectar ese período hasta esa fecha bajo el
+  **supuesto de continuidad en el mismo cargo**, registrar el supuesto en la procedencia (FR-039)
+  y emitir una advertencia. El supuesto condiciona todo monto que dependa de él (FR-046a).
 - **FR-002a**: El motor DEBE derivar la condición de al frente de alumnos **a partir del cargo**,
   usando un **catálogo de cargos versionado** que declara, por cada cargo, su condición y la
   norma que la sostiene. El catálogo DEBE incluir al menos: preceptores y bibliotecarios
@@ -300,11 +326,24 @@ desconectada de la red.
   caso dependen de esa extensión, el resultado se marca como provisional y la advertencia indica
   el impacto posible `[Ley 13469 — NO_VERIFICADA: interpretación discutida, SCBA causa A 74801
   (2020); Cuestión abierta #8 — impacto 70 % vs 75 %]`.
-- **FR-003**: El motor DEBE validar la coherencia temporal de cada período (fin posterior a
-  inicio, fechas dentro de rangos plausibles) y rechazar la entrada inválida nombrando el período
-  y el campo afectado.
-- **FR-004**: El motor DEBE detectar superposición temporal entre períodos y clasificarla como
-  simultaneidad de cargos o como posible error de carga, sin resolverla por su cuenta.
+- **FR-003**: El motor DEBE validar la coherencia temporal de cada período (fin posterior o igual
+  al inicio cuando el fin se declara, fechas dentro de rangos plausibles respecto de la fecha de
+  cálculo) y rechazar la entrada inválida nombrando el período y el campo afectado. Que un
+  período supere la fecha de cese evaluada NO es una entrada inválida: se recorta (FR-018a).
+- **FR-004**: El motor DEBE detectar toda superposición temporal entre períodos y clasificarla
+  en exactamente una de tres categorías, sin resolverla por su cuenta:
+  1. **`simultaneidad_computable_art47`**: el solapamiento dura 3 años continuos o más **y**
+     alcanza al cargo base. Es la que tendría incidencia en el haber por el art. 47, y la que el
+     motor detecta y advierte sin calcular `[DL 9650/80, art. 47; Res. IPS 995/2021]`.
+  2. **`simultaneidad_no_computable`**: solapamiento real de cargos distintos que no reúne las
+     condiciones anteriores. Se informa, sin impacto en el haber.
+  3. **`posible_error_carga`**: solapamiento del **mismo cargo en el mismo establecimiento**, que
+     casi siempre indica una carga duplicada. Se informa para que el usuario lo confirme o lo
+     corrija.
+- **FR-004a**: Los años de servicio y los meses que sustentan el cargo base DEBEN computarse
+  sobre la **unión de los tramos temporales** cubiertos por los períodos, nunca sumando las
+  duraciones de períodos que se superponen. Dos cargos simultáneos durante un mismo año aportan
+  un año de servicio, no dos.
 - **FR-005**: El motor NO DEBE requerir ni aceptar archivos PDF ni ninguna forma de extracción
   automática de recibos en esta funcionalidad.
 
@@ -348,6 +387,9 @@ desconectada de la red.
   resulta más favorable y por qué.
 - **FR-018**: El motor DEBE cerrar los cómputos a la fecha de cese evaluada, sin computar
   servicios posteriores `[DL 9650/80, arts. 71 y 72]`.
+- **FR-018a**: Un período que se extiende más allá de la fecha de cese evaluada NO DEBE
+  rechazarse: se **recorta** a esa fecha. El mismo caso puede evaluarse contra varias fechas de
+  cese, y cada una recorta de forma independiente.
 
 #### Cargo base (art. 41)
 
@@ -420,6 +462,13 @@ desconectada de la red.
 - **FR-031**: Qué conceptos del recibo integran la remuneración asignada al cargo DEBE provenir
   del conjunto de reglas y marcarse como no definitivo hasta verificarse
   `[DL 9650/80, art. 40 — NO_VERIFICADA, Cuestión abierta #2]`.
+- **FR-031a**: El valor de un cargo en la grilla DEBE expresarse como un conjunto de
+  **componentes**, cada uno con su código de concepto, su importe, si es **bonificable** (si
+  sobre él se aplica la antigüedad) y si es **remunerativo**. El haber no se calcula sobre un
+  importe único e indiviso.
+- **FR-031b**: La bonificación por antigüedad DEBE aplicarse **únicamente sobre los componentes
+  bonificables**, nunca sobre el total del cargo
+  `[Ley 10579 art. 33 — NO_VERIFICADA: tope, Cuestión abierta #1]`.
 - **FR-032**: La escala de bonificación por antigüedad DEBE marcarse como no definitiva hasta
   confirmar el tope vigente `[Ley 10579 art. 33; Decreto 818/13 — NO_VERIFICADA: tope 120 % vs
   125 %, Cuestión abierta #1]`.
@@ -465,16 +514,26 @@ desconectada de la red.
 - **FR-045**: El motor DEBE detectar establecimientos de gestión privada, solicitudes de
   jubilación por invalidez o por edad avanzada, y pensiones, y reportarlos como fuera de alcance
   sin calcular.
+- **FR-045a**: Un caso fuera de alcance NO DEBE abortar el cálculo. El motor DEBE devolver un
+  informe con **todo lo que sí puede sostener** (elegibilidad parcial, detecciones, desglose de
+  lo computado), **sin haber**, y con una advertencia marcada como **bloqueante** por cada
+  situación detectada. El profesional necesita saber qué parte del caso sí se pudo analizar; una
+  negativa total le quita información que el motor tenía `[Principio IV]`.
+- **FR-045b**: La interfaz de línea de comandos DEBE devolver el código de salida de caso fuera
+  de alcance cuando el informe contenga al menos una advertencia bloqueante (FR-056).
 - **FR-046**: Cuando una regla `NO_VERIFICADA` interviene en un resultado, el motor DEBE emitir
   el resultado marcado como **provisional**, nunca como definitivo, y explicar qué falta verificar
   `[Principio I]`.
 - **FR-046a**: La marca de provisional es **inseparable del monto**: ninguna vía de salida del
   motor —informe, exportación en cualquier formato, o lectura por la interfaz de librería— puede
-  entregar el monto sin su marca y sin la lista de reglas que lo condicionan. Una salida que
-  omita la marca es un defecto bloqueante.
-- **FR-046b**: El informe DEBE listar cada regla `NO_VERIFICADA` que condiciona el monto
-  indicando, para cada una, **en qué sentido podría alterarlo**: al alza, a la baja o
-  indeterminado, con la magnitud estimada cuando se la pueda acotar.
+  entregar el monto sin su marca y sin la lista de **condicionantes**. Una salida que omita la
+  marca es un defecto bloqueante.
+- **FR-046b**: El informe DEBE listar cada **condicionante** del monto indicando, para cada uno,
+  **en qué sentido podría alterarlo**: al alza, a la baja o indeterminado, con la magnitud
+  estimada cuando se la pueda acotar. Un condicionante es una regla `NO_VERIFICADA` **o** una
+  **situación del caso** que introduce incertidumbre: grilla ausente (FR-034), cargo fuera del
+  catálogo, corrección manual de un dato derivado (FR-002b, FR-002d) o supuesto de continuidad de
+  un período en curso (FR-002e).
 - **FR-046c**: El resultado DEBE exponer un **estado general legible por máquina** con valor
   `definitivo` o `provisional`, de modo que una herramienta que consuma el informe pueda bloquear
   automáticamente el uso de un monto provisional sin interpretar texto.
@@ -566,20 +625,32 @@ condición de al frente de alumnos. La interpretación está discutida (SCBA, ca
 su impacto es de **70 % vs 75 %** sobre el haber base, porque determina si el acceso es por el
 inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-011 y FR-012.
 
-> **Nota de gobernanza**: la constitución (`.specify/memory/constitution.md` v1.0.0) enumera 7
-> cuestiones abiertas. La #8 y la ampliación de la #5 nacen de esta especificación y todavía no
-> están incorporadas allí. Formalizarlas requiere una enmienda MINOR vía `/speckit-constitution`.
-> Hasta entonces viven en esta spec y el motor las trata como cualquier otra regla
-> `NO_VERIFICADA`.
+> **Nota de gobernanza**: la Cuestión abierta #8 fue **incorporada a la constitución** en la
+> enmienda **v1.1.0** (2026-10-30), junto con las dos filas del Marco normativo que la sostienen
+> (cargos al frente de alumnos por Leyes 13469, 10745 y 11860; y el cómputo del excedente por
+> Res. IPS 995/2021, Anexo 2.1.a). La constitución enumera ahora 8 cuestiones abiertas.
+>
+> **Pendiente**: la ampliación de la Cuestión abierta #5 (si la situación de revista condiciona
+> la elección del cargo base, art. 41 "de que era titular", FR-024a) todavía NO está incorporada
+> a la constitución. Vive en esta spec y el motor la trata como cualquier otra regla
+> `NO_VERIFICADA`; formalizarla requiere otra enmienda MINOR vía `/speckit-constitution`.
 
 ### Key Entities
 
 - **Persona**: la docente cuyo beneficio se estima. Atributos mínimos: fecha de nacimiento. No se
   persiste ni se identifica nominalmente en ninguna salida de diagnóstico.
-- **Período de servicio**: un tramo continuo de desempeño. Cargo u horas cátedra/módulos,
-  establecimiento, fecha de inicio, fecha de fin, situación de revista y licencias asociadas. La
-  condición de al frente de alumnos no se carga: se deriva del cargo vía el catálogo de cargos, y
-  solo puede sobrescribirse manualmente dejando rastro en la procedencia.
+- **Período de servicio**: un tramo de desempeño. Cargo u horas cátedra/módulos, establecimiento,
+  caja de aportes, fecha de inicio, fecha de fin **opcional** (ausente = período en curso),
+  situación de revista y licencias asociadas. Ni la condición de al frente de alumnos ni la
+  naturaleza del servicio se cargan: se derivan del cargo vía el catálogo, y solo pueden
+  sobrescribirse manualmente dejando rastro en la procedencia.
+- **Fecha de cálculo**: la fecha respecto de la cual el motor evalúa todo lo relativo a "hoy".
+  Es una entrada explícita del caso, no el reloj del sistema, y el informe la declara.
+- **Superposición**: un solapamiento temporal entre dos períodos, clasificado como simultaneidad
+  computable por el art. 47, simultaneidad no computable, o posible error de carga.
+- **Componente salarial**: una línea del valor de un cargo en la grilla, con su código de
+  concepto, importe, si es bonificable (si la antigüedad se aplica sobre él) y si es
+  remunerativo.
 - **Catálogo de cargos versionado**: la correspondencia entre cada cargo del escalafón y su
   condición de al frente de alumnos, con la norma que la sostiene y su estado de verificación.
   Incluye los cargos alcanzados por las Leyes 13469, 10745 y 11860.
@@ -600,10 +671,14 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
   alternados, con los períodos que lo sustentan y los candidatos descartados con su razón.
 - **Escenario de cese**: fecha, inciso por el que accede, porcentaje, haber estimado y
   advertencias propias de esa fecha.
-- **Advertencia**: una situación que el usuario debe conocer. Tipo (dato faltante, simultaneidad,
-  servicios no docentes sin computar, fuera de alcance, regla no verificada, grilla ausente),
-  norma asociada si la tiene, su efecto sobre el resultado y, cuando condiciona un monto, el
-  sentido del impacto posible (al alza, a la baja, indeterminado).
+- **Advertencia**: una situación que el usuario debe conocer. Tipo (dato faltante, cada clase de
+  simultaneidad, servicios no docentes sin computar, fuera de alcance, regla no verificada,
+  grilla ausente, cargo fuera de catálogo, supuesto de continuidad, dato corregido a mano), norma
+  asociada si la tiene, su efecto sobre el resultado, si **bloquea el cálculo** del haber y,
+  cuando condiciona un monto, el sentido del impacto posible.
+- **Condicionante**: aquello que impide que un monto sea definitivo. Es una regla
+  `NO_VERIFICADA` **o** una situación del caso (grilla ausente, cargo fuera de catálogo,
+  corrección manual, supuesto de continuidad). Viaja siempre junto al monto.
 - **Estado del resultado**: el veredicto general del informe, `definitivo` o `provisional`,
   legible por máquina, derivado de las reglas `NO_VERIFICADA` y las situaciones detectadas que
   intervinieron. Acompaña inseparablemente a todo monto emitido.
@@ -640,6 +715,10 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
   `NO_VERIFICADA`; todos ellos salen marcados como provisionales.
 - **SC-010**: Cambiar el orden de carga de los períodos de la historia de servicios no altera
   ningún valor del informe.
+- **SC-014**: Dos cargos simultáneos durante un mismo tramo aportan ese tramo una sola vez al
+  cómputo de años de servicio y de meses del cargo base.
+- **SC-015**: Un caso fuera de alcance recibe igualmente el análisis parcial que el motor sí
+  puede sostener, con sus advertencias bloqueantes y sin haber.
 - **SC-011**: Ninguna vía de salida del motor entrega un monto sin su marca de estado y sin la
   lista de reglas que lo condicionan, verificable recorriendo todas las salidas disponibles
   (informe, exportaciones e interfaz de librería).
@@ -675,6 +754,11 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
 - El archivo de caso es un formato propio del proyecto, legible y versionable, apto para
   adjuntarse a un expediente.
 - No hay requisitos de concurrencia: el motor procesa un caso por corrida.
+- El motor no tiene noción propia del tiempo: la fecha de cálculo entra como dato. Esto es lo que
+  hace que un caso archivado hoy produzca dentro de un año exactamente el mismo informe.
+- La proyección de un período en curso asume continuidad en el **mismo cargo**, sin ascensos ni
+  cambios de situación de revista. Es el supuesto más conservador disponible y queda explícito en
+  el informe.
 
 ## Clarifications
 
