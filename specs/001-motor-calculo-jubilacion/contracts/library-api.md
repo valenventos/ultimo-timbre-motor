@@ -54,7 +54,7 @@ decide, y `calcular` emite la advertencia `grilla_ausente` con el monto marcado 
 ### Serialización
 
 ```python
-def informe_a_json(informe: Informe) -> str: ...   # determinista, sort_keys
+def informe_a_json(informe: Informe) -> str: ...  # determinista, sort_keys
 def informe_a_texto(informe: Informe) -> str: ...  # legible en terminal
 ```
 

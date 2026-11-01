@@ -41,19 +41,21 @@ Los fixtures de recibos DEBEN estar anonimizados — nunca se suben recibos con 
 **Purpose**: Esqueleto del paquete, licencia y el pipeline de CI completo. El CI se arma **antes**
 que el código para que los gates existan desde el primer commit, no después.
 
-- [ ] T001 Crear estructura `src/ultimo_timbre/{models,rules,engine,render,cli}/`, `tests/{golden,properties,contract,unit,cli,fixtures}/`, `rules/`, `grids/`, `schemas/`, `examples/`, `docs/adr/` con sus `__init__.py`
-- [ ] T002 Configurar `pyproject.toml` con uv: Python 3.12, dependencias (pydantic>=2, python-dateutil, pyyaml, typer) y extras de desarrollo (pytest, hypothesis, pytest-cov, jsonschema, check-jsonschema, ruff, mypy, bandit, pip-audit, reuse, cyclonedx-py)
-- [ ] T003 [P] Crear `LICENSE` con el texto AGPL-3.0-or-later y declarar `license = "AGPL-3.0-or-later"` en `pyproject.toml`
-- [ ] T004 [P] Agregar encabezado `SPDX-License-Identifier: AGPL-3.0-or-later` como primera línea de todo archivo fuente y configurar `REUSE.toml`
-- [ ] T005 [P] Configurar ruff (lint + format) en `pyproject.toml`
-- [ ] T006 [P] Configurar `mypy --strict` en `pyproject.toml` con el plugin `pydantic.mypy` habilitado y `disallow_any_explicit` en `ultimo_timbre.engine` (research R9)
-- [ ] T007 [P] Configurar pytest y pytest-cov en `pyproject.toml` con `--cov-branch` y umbrales **por paquete**: 95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, 80 % en el resto
-- [ ] T008 Crear `.github/workflows/ci.yml` con matriz `ubuntu-latest / macos-latest / windows-latest` × Python 3.12 usando uv, ejecutando tests y cobertura
-- [ ] T009 [P] Agregar al CI el job de calidad: `ruff check`, `ruff format --check` y `mypy --strict`
-- [ ] T010 [P] Agregar al CI el job de seguridad: `bandit -r src/`, `pip-audit` y `gitleaks detect`; un hallazgo alto o crítico bloquea el merge (Principio VII)
-- [ ] T011 [P] Agregar al CI el job de licencia (`reuse lint`) y el de SBOM (`cyclonedx-py environment -o sbom.cdx.json` como artifact)
-- [ ] T012 [P] Agregar al CI el job `validate-schemas` que corre `check-jsonschema` sobre `rules/**/*.yaml`, `rules/**/cargos.yaml` y `grids/*.yaml`
-- [ ] T013 [P] Crear `docs/adr/0000-plantilla.md` y `docs/adr/0001-stack-y-decisiones-base.md` registrando R1 a R13 de `research.md`
+- [X] T001 Crear estructura `src/ultimo_timbre/{models,rules,engine,render,cli}/`, `tests/{golden,properties,contract,unit,cli,fixtures}/`, `rules/`, `grids/`, `schemas/`, `examples/`, `docs/adr/` con sus `__init__.py`
+- [X] T002 Configurar `pyproject.toml` con uv: Python 3.12, dependencias (pydantic>=2, python-dateutil, pyyaml, typer) y extras de desarrollo (pytest, hypothesis, pytest-cov, jsonschema, check-jsonschema, ruff, mypy, bandit, pip-audit, reuse, cyclonedx-py)
+- [X] T003 [P] Crear `LICENSE` con el texto AGPL-3.0-or-later y declarar `license = "AGPL-3.0-or-later"` en `pyproject.toml`
+<!-- REUSE-IgnoreStart -->
+- [X] T004 [P] Agregar encabezado `SPDX-License-Identifier: AGPL-3.0-or-later` como primera línea de todo archivo fuente y configurar `REUSE.toml`
+<!-- REUSE-IgnoreEnd -->
+- [X] T005 [P] Configurar ruff (lint + format) en `pyproject.toml`
+- [X] T006 [P] Configurar `mypy --strict` en `pyproject.toml` con el plugin `pydantic.mypy` habilitado y `disallow_any_explicit` en `ultimo_timbre.engine` (research R9)
+- [X] T007 [P] Configurar pytest y pytest-cov en `pyproject.toml` con `--cov-branch` y umbrales **por paquete**: 95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, 80 % en el resto
+- [X] T008 Crear `.github/workflows/ci.yml` con matriz `ubuntu-latest / macos-latest / windows-latest` × Python 3.12 usando uv, ejecutando tests y cobertura
+- [X] T009 [P] Agregar al CI el job de calidad: `ruff check`, `ruff format --check` y `mypy --strict`
+- [X] T010 [P] Agregar al CI el job de seguridad: `bandit -r src/`, `pip-audit` y `gitleaks detect`; un hallazgo alto o crítico bloquea el merge (Principio VII)
+- [X] T011 [P] Agregar al CI el job de licencia (`reuse lint`) y el de SBOM (`cyclonedx-py environment -o sbom.cdx.json` como artifact)
+- [X] T012 [P] Agregar al CI el job `validate-schemas` que corre `check-jsonschema` sobre `rules/**/*.yaml`, `rules/**/cargos.yaml` y `grids/*.yaml`
+- [X] T013 [P] Crear `docs/adr/0000-plantilla.md` y `docs/adr/0001-stack-y-decisiones-base.md` registrando R1 a R13 de `research.md`
 
 **Checkpoint**: el repositorio tiene licencia, calidad, seguridad y SBOM verificados en CI antes de existir una sola línea de dominio.
 

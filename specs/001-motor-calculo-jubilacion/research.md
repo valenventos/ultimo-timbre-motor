@@ -257,8 +257,10 @@ combinación.
 
 ## R10 — Licencia AGPL y encabezados SPDX
 
+<!-- REUSE-IgnoreStart -->
 **Decisión**: `LICENSE` con AGPL-3.0-or-later, `SPDX-License-Identifier: AGPL-3.0-or-later` como
-primera línea de cada archivo fuente, y verificación en CI con la herramienta `reuse` (REUSE 3.0).
+primera línea de cada archivo fuente
+<!-- REUSE-IgnoreEnd -->, y verificación en CI con la herramienta `reuse` (REUSE 3.0).
 `pyproject.toml` declara `license = "AGPL-3.0-or-later"`.
 
 **Por qué**: el Principio V fija la licencia. Verificarlo en CI evita que archivos nuevos entren

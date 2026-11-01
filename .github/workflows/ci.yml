@@ -1,0 +1,202 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Pipeline de CI de Último Timbre.
+# Los gates existen desde el primer commit, antes del código de dominio:
+# un hallazgo alto o crítico bloquea el merge (Principio VII).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.5.11"
+
+jobs:
+  # -------------------------------------------------------------------------
+  # T008 — tests y cobertura en las tres plataformas
+  # -------------------------------------------------------------------------
+  tests:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Instalar dependencias
+        run: uv sync --all-extras --dev
+
+      - name: Tests y cobertura global (>=80 %)
+        run: uv run pytest
+
+      # T007 — el umbral reforzado del motor no se puede expresar en pyproject
+      # (--cov-fail-under es un único valor global), así que se verifica acá.
+      - name: Cobertura de motor y reglas (>=95 %)
+        run: >-
+          uv run coverage report
+          --include="src/ultimo_timbre/engine/*,src/ultimo_timbre/rules/*"
+          --fail-under=95
+
+      - name: Subir reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-${{ matrix.os }}
+          path: .coverage
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+  # -------------------------------------------------------------------------
+  # T009 — calidad: lint, formato y tipos
+  # -------------------------------------------------------------------------
+  calidad:
+    name: calidad (ruff + mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      - name: ruff check
+        run: uv run ruff check .
+
+      - name: ruff format --check
+        run: uv run ruff format --check .
+
+      - name: mypy --strict
+        run: uv run mypy
+
+  # -------------------------------------------------------------------------
+  # T010 — seguridad: SAST, dependencias y secretos (Principio VII)
+  # -------------------------------------------------------------------------
+  seguridad:
+    name: seguridad (bandit + pip-audit + gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks necesita el historial completo
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # -ll: solo severidad media y alta. Un hallazgo alto o crítico bloquea.
+      - name: bandit (SAST)
+        run: uv run bandit -r src/ -ll
+
+      - name: pip-audit (dependencias)
+        run: uv run pip-audit
+
+      - name: gitleaks (secretos)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # -------------------------------------------------------------------------
+  # T011 — licencia y SBOM (Principios V y VII)
+  # -------------------------------------------------------------------------
+  licencia-y-sbom:
+    name: licencia (reuse) + SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # reuse no respeta .gitignore en todos los entornos y marcaría los .pyc
+      # como archivos sin licencia. Se limpian antes para que el gate sea
+      # determinista y no dependa de si algo se ejecutó en este runner.
+      - name: Limpiar artefactos de bytecode
+        run: find . -name __pycache__ -type d -not -path "./.venv/*" -prune -exec rm -rf {} +
+
+      - name: reuse lint (todo archivo con encabezado SPDX)
+        run: uv run reuse lint
+
+      - name: Generar SBOM CycloneDX
+        run: uv run cyclonedx-py environment --output-format JSON --output-file sbom.cdx.json
+
+      - name: Subir SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+  # -------------------------------------------------------------------------
+  # T012 — validación de los datos normativos versionados (Principio I)
+  # -------------------------------------------------------------------------
+  validate-schemas:
+    name: validate-schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # Los schemas y los YAML aparecen en la Fase 2 (T025-T027, T039-T042).
+      # Hasta entonces estos pasos no tienen nada que validar y se saltan solo:
+      # no se marcan como éxito falso.
+      - name: Reglas del régimen
+        run: |
+          if compgen -G "rules/*/*.yaml" > /dev/null && [ -f schemas/rule.schema.json ]; then
+            uv run check-jsonschema --schemafile schemas/rule.schema.json rules/*/*.yaml
+          else
+            echo "::notice::sin reglas ni schema todavía (llegan en la Fase 2) — nada que validar"
+          fi
+
+      - name: Catálogo de cargos
+        run: |
+          if [ -f schemas/cargo.schema.json ] && compgen -G "rules/*/cargos.yaml" > /dev/null; then
+            uv run check-jsonschema --schemafile schemas/cargo.schema.json rules/*/cargos.yaml
+          else
+            echo "::notice::sin catálogo ni schema todavía — nada que validar"
+          fi
+
+      - name: Grillas salariales
+        run: |
+          if [ -f schemas/grid.schema.json ] && compgen -G "grids/*.yaml" > /dev/null; then
+            uv run check-jsonschema --schemafile schemas/grid.schema.json grids/*.yaml
+          else
+            echo "::notice::sin grillas ni schema todavía — nada que validar"
+          fi
+
+      # Una grilla ficticia nunca puede vivir en grids/ (T024, T036, T038).
+      - name: Ninguna grilla ficticia en grids/
+        run: |
+          if grep -rl 'ficticia:[[:space:]]*true' grids/ 2>/dev/null; then
+            echo "::error::hay una grilla con 'ficticia: true' en grids/ — solo puede vivir en tests/fixtures/"
+            exit 1
+          fi
+          echo "ok: grids/ sin grillas ficticias"

@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Entornos virtuales (uv)
+.venv/
+venv/
+env/
+
+# Pruebas y cobertura
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Tipos y lint
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+
+# Seguridad y SBOM (se generan en CI, no se versionan)
+sbom.cdx.json
+bandit-report.json
+
+# Datos de casos — NUNCA se versionan (Principio III: no guardamos casos)
+/casos/
+*.caso.yaml
+*.caso.json
+*-real.yaml
+*-real.json
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# Secretos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
