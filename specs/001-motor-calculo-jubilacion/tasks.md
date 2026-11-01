@@ -41,20 +41,25 @@ Los fixtures de recibos DEBEN estar anonimizados — nunca se suben recibos con 
 **Purpose**: Esqueleto del paquete, licencia y el pipeline de CI completo. El CI se arma **antes**
 que el código para que los gates existan desde el primer commit, no después.
 
+> **Archivos compartidos — sin `[P]` en esta fase**: T002 a T007 escriben todas el mismo
+> `pyproject.toml`, y T008 a T012 el mismo `.github/workflows/ci.yml`. Ninguna de esas dos series
+> es paralelizable: hay que escribirlas en orden sobre un archivo coherente. T005, T006 y T007
+> requieren que T002 ya haya creado el `pyproject.toml`; T009 a T012 requieren T008.
+
 - [X] T001 Crear estructura `src/ultimo_timbre/{models,rules,engine,render,cli}/`, `tests/{golden,properties,contract,unit,cli,fixtures}/`, `rules/`, `grids/`, `schemas/`, `examples/`, `docs/adr/` con sus `__init__.py`
 - [X] T002 Configurar `pyproject.toml` con uv: Python 3.12, dependencias (pydantic>=2, python-dateutil, pyyaml, typer) y extras de desarrollo (pytest, hypothesis, pytest-cov, jsonschema, check-jsonschema, ruff, mypy, bandit, pip-audit, reuse, cyclonedx-py)
-- [X] T003 [P] Crear `LICENSE` con el texto AGPL-3.0-or-later y declarar `license = "AGPL-3.0-or-later"` en `pyproject.toml`
+- [X] T003 Crear `LICENSE` con el texto AGPL-3.0-or-later y declarar `license = "AGPL-3.0-or-later"` en `pyproject.toml`
 <!-- REUSE-IgnoreStart -->
 - [X] T004 [P] Agregar encabezado `SPDX-License-Identifier: AGPL-3.0-or-later` como primera línea de todo archivo fuente y configurar `REUSE.toml`
 <!-- REUSE-IgnoreEnd -->
-- [X] T005 [P] Configurar ruff (lint + format) en `pyproject.toml`
-- [X] T006 [P] Configurar `mypy --strict` en `pyproject.toml` con el plugin `pydantic.mypy` habilitado y `disallow_any_explicit` en `ultimo_timbre.engine` (research R9)
-- [X] T007 [P] Configurar pytest y pytest-cov en `pyproject.toml` con `--cov-branch` y umbrales **por paquete**: 95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, 80 % en el resto
+- [X] T005 Configurar ruff (lint + format) en `pyproject.toml`
+- [X] T006 Configurar `mypy --strict` en `pyproject.toml` con el plugin `pydantic.mypy` habilitado y `disallow_any_explicit` en `ultimo_timbre.engine` (research R9)
+- [X] T007 Configurar pytest y pytest-cov en `pyproject.toml` con `--cov-branch` y umbrales **por paquete**: 95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, 80 % en el resto
 - [X] T008 Crear `.github/workflows/ci.yml` con matriz `ubuntu-latest / macos-latest / windows-latest` × Python 3.12 usando uv, ejecutando tests y cobertura
-- [X] T009 [P] Agregar al CI el job de calidad: `ruff check`, `ruff format --check` y `mypy --strict`
-- [X] T010 [P] Agregar al CI el job de seguridad: `bandit -r src/`, `pip-audit` y `gitleaks detect`; un hallazgo alto o crítico bloquea el merge (Principio VII)
-- [X] T011 [P] Agregar al CI el job de licencia (`reuse lint`) y el de SBOM (`cyclonedx-py environment -o sbom.cdx.json` como artifact)
-- [X] T012 [P] Agregar al CI el job `validate-schemas` que corre `check-jsonschema` sobre `rules/**/*.yaml`, `rules/**/cargos.yaml` y `grids/*.yaml`
+- [X] T009 Agregar al CI el job de calidad: `ruff check`, `ruff format --check` y `mypy --strict`
+- [X] T010 Agregar al CI el job de seguridad: `bandit -r src/`, `pip-audit` y `gitleaks detect`; un hallazgo alto o crítico bloquea el merge (Principio VII)
+- [X] T011 Agregar al CI el job de licencia (`reuse lint`) y el de SBOM (`cyclonedx-py environment -o sbom.cdx.json` como artifact)
+- [X] T012 Agregar al CI el job `validate-schemas` que corre `check-jsonschema` sobre `rules/**/*.yaml`, `rules/**/cargos.yaml` y `grids/*.yaml`
 - [X] T013 [P] Crear `docs/adr/0000-plantilla.md` y `docs/adr/0001-stack-y-decisiones-base.md` registrando R1 a R13 de `research.md`
 
 **Checkpoint**: el repositorio tiene licencia, calidad, seguridad y SBOM verificados en CI antes de existir una sola línea de dominio.
@@ -72,19 +77,23 @@ historia puede empezar.
 
 > **Principio VI: escribí estos tests PRIMERO y verificá que FALLAN antes de implementar.**
 
-- [ ] T014 [P] Test de contrato: `contracts/caso.schema.json` es un schema Draft 2020-12 válido y acepta/rechaza los ejemplos mínimos, en `tests/contract/test_caso_schema.py`
-- [ ] T015 [P] Test de contrato: `contracts/informe.schema.json` es un schema Draft 2020-12 válido y rechaza un `monto` con `estado: provisional` y `condicionantes: []`, en `tests/contract/test_informe_schema.py` (FR-046a, I5)
-- [ ] T016 [P] Test: el loader YAML/JSON entrega `str` y nunca `float` para importes y porcentajes, en `tests/unit/test_loader_decimal.py` (research R1, Principio II)
-- [ ] T017 [P] Test negativo: un importe o porcentaje **sin comillas** en un YAML de reglas hace fallar la validación de schema, en `tests/contract/test_schema_rechaza_float.py` (research R1)
-- [ ] T018 [P] Test: una `Regla` con `estado: no_verificada` y sin `impacto_si_no_verificada` es rechazada por el modelo, en `tests/unit/test_regla_impacto.py` (FR-046b)
-- [ ] T019 [P] Property test: `Monto.estado == provisional` ⟺ `condicionantes` no vacía, en `tests/properties/test_monto_invariante.py` (invariante I5, FR-046a)
-- [ ] T020 [P] Test: no existe ningún acceso al reloj del sistema en `src/ultimo_timbre/engine/` ni `src/ultimo_timbre/rules/` —`date.today()`, `date.fromtimestamp()`, `datetime.now()`, `datetime.utcnow()`, `datetime.today()`, `datetime.fromtimestamp()` ni `time.time()`—, por inspección del AST, en `tests/test_sin_reloj.py` (FR-001a, research R13)
-- [ ] T021 [P] Test: el catálogo deriva `al_frente_de_alumnos` y `naturaleza` desde el cargo; un cargo ausente queda indeterminado y no se asume, en `tests/unit/test_catalogo.py` (FR-002a, FR-002d)
-- [ ] T022 [P] Test: `HistoriaDeServicios` normaliza orden y asigna `idx` de forma estable, en `tests/unit/test_normalizacion.py` (FR-049)
-- [ ] T023 [P] Test de aislamiento: `calcular` no escribe a disco, no abre sockets y no importa nada de la aplicación web, de una base de datos ni de ningún componente probabilístico o LLM, en `tests/test_aislamiento.py` (FR-050, FR-052, FR-053, Principio V)
-- [ ] T024 [P] Test: el loader de `grids/` **rechaza** toda grilla que declare `ficticia: true`, de modo que una grilla de prueba nunca pueda usarse en una corrida real, en `tests/unit/test_grilla_ficticia_rechazada.py` (Principio IX)
+- [X] T014 [P] Test de contrato: `contracts/caso.schema.json` es un schema Draft 2020-12 válido y acepta/rechaza los ejemplos mínimos, en `tests/contract/test_caso_schema.py`
+- [X] T015 [P] Test de contrato: `contracts/informe.schema.json` es un schema Draft 2020-12 válido y rechaza un `monto` con `estado: provisional` y `condicionantes: []`, en `tests/contract/test_informe_schema.py` (FR-046a, I5)
+- [X] T016 [P] Test: el loader YAML/JSON entrega `str` y nunca `float` para importes y porcentajes, en `tests/unit/test_loader_decimal.py` (research R1, Principio II)
+- [X] T017 [P] Test negativo: un importe o porcentaje **sin comillas** en un YAML de reglas hace fallar la validación de schema, en `tests/contract/test_schema_rechaza_float.py` (research R1)
+- [X] T018 [P] Test: una `Regla` con `estado: no_verificada` y sin `impacto_si_no_verificada` es rechazada por el modelo, en `tests/unit/test_regla_impacto.py` (FR-046b)
+- [X] T019 [P] Property test: `Monto.estado == provisional` ⟺ `condicionantes` no vacía, en `tests/properties/test_monto_invariante.py` (invariante I5, FR-046a)
+- [X] T020 [P] Test: no existe ningún acceso al reloj del sistema en `src/ultimo_timbre/engine/` ni `src/ultimo_timbre/rules/` —`date.today()`, `date.fromtimestamp()`, `datetime.now()`, `datetime.utcnow()`, `datetime.today()`, `datetime.fromtimestamp()` ni `time.time()`—, por inspección del AST, en `tests/test_sin_reloj.py` (FR-001a, research R13)
+- [X] T021 [P] Test: el catálogo deriva `al_frente_de_alumnos` y `naturaleza` desde el cargo; un cargo ausente queda indeterminado y no se asume, en `tests/unit/test_catalogo.py` (FR-002a, FR-002d)
+- [X] T022 [P] Test: `HistoriaDeServicios` normaliza orden y asigna `idx` de forma estable, en `tests/unit/test_normalizacion.py` (FR-049)
+- [X] T023 [P] Test de aislamiento: `calcular` no escribe a disco, no abre sockets y no importa nada de la aplicación web, de una base de datos ni de ningún componente probabilístico o LLM, en `tests/test_aislamiento.py` (FR-050, FR-052, FR-053, Principio V)
+- [X] T024 [P] Test: el loader de `grids/` **rechaza** toda grilla que declare `ficticia: true`, de modo que una grilla de prueba nunca pueda usarse en una corrida real, en `tests/unit/test_grilla_ficticia_rechazada.py` (Principio IX)
 
 ### Implementación fundacional
+
+> **Archivo compartido**: T029 y T033 escriben ambas `src/ultimo_timbre/models/caso.py`, así que
+> no son paralelizables entre sí: T033 agrega `HistoriaDeServicios` y los tipos auxiliares sobre
+> el módulo que creó T029.
 
 > **Regla para los datos normativos**: creá la **estructura completa** y cargá **únicamente** los
 > valores que figuran literalmente en `spec.md` o en la constitución —las edades, los años de
@@ -97,24 +106,24 @@ historia puede empezar.
 
 > Requiere T014–T024 escritas y fallando.
 
-- [ ] T025 [P] Crear `schemas/rule.schema.json`: `id`, `norma` (ley/artículo/inciso/enlace), `tipo` (`letra_ley`/`interpretacion`), `estado` (`verificado`/`no_verificada`), `vigencia_desde`, `vigencia_hasta`, `verificada_en` (requerido si `verificado`), `impacto_si_no_verificada` (requerido si `no_verificada`), `valor`; importes y porcentajes con `"type": "string"` y patrón numérico
-- [ ] T026 [P] Crear `schemas/cargo.schema.json`: `cargo`, `jerarquia`, `al_frente_de_alumnos` (`bool | null`, `null` = indeterminado), `naturaleza` (`docente`/`no_docente`/`null`), `norma`, `estado`, `regla_id`
-- [ ] T027 [P] Crear `schemas/grid.schema.json`: `version`, `norma`, `enlace`, `vigencia_desde`, `vigencia_hasta`, `extraida_en`, `aprobada_por`, `aprobada_en`, y `valores` como mapa de cargo a lista de componentes con `codigo_concepto`, `descripcion`, `importe` (string numérico), `bonificable`, `remunerativo`, `regla_id` (FR-031a)
-- [ ] T028 [P] Implementar enums en `src/ultimo_timbre/models/enums.py`: `SituacionRevista` (`titular`, `provisional`, `suplente`), `TipoLicencia` (`con_goce`, `sin_goce`), `TipoEstablecimiento` (`estatal_dgcye`, `privado`, `otra_jurisdiccion`), `CajaAportes` (`ips`, `anses`, `otra_caja`), `NaturalezaServicio` (`docente`, `no_docente`), `ClasificacionSuperposicion` (`simultaneidad_computable_art47`, `simultaneidad_no_computable`, `posible_error_carga`), `EstadoResultado` (`definitivo`, `provisional`), `SentidoImpacto` (`al_alza`, `a_la_baja`, `indeterminado`), `ClaseCondicionante`, `CodigoAdvertencia`, `TipoFuente`, `ViaCargoBase`, `TipoEscenario`, `Formato`
-- [ ] T029 [P] Implementar `Caso`, `PeriodoDeServicio`, `Licencia`, `Establecimiento` en `src/ultimo_timbre/models/caso.py` con `ConfigDict(strict=True, frozen=True)`: `Caso.fecha_de_calculo` requerido, `fecha_nacimiento` anterior a `fecha_de_calculo`, `fechas_cese` con ≥1 elemento y únicas; `PeriodoDeServicio.hasta` es `date | None` (`None` = período en curso), `caja_aportes` requerido, `al_frente_override` y `naturaleza_override` por defecto `None`; el modelo no admite rutas de carga de PDF (FR-001, FR-002, FR-003, FR-005)
-- [ ] T030 [P] Implementar `Regla`, `Norma`, `ConjuntoDeReglas`, `CatalogoDeCargos`, `EntradaCatalogo` en `src/ultimo_timbre/models/normativa.py`, con validador que exige `impacto_si_no_verificada` cuando `estado == no_verificada` (FR-006)
-- [ ] T031 [P] Implementar `GrillaSalarial`, `ValorCargo` y `ComponenteSalarial` en `src/ultimo_timbre/models/grilla.py` (FR-031a)
-- [ ] T032 Implementar `Monto`, `Condicionante`, `Advertencia`, `Procedencia`, `PasoDelDesglose`, `Escenario`, `Elegibilidad`, `CargoBase`, `Informe` y los tipos auxiliares `ResultadoInciso`, `ResultadoRequisito`, `Faltante`, `CandidatoDescartado`, `LecturaAlternativa` y `Versiones` en `src/ultimo_timbre/models/informe.py`, con validador que rechaza `estado=provisional` con `condicionantes` vacía y deriva `Informe.estado_general` en lugar de aceptarlo como entrada (FR-046a, FR-046c)
-- [ ] T033 Implementar `HistoriaDeServicios` en `src/ultimo_timbre/models/caso.py` con normalización (orden por `(desde, hasta, cargo)` y asignación de `idx`) y los métodos `tramos_unidos(hasta)` y `meses_cubiertos(hasta)` que computan sobre la **unión**, nunca sumando duraciones (FR-004a, I9). Definir también los tipos auxiliares `Tramo` (par de fechas de un intervalo unido), `MesCalendario` (año-mes, serializado `YYYY-MM`) y `CargoRef` (alias de `str` validado contra el catálogo: un cargo ausente **no invalida el caso**, se advierte `cargo_fuera_de_catalogo`)
-- [ ] T034 Implementar `src/ultimo_timbre/errors.py`: `UltimoTimbreError`, `CasoInvalido`, `ReglasNoDisponibles` y `FueraDeAlcance` (reservada para errores de programación, no para casos de usuario)
-- [ ] T035 Implementar los loaders en `src/ultimo_timbre/rules/loader.py`: `yaml.safe_load` con resolver que desactiva la conversión implícita a float y `json.load(parse_float=Decimal)` (research R1)
-- [ ] T036 Implementar `src/ultimo_timbre/rules/versiones.py` con `cargar_reglas`, `cargar_grilla`, `grilla_vigente_a` y `versiones_disponibles`, rechazando con error toda grilla cargada desde `grids/` que declare `ficticia: true` (Principio IX)
-- [ ] T037 Implementar `src/ultimo_timbre/rules/catalogo.py` con la derivación de `al_frente_de_alumnos` y `naturaleza` desde el cargo, respetando los `*_override` y marcando su uso como dato manual (FR-002a, FR-002b, FR-002d)
-- [ ] T038 Crear `tests/fixtures/grilla-ficticia-test.yaml` con `ficticia: true` y valores **redondos y evidentemente inventados** (por ejemplo componentes de `"100000.00"` y `"50000.00"`), con la estructura completa de `schemas/grid.schema.json`. Debe incluir **como mínimo** los cargos `maestro_de_grado`, `vicedirector`, `director`, `preceptor` y `horas_catedra_secundario`, cada uno con **al menos un componente bonificable y uno no bonificable**, más todo cargo que usen los golden de US4 y US5. Es la grilla que usan esos tests; vive en `tests/fixtures/`, **nunca** en `grids/`, y el loader la rechaza si alguien la mueve allí (T024, T036)
-- [ ] T039 [P] Crear `rules/v1/requisitos.yaml` con el art. 24 incs. b, c y d (50/25, 50/25 con 10 al frente, 55/30) y el mínimo de 22 años con aportes, cada regla con su norma y `estado: verificado` `[DL 9650/80, art. 24]`. Estos umbrales sí están documentados: transcribilos literalmente y no agregues ningún otro
-- [ ] T040 [P] Crear `rules/v1/haber.yaml` con el 70 % del art. 41, los 75 %/80 % del art. 42, los 75/80/85 % del art. 43 y el criterio de cómputo del excedente `[Res. IPS 995/2021, Anexo, punto 2.1.a]` marcado `tipo: interpretacion` (FR-027a). Son los únicos porcentajes documentados: la política de redondeo y los conceptos que integran la remuneración quedan `NO_VERIFICADA`, no se estiman
-- [ ] T041 [P] Crear `rules/v1/cargos.yaml` con el catálogo: preceptores y bibliotecarios `[Ley 13469]`, técnico-docentes de Psicología y Educación Especial `[Ley 10745]`, visitadoras de higiene escolar `[Ley 11860]`, y la regla de extensión de la Ley 13469 a otros cargos con `estado: no_verificada` e `impacto_si_no_verificada` de 70 % vs 75 % `[SCBA causa A 74801 (2020), Cuestión abierta #8]`. **`jerarquia` queda en `null` para todos los cargos**: el criterio de comparación es la Cuestión abierta #4 y no hay ningún orden numérico documentado que transcribir
-- [ ] T042 [P] Crear `rules/v1/no_verificadas.yaml` con las reglas de las Cuestiones abiertas #1 a #6, cada una con `valor: null`, su `sentido_impacto` y su `que_falta_verificar`: tope de antigüedad, remuneración del cargo, horas cátedra, criterio de jerarquía, licencias y situación de revista, y redondeo. Ninguna lleva un valor tentativo
+- [X] T025 [P] Crear `schemas/rule.schema.json`: `id`, `norma` (ley/artículo/inciso/enlace), `tipo` (`letra_ley`/`interpretacion`), `estado` (`verificado`/`no_verificada`), `vigencia_desde`, `vigencia_hasta`, `verificada_en` (requerido si `verificado`), `impacto_si_no_verificada` (requerido si `no_verificada`), `valor`; importes y porcentajes con `"type": "string"` y patrón numérico
+- [X] T026 [P] Crear `schemas/cargo.schema.json`: `cargo`, `jerarquia`, `al_frente_de_alumnos` (`bool | null`, `null` = indeterminado), `naturaleza` (`docente`/`no_docente`/`null`), `norma`, `estado`, `regla_id`
+- [X] T027 [P] Crear `schemas/grid.schema.json`: `version`, `norma`, `enlace`, `vigencia_desde`, `vigencia_hasta`, `extraida_en`, `aprobada_por`, `aprobada_en`, y `valores` como mapa de cargo a lista de componentes con `codigo_concepto`, `descripcion`, `importe` (string numérico), `bonificable`, `remunerativo`, `regla_id` (FR-031a)
+- [X] T028 [P] Implementar enums en `src/ultimo_timbre/models/enums.py`: `SituacionRevista` (`titular`, `provisional`, `suplente`), `TipoLicencia` (`con_goce`, `sin_goce`), `TipoEstablecimiento` (`estatal_dgcye`, `privado`, `otra_jurisdiccion`), `CajaAportes` (`ips`, `anses`, `otra_caja`), `NaturalezaServicio` (`docente`, `no_docente`), `ClasificacionSuperposicion` (`simultaneidad_computable_art47`, `simultaneidad_no_computable`, `posible_error_carga`), `EstadoResultado` (`definitivo`, `provisional`), `SentidoImpacto` (`al_alza`, `a_la_baja`, `indeterminado`), `ClaseCondicionante`, `CodigoAdvertencia`, `TipoFuente`, `ViaCargoBase`, `TipoEscenario`, `Formato`
+- [X] T029 Implementar `Caso`, `PeriodoDeServicio`, `Licencia`, `Establecimiento` en `src/ultimo_timbre/models/caso.py` con `ConfigDict(strict=True, frozen=True)`: `Caso.fecha_de_calculo` requerido, `fecha_nacimiento` anterior a `fecha_de_calculo`, `fechas_cese` con ≥1 elemento y únicas; `PeriodoDeServicio.hasta` es `date | None` (`None` = período en curso), `caja_aportes` requerido, `al_frente_override` y `naturaleza_override` por defecto `None`; el modelo no admite rutas de carga de PDF (FR-001, FR-002, FR-003, FR-005)
+- [X] T030 [P] Implementar `Regla`, `Norma`, `ConjuntoDeReglas`, `CatalogoDeCargos`, `EntradaCatalogo` en `src/ultimo_timbre/models/normativa.py`, con validador que exige `impacto_si_no_verificada` cuando `estado == no_verificada` (FR-006)
+- [X] T031 [P] Implementar `GrillaSalarial`, `ValorCargo` y `ComponenteSalarial` en `src/ultimo_timbre/models/grilla.py` (FR-031a)
+- [X] T032 Implementar `Monto`, `Condicionante`, `Advertencia`, `Procedencia`, `PasoDelDesglose`, `Escenario`, `Elegibilidad`, `CargoBase`, `Informe` y los tipos auxiliares `ResultadoInciso`, `ResultadoRequisito`, `Faltante`, `CandidatoDescartado`, `LecturaAlternativa` y `Versiones` en `src/ultimo_timbre/models/informe.py`, con validador que rechaza `estado=provisional` con `condicionantes` vacía y deriva `Informe.estado_general` en lugar de aceptarlo como entrada (FR-046a, FR-046c)
+- [X] T033 Implementar `HistoriaDeServicios` en `src/ultimo_timbre/models/caso.py` con normalización (orden por `(desde, hasta, cargo)` y asignación de `idx`) y los métodos `tramos_unidos(hasta)` y `meses_cubiertos(hasta)` que computan sobre la **unión**, nunca sumando duraciones (FR-004a, I9). Definir también los tipos auxiliares `Tramo` (par de fechas de un intervalo unido), `MesCalendario` (año-mes, serializado `YYYY-MM`) y `CargoRef` (alias de `str` validado contra el catálogo: un cargo ausente **no invalida el caso**, se advierte `cargo_fuera_de_catalogo`)
+- [X] T034 Implementar `src/ultimo_timbre/errors.py`: `UltimoTimbreError`, `CasoInvalido`, `ReglasNoDisponibles` y `FueraDeAlcance` (reservada para errores de programación, no para casos de usuario)
+- [X] T035 Implementar los loaders en `src/ultimo_timbre/rules/loader.py`: `yaml.safe_load` con resolver que desactiva la conversión implícita a float y `json.load(parse_float=Decimal)` (research R1)
+- [X] T036 Implementar `src/ultimo_timbre/rules/versiones.py` con `cargar_reglas`, `cargar_grilla`, `grilla_vigente_a` y `versiones_disponibles`, rechazando con error toda grilla cargada desde `grids/` que declare `ficticia: true` (Principio IX)
+- [X] T037 Implementar `src/ultimo_timbre/rules/catalogo.py` con la derivación de `al_frente_de_alumnos` y `naturaleza` desde el cargo, respetando los `*_override` y marcando su uso como dato manual (FR-002a, FR-002b, FR-002d)
+- [X] T038 Crear `tests/fixtures/grilla-ficticia-test.yaml` con `ficticia: true` y valores **redondos y evidentemente inventados** (por ejemplo componentes de `"100000.00"` y `"50000.00"`), con la estructura completa de `schemas/grid.schema.json`. Debe incluir **como mínimo** los cargos `maestro_de_grado`, `vicedirector`, `director`, `preceptor` y `horas_catedra_secundario`, cada uno con **al menos un componente bonificable y uno no bonificable**, más todo cargo que usen los golden de US4 y US5. Es la grilla que usan esos tests; vive en `tests/fixtures/`, **nunca** en `grids/`, y el loader la rechaza si alguien la mueve allí (T024, T036)
+- [X] T039 [P] Crear `rules/v1/requisitos.yaml` con el art. 24 incs. b, c y d (50/25, 50/25 con 10 al frente, 55/30) y el mínimo de 22 años con aportes, cada regla con su norma y `estado: verificado` `[DL 9650/80, art. 24]`. Estos umbrales sí están documentados: transcribilos literalmente y no agregues ningún otro
+- [X] T040 [P] Crear `rules/v1/haber.yaml` con el 70 % del art. 41, los 75 %/80 % del art. 42, los 75/80/85 % del art. 43 y el criterio de cómputo del excedente `[Res. IPS 995/2021, Anexo, punto 2.1.a]` marcado `tipo: interpretacion` (FR-027a). Son los únicos porcentajes documentados: la política de redondeo y los conceptos que integran la remuneración quedan `NO_VERIFICADA`, no se estiman
+- [X] T041 [P] Crear `rules/v1/cargos.yaml` con el catálogo: preceptores y bibliotecarios `[Ley 13469]`, técnico-docentes de Psicología y Educación Especial `[Ley 10745]`, visitadoras de higiene escolar `[Ley 11860]`, y la regla de extensión de la Ley 13469 a otros cargos con `estado: no_verificada` e `impacto_si_no_verificada` de 70 % vs 75 % `[SCBA causa A 74801 (2020), Cuestión abierta #8]`. **`jerarquia` queda en `null` para todos los cargos**: el criterio de comparación es la Cuestión abierta #4 y no hay ningún orden numérico documentado que transcribir
+- [X] T042 [P] Crear `rules/v1/no_verificadas.yaml` con las reglas de las Cuestiones abiertas #1 a #6, cada una con `valor: null`, su `sentido_impacto` y su `que_falta_verificar`: tope de antigüedad, remuneración del cargo, horas cátedra, criterio de jerarquía, licencias y situación de revista, y redondeo. Ninguna lleva un valor tentativo
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -432,6 +441,10 @@ que no reprodujo un cálculo real del IPS puede presentarse como estimación pro
 
 ### Parallel Opportunities
 
+- **Regla general**: `[P]` significa archivos distintos. Dos tareas que escriben el **mismo**
+  archivo nunca llevan `[P]`, aunque sean independientes en lo conceptual. Leer un archivo que
+  otra tarea creó es una **dependencia de orden**, no un conflicto: no impide el `[P]` de la que
+  lo crea (por ejemplo T027 crea `schemas/grid.schema.json` y T038 solo lo consulta).
 - All Setup tasks marked [P] can run in parallel
 - All Foundational tasks marked [P] can run in parallel (within Phase 2)
 - Once Foundational phase completes, all user stories can start in parallel (if team capacity allows)
@@ -501,7 +514,9 @@ With multiple developers:
 
 ## Notes
 
-- [P] tasks = different files, no dependencies
+- [P] tasks = different files, no dependencies. Las series que comparten archivo
+  (`pyproject.toml` en T002–T007, `ci.yml` en T008–T012 y T108, `models/caso.py` en T029 y T033,
+  `models/informe.py` en T032 y T065) van en orden
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - **Verificá que los tests fallan antes de implementar** — es un requisito constitucional, no una

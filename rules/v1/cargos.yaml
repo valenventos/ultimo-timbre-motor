@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T041 — Catálogo de cargos: condición «al frente de alumnos» y naturaleza.
+#
+# REGLA DE DATOS APLICADA ESTRICTAMENTE:
+#
+#   * Los únicos cargos con `al_frente_de_alumnos: true` y `estado: verificado`
+#     son los que una ley nombrada en spec.md asimila expresamente: preceptores
+#     y bibliotecarios (Ley 13469), técnico-docentes de Psicología y Educación
+#     Especial (Ley 10745), visitadoras de higiene escolar (Ley 11860).
+#
+#   * El propio art. 24 inc. b documenta dos condiciones más:
+#       - los **maestros al frente directo de alumnos** (al_frente: true);
+#       - los **profesores que reúnen veinte horas cátedra**, que no es un
+#         booleano del cargo sino un **umbral** sobre el total de horas
+#         simultáneas. El valor 20 sale de la regla `requisitos.art24.inc_b`,
+#         nunca del catálogo ni del código (Principio I).
+#
+#   * **Director y vicedirector** son `al_frente_de_alumnos: false` por la letra
+#     del art. 24 inc. b, que enumera a quiénes alcanza y no los incluye. La
+#     entrada queda `verificado`, pero **condicionada** por la extensión
+#     discutida de la Ley 13469 (Cuestión abierta #8), cuyo impacto es **al
+#     alza**: si la extensión alcanzara, el acceso pasaría del art. 41 (70 %) al
+#     art. 43 (75 %).
+#
+#   * `jerarquia: null` en todos: el criterio de comparación entre cargos es la
+#     Cuestión abierta #4 y no hay ningún orden numérico documentado.
+
+reglas:
+  - id: al_frente.ley_13469.extension
+    norma:
+      texto: "Ley 13469 — extensión a otros cargos del escalafón"
+      ley: "Ley 13469"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: al_alza
+    que_falta_verificar: >-
+      si la Ley 13469 alcanza a cargos del escalafón no nombrados expresamente
+      en ella —entre ellos director y vicedirector—. La interpretación está
+      discutida (SCBA, causa A 74801, 2020). Si alcanzara, el acceso pasaría de
+      los incisos c y d (art. 41, 70 % de base) al inciso b (art. 43, 75 % de
+      base): por eso el sentido del impacto es al alza.
+    cuestion_abierta: 8
+    valor: null
+
+  - id: al_frente.cargo_sin_norma_expresa
+    norma:
+      texto: "Nomenclador de cargos docentes y decretos paritarios vigentes — a relevar"
+      ley: "Nomenclador de cargos docentes"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la condición de «al frente de alumnos» y la naturaleza del servicio de los
+      cargos del escalafón general. Ninguna norma citada en spec.md ni en la
+      constitución las documenta, así que no se asumen. Se releva del
+      Nomenclador de cargos docentes.
+    cuestion_abierta: 8
+    valor: null
+
+entradas:
+  # ---------------------------------------------------------------------------
+  # Verificados: una ley los asimila expresamente a «al frente de alumnos»
+  # ---------------------------------------------------------------------------
+  - cargo: preceptor
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 13469 (preceptores y bibliotecarios)"
+      ley: "Ley 13469"
+    estado: verificado
+    regla_id: null
+
+  - cargo: bibliotecario
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 13469 (preceptores y bibliotecarios)"
+      ley: "Ley 13469"
+    estado: verificado
+    regla_id: null
+
+  - cargo: tecnico_docente_psicologia
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 10745 (técnico-docentes de Psicología y Educación Especial)"
+      ley: "Ley 10745"
+    estado: verificado
+    regla_id: null
+
+  - cargo: tecnico_docente_educacion_especial
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 10745 (técnico-docentes de Psicología y Educación Especial)"
+      ley: "Ley 10745"
+    estado: verificado
+    regla_id: null
+
+  - cargo: visitadora_higiene_escolar
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 11860 (visitadoras de higiene escolar)"
+      ley: "Ley 11860"
+    estado: verificado
+    regla_id: null
+
+  # ---------------------------------------------------------------------------
+  # Cargos del art. 24 inc. b y cargos condicionados
+  # ---------------------------------------------------------------------------
+  - cargo: maestro_de_grado
+    jerarquia: null
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (maestros al frente directo de alumnos)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: null
+
+  # ---------------------------------------------------------------------------
+  # Condición por umbral: no es booleana. El art. 24 inc. b asimila a los
+  # profesores que reúnen veinte horas cátedra. El 20 sale de la regla.
+  # ---------------------------------------------------------------------------
+  - cargo: horas_catedra_secundario
+    jerarquia: null
+    al_frente_de_alumnos: null
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (profesores con veinte horas cátedra)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    condicion: por_horas_catedra
+    regla_umbral: requisitos.art24.inc_b
+    regla_id: horas_catedra.como_carrera
+
+  # ---------------------------------------------------------------------------
+  # Fuera de la enumeración del art. 24 inc. b, pero condicionados por la
+  # extensión discutida de la Ley 13469 (Cuestión abierta #8, impacto al alza).
+  # ---------------------------------------------------------------------------
+  - cargo: vicedirector
+    jerarquia: null
+    al_frente_de_alumnos: false
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (no incluido en la enumeración)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: al_frente.ley_13469.extension
+
+  - cargo: director
+    jerarquia: null
+    al_frente_de_alumnos: false
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (no incluido en la enumeración)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: al_frente.ley_13469.extension

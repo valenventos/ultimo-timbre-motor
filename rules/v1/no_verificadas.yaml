@@ -1,0 +1,103 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T042 — Las Cuestiones abiertas #1 a #6 de la constitución, como reglas.
+#
+# Todas llevan `valor: null`. Ninguna lleva un valor tentativo: el motor emite
+# el resultado marcado como provisional y explica qué falta verificar
+# (FR-046 a FR-046c), que es preferible a un número que parece correcto.
+
+reglas:
+  # Cuestión abierta #1
+  - id: antiguedad.escala_y_tope
+    norma:
+      texto: "Ley 10579 art. 33; Decreto 818/13 y posteriores"
+      ley: "Ley 10579"
+      articulo: "33"
+    tipo: letra_ley
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la escala de bonificación por antigüedad vigente y su tope. El Decreto
+      818/13 fija 125 % a los 24 años; otras fuentes recientes mencionan 120 %.
+      Confirmar con norma vigente y recibos reales.
+    cuestion_abierta: 1
+    valor: null
+
+  # Cuestión abierta #2
+  - id: remuneracion.conceptos_del_cargo
+    norma:
+      texto: "DL 9650/80, art. 40 (concepto de remuneración)"
+      ley: "DL 9650/80"
+      articulo: "40"
+    tipo: letra_ley
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      qué conceptos del recibo integran la «remuneración asignada al cargo» que
+      toma el IPS: básico, antigüedad, sumas fijas remunerativas no
+      bonificables, códigos específicos, y cuáles quedan afuera. Mientras siga
+      abierta, todo haber sale provisional.
+    cuestion_abierta: 2
+    valor: null
+
+  # Cuestión abierta #3
+  - id: horas_catedra.como_carrera
+    norma:
+      texto: "Res. HD IPS 8/14"
+      ley: "Res. HD IPS 8/14"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      el contenido de la Res. HD IPS 8/14 y su aplicación a las horas cátedra y
+      los módulos a los efectos del cargo base.
+    cuestion_abierta: 3
+    valor: null
+
+  # Cuestión abierta #4
+  - id: jerarquia.criterio_comparacion
+    norma:
+      texto: "Res. IPS 14/10 (acreditación de mayor jerarquía)"
+      ley: "Res. IPS 14/10"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      el criterio para comparar la jerarquía entre cargos —puntaje, índice
+      escalafonario o remuneración— y su acreditación. Por eso `jerarquia`
+      queda en `null` en todo el catálogo.
+    cuestion_abierta: 4
+    valor: null
+
+  # Cuestión abierta #5 (incluye la ampliación sobre situación de revista)
+  - id: computo.licencias_suplencias_y_revista
+    norma:
+      texto: "DL 9650/80, art. 41 (cargo «de que era titular»)"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      el tratamiento de licencias con y sin goce, suplencias e interinatos en el
+      cómputo de los 36/60 meses y de los años de servicio, y si la situación de
+      revista (titular, provisional, suplente) condiciona la elección del cargo
+      base, dado que el art. 41 se refiere al cargo «de que era titular».
+    cuestion_abierta: 5
+    valor: null
+
+  # Cuestión abierta #6
+  - id: redondeo.politica_ips
+    norma:
+      texto: "Política de redondeo aplicada por el IPS en la liquidación del haber"
+      ley: "Práctica administrativa IPS"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la política de redondeo que aplica el IPS. El motor usa un único
+      `quantize()` centralizado con ROUND_HALF_UP declarado por defecto, y el
+      último decimal no está garantizado hasta verificarlo.
+    cuestion_abierta: 6
+    valor: null

@@ -53,6 +53,7 @@ dev = [
   # calidad
   "ruff>=0.7",
   "mypy>=1.13",
+  "types-PyYAML>=6.0",
   # seguridad y cumplimiento
   "bandit>=1.7",
   "pip-audit>=2.7",
@@ -93,6 +94,11 @@ select = [
 ]
 ignore = [
   "PLR0913",     # demasiados argumentos: los modelos de dominio los necesitan
+  # N818 pide sufijo `Error` en las excepciones. El dominio de este motor está
+  # nombrado en español y `CasoInvalidoError` no se lee en ningún lado; la raíz
+  # `UltimoTimbreError` sí lleva el sufijo, que es donde importa para quien
+  # importa el paquete.
+  "N818",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -126,13 +132,15 @@ init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
 
-# El motor es el núcleo auditable: ahí `Any` explícito está prohibido.
+# El motor es el núcleo auditable: ahí `Any` explícito está prohibido
+# (research R9 y plan.md lo circunscriben a `engine`). En `rules` el `Any` es
+# inevitable: es el borde donde entra un YAML todavía sin tipar.
 [[tool.mypy.overrides]]
-module = ["ultimo_timbre.engine.*", "ultimo_timbre.rules.*"]
+module = ["ultimo_timbre.engine.*"]
 disallow_any_explicit = true
 
 [[tool.mypy.overrides]]
-module = ["dateutil.*"]
+module = ["dateutil.*", "jsonschema.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------------------

@@ -203,17 +203,29 @@ Implementa FR-002a. Es la fuente de verdad de la condición "al frente de alumno
 |---|---|---|
 | `cargo` | `str` | — |
 | `jerarquia` | `int \| None` | FR-022 (criterio `NO_VERIFICADA`, Cuestión #4) |
-| `al_frente_de_alumnos` | `bool \| None` | `None` = indeterminado |
+| `al_frente_de_alumnos` | `bool \| None` | `None` = indeterminado, o condición por umbral |
 | `naturaleza` | `NaturalezaServicio \| None` | `None` = indeterminado (FR-002d) |
+| `condicion` | `directa \| por_horas_catedra` | Cómo se resuelve la condición |
+| `regla_umbral` | `str \| None` | Regla de la que sale el umbral; el valor nunca vive acá |
 | `norma` | `Norma` | Ley 13469 / 10745 / 11860 |
 | `estado` | `verificado \| no_verificada` | FR-002c |
 | `regla_id` | `str \| None` | apunta a la regla que lo condiciona |
 
-Un cargo ausente del catálogo **no** se asume: su condición queda indeterminada, se advierte y el
-resultado sale provisional (edge case). Un cargo presente con `estado: no_verificada` dispara la
-advertencia de impacto 70 % vs 75 % (FR-002c, Cuestión abierta #8).
+Un cargo ausente del catálogo **no** se asume: su condición queda indeterminada, se advierte
+`cargo_fuera_de_catalogo` y el resultado sale provisional — pero el caso **no** se invalida.
 
----
+**La condición no siempre es booleana.** El art. 24 inc. b asimila a los profesores que reúnen
+veinte horas cátedra, y eso es un **umbral sobre el total de horas simultáneas**, no una propiedad
+del cargo tomado de a uno: la entrada declara `condicion: por_horas_catedra` y el umbral sale de
+`regla_umbral`. El 20 es un valor normativo y no puede vivir en el catálogo ni en el código
+(Principio I).
+
+**Una entrada verificada también puede estar condicionada.** `regla_id` apunta a la regla que
+discute la entrada, con independencia de su `estado`: director y vicedirector tienen
+`al_frente_de_alumnos: false` por la letra del art. 24 inc. b —que enumera a quiénes alcanza y no
+los incluye—, pero la extensión discutida de la Ley 13469 podría cambiarlo **al alza** (Cuestión
+abierta #8, impacto 70 % vs 75 %). Por eso `condiciona_resultado` es
+`estado is NO_VERIFICADA or regla_id is not None`, y no solo lo primero.
 
 ### `GrillaSalarial`
 

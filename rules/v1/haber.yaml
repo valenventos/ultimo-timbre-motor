@@ -1,0 +1,207 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T040 — Determinación del cargo base y del porcentaje aplicable.
+#
+# Los porcentajes y los plazos de este archivo están documentados literalmente
+# en spec.md y en la constitución. Todo porcentaje va entre comillas para que
+# llegue como str al loader y no como float binario (research R1).
+#
+# Lo que NO está documentado no se estima: la política de redondeo y los
+# conceptos que integran la remuneración del cargo viven en
+# `no_verificadas.yaml` con `valor: null`.
+
+reglas:
+  - id: haber.art41.base
+    norma:
+      texto: "DL 9650/80, art. 41 (texto Ley 13968)"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      porcentaje: "0.70"
+
+  - id: haber.art41.cargo_base
+    norma:
+      texto: "DL 9650/80, art. 41 (texto Ley 13968); Res. IPS 14/10"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      meses_consecutivos: 36
+      meses_alternados: 60
+
+  - id: haber.art41.cargo_inferior
+    norma:
+      texto: "DL 9650/80, art. 41 (cargo inferior si el superior no alcanza los plazos)"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      regla: "se considera comprendido en el cargo inferior que sí alcance los plazos"
+
+  - id: haber.art41.promedio_36
+    norma:
+      texto: "DL 9650/80, art. 41, tercer párrafo (promedio de 36 meses)"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      fuera_de_alcance_v1: "se detecta y se informa, no se calcula"
+
+  # Art. 42 — excedente de 3 y 5 años
+  - id: haber.art42.excedente_3
+    norma:
+      texto: "DL 9650/80, art. 42"
+      ley: "DL 9650/80"
+      articulo: "42"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 3
+      porcentaje: "0.75"
+
+  - id: haber.art42.excedente_5
+    norma:
+      texto: "DL 9650/80, art. 42"
+      ley: "DL 9650/80"
+      articulo: "42"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 5
+      porcentaje: "0.80"
+
+  # Art. 43 — acceso docente por el inciso b
+  - id: haber.art43.base
+    norma:
+      texto: "DL 9650/80, art. 43 (personal del art. 24 inc. b)"
+      ley: "DL 9650/80"
+      articulo: "43"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      porcentaje: "0.75"
+
+  # El art. 43 dice que el porcentaje «se incrementará en un cinco por ciento» y
+  # «en un diez por ciento». Leerlo como PUNTOS porcentuales (75 → 80 → 85) es
+  # una interpretación, no la letra: la letra admite también el incremento
+  # multiplicativo (75 × 1,05 = 78,75). El criterio aplicado es el de puntos,
+  # que es el que sostiene la definición de CARGO BASE del Anexo de la
+  # Res. IPS 995/2021 al acotar el porcentaje «del 70 % hasta el 85 %» — un
+  # techo de 85 % solo es alcanzable por la vía de los puntos.
+  #
+  # La lectura multiplicativa se registra abajo como alternativa, con sentido
+  # a la baja, y el informe la expone (FR-027b, Principio I).
+  - id: haber.art43.excedente_3
+    norma:
+      texto: "Res. IPS 995/2021, Anexo, definición de CARGO BASE (porcentaje «del 70 % hasta el 85 %»)"
+      ley: "Res. IPS 995/2021"
+      articulo: "Anexo, definición de CARGO BASE"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 3
+      porcentaje: "0.80"
+      lectura: "puntos_porcentuales"
+      norma_base: "DL 9650/80, art. 43 (personal del art. 24 inc. b)"
+
+  - id: haber.art43.excedente_5
+    norma:
+      texto: "Res. IPS 995/2021, Anexo, definición de CARGO BASE (porcentaje «del 70 % hasta el 85 %»)"
+      ley: "Res. IPS 995/2021"
+      articulo: "Anexo, definición de CARGO BASE"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 5
+      porcentaje: "0.85"
+      lectura: "puntos_porcentuales"
+      norma_base: "DL 9650/80, art. 43 (personal del art. 24 inc. b)"
+
+  # Lectura alternativa: el incremento del art. 43 aplicado de forma
+  # multiplicativa sobre el 75 % de base. No se aplica; se informa.
+  - id: haber.art43.excedente_3.lectura_multiplicativa
+    norma:
+      texto: "DL 9650/80, art. 43 (personal del art. 24 inc. b) — incremento multiplicativo"
+      ley: "DL 9650/80"
+      articulo: "43"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 3
+      porcentaje: "0.7875"
+      lectura: "multiplicativa"
+      sentido: "a_la_baja"
+      alternativa_de: "haber.art43.excedente_3"
+      se_informa_como: "advertencia"
+
+  - id: haber.art43.excedente_5.lectura_multiplicativa
+    norma:
+      texto: "DL 9650/80, art. 43 (personal del art. 24 inc. b) — incremento multiplicativo"
+      ley: "DL 9650/80"
+      articulo: "43"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_excedente: 5
+      porcentaje: "0.825"
+      lectura: "multiplicativa"
+      sentido: "a_la_baja"
+      alternativa_de: "haber.art43.excedente_5"
+      se_informa_como: "advertencia"
+
+  # Criterio del IPS para contar el excedente. Es una interpretación, no la
+  # letra de la ley, y el informe lo declara como tal (Principio I, FR-027a).
+  - id: excedente.computo_desde
+    norma:
+      texto: "Res. IPS 995/2021, Anexo, punto 2.1.a"
+      ley: "Res. IPS 995/2021"
+      articulo: "Anexo, punto 2.1.a"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      desde: "todas_las_condiciones_del_inciso"
+
+  # La lectura literal alternativa se informa como advertencia con impacto al
+  # alza; no se aplica por defecto (FR-027b).
+  - id: excedente.lectura_literal
+    norma:
+      texto: "DL 9650/80, arts. 42 y 43 (lectura literal: excedente medido solo por edad)"
+      ley: "DL 9650/80"
+      articulo: "42-43"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      desde: "edad_requerida_por_el_inciso"
+      se_informa_como: "advertencia"
+      sentido: "al_alza"
+
+  # Movilidad: se informa, no se proyecta (FR-030c).
+  - id: movilidad.art50
+    norma:
+      texto: "DL 9650/80, art. 50 (movilidad por correlación de cargos)"
+      ley: "DL 9650/80"
+      articulo: "50"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      se_informa: "el haber es móvil; el motor no proyecta la movilidad"
