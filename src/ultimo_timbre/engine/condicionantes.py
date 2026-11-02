@@ -142,6 +142,7 @@ def de_regla(regla: Regla) -> Condicionante | None:
         norma=regla.norma,
         sentido_impacto=regla.impacto_si_no_verificada,
         que_falta_verificar=regla.que_falta_verificar or "sin especificar",
+        magnitud_estimada=regla.magnitud_estimada,
     )
 
 

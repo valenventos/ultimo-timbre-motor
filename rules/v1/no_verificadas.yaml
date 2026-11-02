@@ -132,3 +132,36 @@ reglas:
       último decimal no está garantizado hasta verificarlo.
     cuestion_abierta: 6
     valor: null
+
+  # Cuestión abierta #9
+  #
+  # La docente cumple el art. 24 inc. b por sus años al frente de alumnos, pero
+  # su cargo base del art. 41 es un cargo que no cuenta al frente —un
+  # directivo—. Las dos lecturas son defendibles: el art. 43 rige «el personal
+  # del art. 24 inc. b», y ella lo es; pero su 75 % se pensó para el cargo al
+  # frente de alumnos, que no es el cargo base.
+  #
+  # Se aplica el 70 % del art. 41 por ser el criterio más conservador. De los
+  # dos errores posibles, prometer un haber mayor que el que el IPS liquida es
+  # el que le cuesta plata al docente.
+  - id: porcentaje.art43.cargo_base_no_al_frente
+    norma:
+      texto: >-
+        DL 9650/80, arts. 41 y 43 (acceso por el inc. b con cargo base que no
+        cuenta al frente de alumnos)
+      ley: "DL 9650/80"
+      articulo: "41-43"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: "70 % vs 75 % sobre el cargo base"
+    que_falta_verificar: >-
+      si cuando la docente cumple el art. 24 inc. b por sus años al frente de
+      alumnos, pero el cargo base del art. 41 es un cargo que no cuenta al
+      frente, corresponde el 75 % del art. 43 sobre ese cargo base o el 70 %
+      del art. 41. El motor aplica el 70 % por ser el criterio más
+      conservador, y lo declara como valor por defecto aplicado.
+    cuestion_abierta: 9
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "art_41"

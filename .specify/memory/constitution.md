@@ -1,7 +1,34 @@
 <!--
 Sync Impact Report
 ==================
-Versión: 1.0.0 → 1.1.0
+Versión: 1.1.0 → 1.1.1
+Tipo de cambio: Enmienda PATCH. Se agrega la Cuestión abierta #9 a la lista existente. No se
+agregan ni amplían secciones: la lista de Cuestiones abiertas ya existía y ya preveía su propio
+crecimiento ("Estas cuestiones DEBEN resolverse con fuente verificable…"). **Los diez principios
+no se modificaron** (ni su texto, ni su orden, ni su numeración), como tampoco el Marco normativo,
+el Alcance de la v1, las Restricciones técnicas, el Flujo de trabajo, el Licenciamiento ni la
+Gobernanza.
+
+Principios modificados: ninguno.
+Secciones agregadas: ninguna.
+Secciones removidas: ninguna.
+
+Cuestiones abiertas del dominio — nueva #9: porcentaje aplicable cuando la docente cumple el
+art. 24 inc. b por sus años al frente de alumnos pero su cargo base del art. 41 es un cargo que
+no cuenta al frente (un directivo). No está verificado si corresponde el 75 % del art. 43 sobre
+ese cargo base o el 70 % del art. 41. Impacto **indeterminado** —las dos lecturas son
+defendibles— con magnitud 70 % vs 75 % sobre el cargo base. El motor aplica el 70 % por ser el
+criterio más conservador y lo declara como valor por defecto aplicado.
+
+Por qué es PATCH y no MINOR: la #8 trata de **qué cargos** cuentan al frente de alumnos; la #9
+supone esa pregunta ya resuelta y trata de **sobre qué cargo** se calcula el porcentaje. Son
+distintas, pero la #9 no amplía la guía de la constitución: precisa un caso que la lista de
+Cuestiones abiertas ya estaba destinada a recibir.
+
+Origen de la enmienda: implementación de la US3 (cargo base y porcentaje), que expuso el caso al
+poder determinar por primera vez el cargo base y el porcentaje en el mismo informe.
+
+Registro de la enmienda anterior (v1.0.0 → v1.1.0, MINOR), que se conserva:
 Tipo de cambio: Enmienda MINOR. Se amplía materialmente el Marco normativo de referencia y la
 lista de Cuestiones abiertas del dominio. **Los diez principios no se modificaron** (ni su texto,
 ni su orden, ni su numeración), como tampoco el Alcance de la v1, las Restricciones técnicas, el
@@ -294,6 +321,16 @@ dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICA
    causa A 74801, 2020). Decide si el acceso es por el inciso b (art. 43, 75 % de base) o por los
    incisos c y d (art. 41, 70 % de base), de modo que su impacto es de **70 % vs 75 %** y alcanza
    tanto a la elegibilidad como al porcentaje.
+9. **Porcentaje con cargo base que no cuenta al frente de alumnos:** si la docente cumple el
+   art. 24 inciso b **por sus años al frente de alumnos** pero su cargo base del art. 41 es un
+   cargo que **no** cuenta al frente —típicamente un directivo—, no está verificado si corresponde
+   el 75 % del art. 43 sobre ese cargo base o el 70 % del art. 41. Las dos lecturas son
+   defendibles: el art. 43 rige "el personal del art. 24 inc. b", y ella lo es; pero su 75 % se
+   pensó para el cargo al frente de alumnos, que no es el cargo base. El impacto es
+   **indeterminado**, con magnitud de **70 % vs 75 % sobre el cargo base**. Hasta verificarlo el
+   motor aplica el 70 %, que es el criterio más conservador, y lo declara como valor por defecto
+   aplicado. Se distingue de la #8: esa pregunta cuáles cargos cuentan al frente; esta supone la
+   respuesta y pregunta sobre qué cargo se calcula el porcentaje.
 
 ---
 
@@ -360,4 +397,4 @@ dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICA
   se justifica contra el Principio X.
 - Las cuestiones abiertas del dominio se revisan antes de cada release del motor.
 
-**Versión**: 1.1.0 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-10-30
+**Versión**: 1.1.1 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-11-02

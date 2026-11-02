@@ -18,7 +18,7 @@ from ultimo_timbre.models.enums import CodigoAdvertencia, SentidoImpacto
 from ultimo_timbre.models.informe import Advertencia
 from ultimo_timbre.models.normativa import ConjuntoDeReglas, Norma
 
-__all__ = ["BLOQUEAN", "construir", "norma_de"]
+__all__ = ["BLOQUEAN", "POR_PERIODO", "construir", "norma_de"]
 
 # Qué situaciones impiden emitir un haber. Son las que dejan el cómputo
 # incompleto de un modo que ningún monto puede salvar: tramos que el motor no
@@ -34,6 +34,32 @@ BLOQUEAN: frozenset[CodigoAdvertencia] = frozenset(
     }
 )
 
+# Qué advertencias hablan de **un** período, y por lo tanto tienen que nombrarlo
+# con su `periodo_idx` anónimo (FR-054).
+#
+# El resto habla de la historia entera —que ningún cargo alcance los plazos del
+# art. 41, que el criterio de jerarquía esté sin verificar, que la lectura del
+# excedente sea discutible— y no tiene un período al que apuntar. Exigirles uno
+# obligaría a elegir uno arbitrario, que es peor que no poner ninguno: el
+# profesional lo leería como que el problema está en ese período.
+#
+# `REGLA_NO_VERIFICADA` no está en ninguna de las dos listas a propósito: se
+# emite con período cuando la regla condiciona un cargo concreto y sin período
+# cuando condiciona el cómputo entero.
+POR_PERIODO: frozenset[CodigoAdvertencia] = frozenset(
+    {
+        CodigoAdvertencia.FUERA_DE_ALCANCE_OTRA_CAJA,
+        CodigoAdvertencia.FUERA_DE_ALCANCE_PRIVADO,
+        CodigoAdvertencia.CARGO_FUERA_DE_CATALOGO,
+        CodigoAdvertencia.DATO_CORREGIDO_A_MANO,
+        CodigoAdvertencia.PERIODO_RECORTADO_A_CESE,
+        CodigoAdvertencia.SUPUESTO_CONTINUIDAD,
+        CodigoAdvertencia.SIMULTANEIDAD_COMPUTABLE_ART47,
+        CodigoAdvertencia.SIMULTANEIDAD_NO_COMPUTABLE,
+        CodigoAdvertencia.POSIBLE_ERROR_CARGA,
+    }
+)
+
 # La regla cuya norma respalda cada advertencia. Principio I: una advertencia
 # sin fuente es una opinión del motor.
 REGLA_DE: dict[CodigoAdvertencia, str] = {
@@ -41,6 +67,7 @@ REGLA_DE: dict[CodigoAdvertencia, str] = {
     CodigoAdvertencia.FUERA_DE_ALCANCE_PROMEDIO_36: "haber.art41.promedio_36",
     CodigoAdvertencia.SIMULTANEIDAD_COMPUTABLE_ART47: "simultaneidad.art47.minimo_continuo",
     CodigoAdvertencia.SIMULTANEIDAD_NO_COMPUTABLE: "simultaneidad.art47.minimo_continuo",
+    CodigoAdvertencia.EMPATE_JERARQUIA: "jerarquia.criterio_comparacion",
     CodigoAdvertencia.PRORRATEO_PODRIA_COMPLETAR_REQUISITOS: "requisitos.art27.prorrateo",
     CodigoAdvertencia.SERVICIOS_NO_DOCENTES_SIN_COMPUTAR: "requisitos.art27.prorrateo",
     CodigoAdvertencia.HABER_MOVIL_ART_50: "movilidad.art50",

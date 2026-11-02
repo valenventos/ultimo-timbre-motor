@@ -68,6 +68,14 @@ class Regla(BaseModel):
     verificada_en: dt.date | None = None
     impacto_si_no_verificada: SentidoImpacto | None = None
     que_falta_verificar: str | None = None
+    magnitud_estimada: str | None = None
+    """Cuánto puede mover el resultado, en los términos en que se discute.
+
+    Es **dato**, no texto generado: el resguardo que el mantenedor pidió para
+    las reglas sin verificar es que el informe diga la dirección **y** la
+    magnitud del impacto, y una magnitud redactada por el motor no tendría de
+    dónde salir. Queda en `null` cuando no se puede acotar.
+    """
     cuestion_abierta: int | None = None
     valor_por_defecto_aplicado: bool = False
     """La regla no está verificada pero el motor **igual tuvo que elegir algo**.

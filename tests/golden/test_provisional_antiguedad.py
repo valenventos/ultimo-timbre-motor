@@ -7,7 +7,7 @@ bonificación por antigüedad» sale marcado no definitivo por la regla
 `NO_VERIFICADA` correspondiente, explicando qué falta verificar.
 
 **Alcance de lo que se puede verificar en la US2**: el cálculo del haber llega
-con la US4 (T136 en adelante). Lo que sí se verifica acá es que, en cuanto el
+con la US4 (T139 en adelante). Lo que sí se verifica acá es que, en cuanto el
 motor entra al camino del monto —es decir, en cuanto recibe una grilla—, las
 tres reglas que condicionan cualquier haber aparecen como condicionantes y el
 informe sale provisional. El monto en sí se prueba en la US4.

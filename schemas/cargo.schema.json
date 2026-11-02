@@ -83,7 +83,7 @@
             "integer",
             "null"
           ],
-          "description": "null = sin orden documentado. El criterio de comparación entre cargos es la Cuestión abierta #4: no hay ningún orden numérico verificado que transcribir, así que no se inventa."
+          "description": "Orden de jerarquía del cargo, donde **mayor entero = mayor jerarquía**. La dirección del número es una convención de representación, no un valor normativo. null = sin orden documentado: el criterio de comparación entre cargos es la Cuestión abierta #4 y no hay ningún orden numérico verificado que transcribir, así que no se inventa. Con jerarquía nula el motor no puede rankear: emite `empate_jerarquia` y marca el cargo base provisional (FR-022)."
         },
         "al_frente_de_alumnos": {
           "type": [

@@ -65,6 +65,14 @@
       ],
       "description": "Requerido cuando estado = no_verificada. Sin esto no se puede cumplir FR-046b, que obliga a informar en qué sentido la regla podría alterar el resultado."
     },
+    "magnitud_estimada": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "description": "Cuánto puede mover el resultado esta regla si se verifica en un sentido o en otro, en los términos en que se discute (por ejemplo «70 % contra 75 %»). Es dato y no texto generado: el informe tiene que declarar la dirección y la magnitud del impacto, y una magnitud redactada por el motor no tendría fuente. null cuando no se puede acotar."
+    },
     "que_falta_verificar": {
       "type": [
         "string",

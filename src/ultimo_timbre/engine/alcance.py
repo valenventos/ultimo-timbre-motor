@@ -37,7 +37,12 @@ from ultimo_timbre.models.enums import (
 from ultimo_timbre.models.normativa import ConjuntoDeReglas
 from ultimo_timbre.rules import catalogo as cat
 
-__all__ = ["Deteccion", "clasificar_superposiciones", "detectar"]
+__all__ = [
+    "Deteccion",
+    "advertir_simultaneidad",
+    "clasificar_superposiciones",
+    "detectar_alcance",
+]
 
 REGLA_ART47 = "simultaneidad.art47.minimo_continuo"
 
@@ -77,11 +82,13 @@ def clasificar_superposiciones(
     sí necesita las reglas: si el solapamiento alcanza el mínimo de 3 años
     continuos del art. 47.
 
-    `cargo_base` es el segundo requisito de FR-004. Mientras no exista —hasta la
-    US3— la clasificación se apoya solo en la duración, que es la mitad
-    decidible: promover de más haría que el informe advierta un impacto que
-    después no se confirma, y eso entrena al profesional a ignorar la
-    advertencia.
+    `cargo_base` es el segundo requisito de FR-004 y lo aporta la US3: el
+    incremento del art. 47 solo puede jugar si la simultaneidad alcanza al
+    cargo sobre el que se liquida. Con `None` la clasificación se apoya solo en
+    la duración, que es la mitad decidible; se usa así en los caminos que
+    todavía no determinaron el cargo base. Promover de más haría que el informe
+    advierta un impacto que después no se confirma, y eso entrena al
+    profesional a ignorar la advertencia.
     """
     minimo = _minimo_art47(reglas)
     salida: list[Superposicion] = []
@@ -261,18 +268,48 @@ def _detectar_overrides(caso: Caso, reglas: ConjuntoDeReglas, traza: Trazador) -
     traza.agregar_condicionante(cond.de_situacion(CodigoAdvertencia.DATO_CORREGIDO_A_MANO))
 
 
-def detectar(
+def detectar_alcance(
+    caso: Caso,
+    *,
+    reglas: ConjuntoDeReglas,
+    traza: Trazador,
+) -> Deteccion:
+    """Qué períodos puede computar el motor, **sin** clasificar simultaneidad.
+
+    Es la primera de dos fases, y existe porque la clasificación del art. 47
+    necesita el cargo base (FR-004) y el cargo base necesita saber qué períodos
+    están en alcance. El orden es: alcance → cargo base → simultaneidad.
+
+    La `Deteccion` que devuelve trae `superposiciones` vacío: todavía no se
+    clasificaron. Quien la complete es `advertir_simultaneidad`.
+    """
+    _detectar_overrides(caso, reglas, traza)
+    en_alcance, fuera, hay_bloqueo = _detectar_fuera_de_alcance(caso, reglas, traza)
+    no_docentes = _detectar_no_docentes(caso, en_alcance, reglas, traza)
+    return Deteccion(
+        idx_en_alcance=frozenset(en_alcance - no_docentes),
+        idx_fuera_de_alcance=fuera,
+        idx_no_docentes=no_docentes,
+        superposiciones=(),
+        hay_bloqueo=hay_bloqueo,
+    )
+
+
+def advertir_simultaneidad(
     caso: Caso,
     cese: dt.date,
     *,
     reglas: ConjuntoDeReglas,
     traza: Trazador,
     cargo_base: str | None = None,
-) -> Deteccion:
-    """Corre las tres detecciones y deja su rastro en la traza."""
-    _detectar_overrides(caso, reglas, traza)
-    en_alcance, fuera, hay_bloqueo = _detectar_fuera_de_alcance(caso, reglas, traza)
-    no_docentes = _detectar_no_docentes(caso, en_alcance, reglas, traza)
+) -> tuple[Superposicion, ...]:
+    """Clasifica las simultaneidades y las advierte (segunda fase, FR-004, FR-043).
+
+    Se corre **después** de determinar el cargo base, que es el segundo
+    requisito del art. 47. Con el cargo base en mano, un solapamiento de más de
+    3 años entre dos cargos que no incluyen al cargo base deja de advertirse
+    como impacto posible, porque no lo es.
+    """
     superposiciones = clasificar_superposiciones(
         caso.historia, cese, reglas=reglas, cargo_base=cargo_base
     )
@@ -292,14 +329,7 @@ def detectar(
                 cond.de_situacion(CodigoAdvertencia.SIMULTANEIDAD_COMPUTABLE_ART47)
             )
 
-    # Los servicios no docentes se computan **fuera** del cómputo docente.
-    return Deteccion(
-        idx_en_alcance=frozenset(en_alcance - no_docentes),
-        idx_fuera_de_alcance=fuera,
-        idx_no_docentes=no_docentes,
-        superposiciones=superposiciones,
-        hay_bloqueo=hay_bloqueo,
-    )
+    return superposiciones
 
 
 def _mensaje_superposicion(sup: Superposicion) -> str:

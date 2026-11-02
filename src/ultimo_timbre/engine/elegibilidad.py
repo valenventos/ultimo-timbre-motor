@@ -39,7 +39,7 @@ from ultimo_timbre.models.informe import (
 from ultimo_timbre.models.normativa import ConjuntoDeReglas, Norma, Regla, ValorRegla
 from ultimo_timbre.rules import catalogo as cat
 
-__all__ = ["Umbrales", "evaluar"]
+__all__ = ["Umbrales", "evaluar", "fecha_edad_requerida"]
 
 REGLA_MINIMO = "requisitos.art24.minimo_con_aportes"
 REGLA_REVISTA = "computo.licencias_suplencias_y_revista"
@@ -366,6 +366,17 @@ def _fecha_edad(caso: Caso, anios: int) -> dt.date:
     # `dateutil` no trae stubs: la suma devuelve Any y hay que acotarla.
     fecha: dt.date = caso.fecha_nacimiento + relativedelta(years=anios)
     return fecha
+
+
+def fecha_edad_requerida(caso: Caso, inciso: str, reglas: ConjuntoDeReglas) -> dt.date:
+    """La fecha en que se cumple la edad que pide el inciso.
+
+    La necesita la lectura literal de los arts. 42 y 43, que mide el excedente
+    contra esa edad y no contra la habilitación (FR-027b). La edad sale de la
+    regla del inciso, no del código.
+    """
+    regla = _regla(reglas, f"requisitos.art24.inc_{inciso}")
+    return _fecha_edad(caso, _entero(regla, "edad") or 0)
 
 
 def _evaluar_inciso(

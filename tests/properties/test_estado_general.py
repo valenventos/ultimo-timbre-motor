@@ -14,8 +14,8 @@ import datetime as dt
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from tests.casos import ESTATAL, caso, periodo
-from ultimo_timbre.engine import calcular
+from tests.casos import ESTATAL, caso, caso_inc_b, periodo
+from ultimo_timbre.engine import calcular, estado_de
 from ultimo_timbre.models.caso import Caso, Licencia
 from ultimo_timbre.models.enums import EstadoResultado, SituacionRevista, TipoLicencia
 from ultimo_timbre.models.informe import Informe
@@ -146,3 +146,14 @@ def test_una_situacion_de_revista_no_titular_vuelve_provisional_el_computo() -> 
         ceses=["2026-02-28"],
     )
     assert calcular(c, reglas=REGLAS).estado_general is EstadoResultado.PROVISIONAL
+
+
+def test_el_atajo_estado_de_devuelve_lo_mismo_que_el_informe() -> None:
+    """FR-046c: la interfaz de librería no puede divergir del informe.
+
+    `estado_de` existe para que un consumidor no tenga que recordar dónde vive
+    el estado. Si devolviera otra cosa que `informe.estado_general`, habría dos
+    respuestas posibles a la misma pregunta, que es justo lo que I6 impide.
+    """
+    informe = calcular(caso_inc_b(), reglas=REGLAS)
+    assert estado_de(informe) is informe.estado_general
