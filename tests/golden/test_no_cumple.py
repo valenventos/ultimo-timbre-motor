@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T048 — caso dorado sin derecho (US1 esc. 2, FR-016).
+"""T051 — caso dorado sin derecho (US1 esc. 2, FR-016).
 
 24 años de servicio y 52 de edad al cese: no alcanza ningún inciso del art. 24.
 Lo que el informe debe entregar es **el faltante de cada inciso**, no un «no».
@@ -68,7 +68,7 @@ def test_sin_derecho_no_se_emite_haber(informe: Informe) -> None:
 
 
 def test_informa_la_fecha_estimada_de_cada_inciso(informe: Informe) -> None:
-    """T076, FR-016: el faltante no alcanza; hay que decir cuándo se cumpliría.
+    """T079, FR-016: el faltante no alcanza; hay que decir cuándo se cumpliría.
 
     Este caso tiene el período **cerrado** al cese, así que lo que depende de
     servicio no se puede estimar y el informe lo dice.

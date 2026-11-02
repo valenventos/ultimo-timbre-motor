@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T052 — período en curso: proyección bajo supuesto de continuidad (FR-002e)."""
+"""T055 — período en curso: proyección bajo supuesto de continuidad (FR-002e)."""
 
 from __future__ import annotations
 

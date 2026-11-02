@@ -9,7 +9,7 @@ Dos mitades:
   toca el sistema de archivos;
 * **dinámica** (queda pendiente hasta la Fase 3): que `calcular()` no escriba a
   disco ni abra sockets no se puede verificar antes de que `calcular()` exista
-  (T061, US1). Esa parte se saltea con motivo explícito en lugar de dar un
+  (T064, US1). Esa parte se saltea con motivo explícito en lugar de dar un
   verde falso.
 """
 
@@ -145,7 +145,7 @@ def test_el_detector_de_imports_encuentra_uno_plantado(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Mitad dinámica — ya es verificable: `calcular()` existe desde la US1 (T064)
+# Mitad dinámica — ya es verificable: `calcular()` existe desde la US1 (T067)
 # ---------------------------------------------------------------------------
 
 

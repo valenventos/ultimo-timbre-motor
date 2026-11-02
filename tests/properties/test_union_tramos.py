@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T043 — invariante I9: la unión, nunca la suma (FR-004a, SC-014).
+"""T046 — invariante I9: la unión, nunca la suma (FR-004a, SC-014).
 
 Es el invariante que protege contra el error clásico del dominio: sumar
 duraciones de períodos superpuestos y producir una carrera de 40 años sobre una

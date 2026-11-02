@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Documento de reglas del régimen",
+  "description": "La forma de rules/<version>/{requisitos,haber,no_verificadas}.yaml: una lista de reglas, cada una validada por rule.schema.json. La versión del conjunto no viaja en el documento: es el nombre del directorio (rules/v1), para que no haya dos respuestas posibles a qué versión es.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reglas"
+  ],
+  "properties": {
+    "reglas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "rule.schema.json"
+      }
+    }
+  }
+}

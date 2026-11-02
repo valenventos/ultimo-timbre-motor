@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T070, T072 — margen de sensibilidad a la convención de conteo.
+"""T073, T075 — margen de sensibilidad a la convención de conteo.
 
 La idea: si un requisito se cumple (o se incumple) por un margen más chico que
 el desplazamiento que puede producir el cambio de convención, entonces **la
@@ -39,7 +39,7 @@ def _req(informe: Informe, inciso: str, nombre: str) -> ResultadoRequisito:
 
 
 # --------------------------------------------------------------------------- #
-# T070 — a 3 días del umbral, provisional
+# T073 — a 3 días del umbral, provisional
 # --------------------------------------------------------------------------- #
 
 
@@ -78,7 +78,7 @@ def test_un_requisito_incumplido_al_borde_tambien_es_provisional() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# T072 — cada requisito declara su estado y su margen
+# T075 — cada requisito declara su estado y su margen
 # --------------------------------------------------------------------------- #
 
 

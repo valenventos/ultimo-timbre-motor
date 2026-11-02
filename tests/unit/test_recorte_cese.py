@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T051 — el cese recorta, no rechaza (FR-018, FR-018a)."""
+"""T054 — el cese recorta, no rechaza (FR-018, FR-018a)."""
 
 from __future__ import annotations
 

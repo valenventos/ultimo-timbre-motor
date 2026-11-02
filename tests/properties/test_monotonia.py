@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T046 — invariante I4: monotonía **acotada**.
+"""T049 — invariante I4: monotonía **acotada**.
 
 Agregar períodos **estatales de la DGCyE con aportes al IPS** nunca retrasa la
 habilitación ni reduce el servicio computado.

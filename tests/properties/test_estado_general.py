@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T057 — invariante I6: `estado_general` definitivo ⟺ nada provisional (FR-046c).
+"""T060 — invariante I6: `estado_general` definitivo ⟺ nada provisional (FR-046c).
 
 El campo se **deriva**, no se acepta como entrada, para que no pueda quedar
 inconsistente con sus componentes. Lo que el test fija es la equivalencia en los

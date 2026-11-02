@@ -125,6 +125,12 @@ historia puede empezar.
 - [X] T041 [P] Crear `rules/v1/cargos.yaml` con el catálogo: preceptores y bibliotecarios `[Ley 13469]`, técnico-docentes de Psicología y Educación Especial `[Ley 10745]`, visitadoras de higiene escolar `[Ley 11860]`, y la regla de extensión de la Ley 13469 a otros cargos con `estado: no_verificada` e `impacto_si_no_verificada` de 70 % vs 75 % `[SCBA causa A 74801 (2020), Cuestión abierta #8]`. **`jerarquia` queda en `null` para todos los cargos**: el criterio de comparación es la Cuestión abierta #4 y no hay ningún orden numérico documentado que transcribir
 - [X] T042 [P] Crear `rules/v1/no_verificadas.yaml` con las reglas de las Cuestiones abiertas #1 a #6, cada una con `valor: null`, su `sentido_impacto` y su `que_falta_verificar`: tope de antigüedad, remuneración del cargo, horas cátedra, criterio de jerarquía, licencias y situación de revista, y redondeo. Ninguna lleva un valor tentativo
 
+### Correcciones a la Fase 2 (detectadas al correr los gates)
+
+- [X] T043 Test: los YAML de `rules/` **reales** validan contra sus schemas, con dos negativos que prueban que el `$ref` a `rule.schema.json` se aplica de verdad y no pasa en vacío, en `tests/contract/test_yaml_contra_schema.py` (T025-T027, research R1)
+- [X] T044 Crear `schemas/ruleset.schema.json`: la forma del **documento** de reglas (`{reglas: [...]}`), que referencia a `rule.schema.json` para cada regla. `rule.schema.json` describe una regla sola, así que aplicarlo al documento fallaba por la forma del archivo en lugar de validar su contenido
+- [X] T045 Corregir `schemas/cargo.schema.json` a la forma real de `rules/*/cargos.yaml` —`reglas` **y** `entradas`, sin `version`, que es el nombre del directorio— y el job `validate-schemas` de `.github/workflows/ci.yml` para que valide cada documento con el schema que le corresponde
+
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
 ---
@@ -141,36 +147,36 @@ el inciso aplicable y la fecha de habilitación con el detalle normativo, sin gr
 
 > **Principio VI: escribí estos tests PRIMERO y verificá que FALLAN antes de implementar.**
 
-- [X] T043 [P] [US1] Property test del invariante I9: períodos superpuestos nunca computan más años ni más meses que la unión de sus tramos, en `tests/properties/test_union_tramos.py` (FR-004a, SC-014)
-- [X] T044 [P] [US1] Property test del invariante I1: permutar el orden de los períodos no altera ningún campo del informe, en `tests/properties/test_orden_carga.py` (FR-049, SC-010)
-- [X] T045 [P] [US1] Property test del invariante I3: mismas entradas y mismas versiones producen informes idénticos byte a byte, en `tests/properties/test_determinismo.py` (FR-048, SC-003)
-- [X] T046 [P] [US1] Property test del invariante I4: agregar períodos **estatales DGCyE con aportes al IPS** nunca retrasa la habilitación, en `tests/properties/test_monotonia.py`
-- [X] T047 [P] [US1] Caso dorado: docente nacida 1980-03-15 con 26 años al frente de alumnos cumple el inc. b al 2030-03-31, en `tests/golden/test_inc_b.py` `[DL 9650/80, art. 24 inc. b]` (US1 esc. 1)
-- [X] T048 [P] [US1] Caso dorado: con 24 años de servicio y 52 de edad no cumple ningún inciso y se informa el faltante, en `tests/golden/test_no_cumple.py` (US1 esc. 2, FR-016)
-- [X] T049 [P] [US1] Caso dorado: cumple inc. b e inc. d en fechas distintas y se señala el más favorable, en `tests/golden/test_incisos_multiples.py` (US1 esc. 4, FR-017)
-- [X] T050 [P] [US1] Unitario: `tramos_unidos` y `meses_cubiertos` sobre períodos contiguos, disjuntos y superpuestos, en `tests/unit/test_calendario_union.py` (FR-004a)
-- [X] T051 [P] [US1] Unitario: recorte de un período que supera la fecha de cese, independiente por cada fecha evaluada, en `tests/unit/test_recorte_cese.py` (FR-018a)
-- [X] T052 [P] [US1] Unitario: proyección de un período en curso (`hasta is None`) bajo supuesto de continuidad, con su `Procedencia` y la advertencia `supuesto_continuidad`, en `tests/unit/test_periodo_en_curso.py` (FR-002e)
-- [X] T053 [P] [US1] Unitario: edad al cese y fecha de habilitación por inciso con `relativedelta`, en `tests/unit/test_elegibilidad.py` (FR-011 a FR-016)
-- [X] T054 [P] [US1] Test de contrato: el informe de elegibilidad sin grilla valida contra `informe.schema.json`, en `tests/contract/test_informe_sin_grilla.py`
-- [X] T055 [P] [US1] Test: el informe declara `fecha_de_calculo`, y correrlo con dos fechas distintas solo cambia los campos que dependen de ella, en `tests/unit/test_fecha_calculo.py` (FR-001a)
-- [X] T056 [P] [US1] Test: todo informe declara `version_reglas` y, cuando hay grilla, `version_grilla`, en `tests/unit/test_versiones_informe.py` (FR-009)
-- [X] T057 [P] [US1] Property test del invariante I6: `Informe.estado_general == definitivo` si y solo si ningún componente del informe es provisional, en `tests/properties/test_estado_general.py` (FR-046c)
+- [X] T046 [P] [US1] Property test del invariante I9: períodos superpuestos nunca computan más años ni más meses que la unión de sus tramos, en `tests/properties/test_union_tramos.py` (FR-004a, SC-014)
+- [X] T047 [P] [US1] Property test del invariante I1: permutar el orden de los períodos no altera ningún campo del informe, en `tests/properties/test_orden_carga.py` (FR-049, SC-010)
+- [X] T048 [P] [US1] Property test del invariante I3: mismas entradas y mismas versiones producen informes idénticos byte a byte, en `tests/properties/test_determinismo.py` (FR-048, SC-003)
+- [X] T049 [P] [US1] Property test del invariante I4: agregar períodos **estatales DGCyE con aportes al IPS** nunca retrasa la habilitación, en `tests/properties/test_monotonia.py`
+- [X] T050 [P] [US1] Caso dorado: docente nacida 1980-03-15 con 26 años al frente de alumnos cumple el inc. b al 2030-03-31, en `tests/golden/test_inc_b.py` `[DL 9650/80, art. 24 inc. b]` (US1 esc. 1)
+- [X] T051 [P] [US1] Caso dorado: con 24 años de servicio y 52 de edad no cumple ningún inciso y se informa el faltante, en `tests/golden/test_no_cumple.py` (US1 esc. 2, FR-016)
+- [X] T052 [P] [US1] Caso dorado: cumple inc. b e inc. d en fechas distintas y se señala el más favorable, en `tests/golden/test_incisos_multiples.py` (US1 esc. 4, FR-017)
+- [X] T053 [P] [US1] Unitario: `tramos_unidos` y `meses_cubiertos` sobre períodos contiguos, disjuntos y superpuestos, en `tests/unit/test_calendario_union.py` (FR-004a)
+- [X] T054 [P] [US1] Unitario: recorte de un período que supera la fecha de cese, independiente por cada fecha evaluada, en `tests/unit/test_recorte_cese.py` (FR-018a)
+- [X] T055 [P] [US1] Unitario: proyección de un período en curso (`hasta is None`) bajo supuesto de continuidad, con su `Procedencia` y la advertencia `supuesto_continuidad`, en `tests/unit/test_periodo_en_curso.py` (FR-002e)
+- [X] T056 [P] [US1] Unitario: edad al cese y fecha de habilitación por inciso con `relativedelta`, en `tests/unit/test_elegibilidad.py` (FR-011 a FR-016)
+- [X] T057 [P] [US1] Test de contrato: el informe de elegibilidad sin grilla valida contra `informe.schema.json`, en `tests/contract/test_informe_sin_grilla.py`
+- [X] T058 [P] [US1] Test: el informe declara `fecha_de_calculo`, y correrlo con dos fechas distintas solo cambia los campos que dependen de ella, en `tests/unit/test_fecha_calculo.py` (FR-001a)
+- [X] T059 [P] [US1] Test: todo informe declara `version_reglas` y, cuando hay grilla, `version_grilla`, en `tests/unit/test_versiones_informe.py` (FR-009)
+- [X] T060 [P] [US1] Property test del invariante I6: `Informe.estado_general == definitivo` si y solo si ningún componente del informe es provisional, en `tests/properties/test_estado_general.py` (FR-046c)
 
 ### Implementation for User Story 1
 
-> Requiere T043–T057 escritas y fallando.
+> Requiere T046–T060 escritas y fallando.
 
-- [X] T058 [US1] Implementar `src/ultimo_timbre/engine/calendario.py`: proyección de períodos a meses calendario, unión de tramos, cierre de cómputos a la fecha de cese sin computar servicios posteriores, recorte y proyección de períodos en curso (FR-004a, FR-018, FR-018a, FR-002e, research R2)
-- [X] T059 [US1] Implementar `src/ultimo_timbre/engine/elegibilidad.py` con los incisos b, c y d y el mínimo de 22 años, leyendo los umbrales desde `rules/v1/requisitos.yaml` y sin ningún valor normativo embebido (FR-011, FR-012, FR-013, FR-014, FR-007)
-- [X] T060 [US1] Implementar en `engine/elegibilidad.py` la fecha de habilitación por inciso y el cálculo del faltante en edad y servicios (FR-016)
-- [X] T061 [US1] Implementar la selección del inciso más favorable y su justificación en `engine/elegibilidad.py` (FR-017)
-- [X] T062 [US1] Implementar `src/ultimo_timbre/engine/desglose.py`: registro de cada paso con `regla_id`, `norma` y `tipo_fuente` distinguiendo letra de la ley de interpretación (FR-038, FR-040)
-- [X] T063 [US1] Implementar el registro de `Procedencia` por dato (manual o derivado, con `derivado_de` y `difiere_del_catalogo`) en `engine/desglose.py` (FR-039)
-- [X] T064 [US1] Implementar `calcular(caso, *, reglas, grilla=None) -> Informe` en `src/ultimo_timbre/engine/__init__.py`, sin I/O, sin red y sin reloj, aceptando `grilla=None` para producir informe sin montos (FR-051, contrato `library-api.md`)
-- [X] T065 [US1] Implementar la derivación de `Informe.estado_general` a partir de los estados de sus componentes en `src/ultimo_timbre/models/informe.py` (FR-046c, I6)
-- [X] T066 [US1] Implementar `src/ultimo_timbre/render/json_out.py` determinista: `sort_keys=True`, `ensure_ascii=False`, `Decimal` serializado como string y colecciones con orden explícito (FR-048, SC-003)
-- [X] T067 [US1] Exponer la superficie pública en `src/ultimo_timbre/__init__.py` con `__all__` y agregar `py.typed` (PEP 561) (contrato `library-api.md`)
+- [X] T061 [US1] Implementar `src/ultimo_timbre/engine/calendario.py`: proyección de períodos a meses calendario, unión de tramos, cierre de cómputos a la fecha de cese sin computar servicios posteriores, recorte y proyección de períodos en curso (FR-004a, FR-018, FR-018a, FR-002e, research R2)
+- [X] T062 [US1] Implementar `src/ultimo_timbre/engine/elegibilidad.py` con los incisos b, c y d y el mínimo de 22 años, leyendo los umbrales desde `rules/v1/requisitos.yaml` y sin ningún valor normativo embebido (FR-011, FR-012, FR-013, FR-014, FR-007)
+- [X] T063 [US1] Implementar en `engine/elegibilidad.py` la fecha de habilitación por inciso y el cálculo del faltante en edad y servicios (FR-016)
+- [X] T064 [US1] Implementar la selección del inciso más favorable y su justificación en `engine/elegibilidad.py` (FR-017)
+- [X] T065 [US1] Implementar `src/ultimo_timbre/engine/desglose.py`: registro de cada paso con `regla_id`, `norma` y `tipo_fuente` distinguiendo letra de la ley de interpretación (FR-038, FR-040)
+- [X] T066 [US1] Implementar el registro de `Procedencia` por dato (manual o derivado, con `derivado_de` y `difiere_del_catalogo`) en `engine/desglose.py` (FR-039)
+- [X] T067 [US1] Implementar `calcular(caso, *, reglas, grilla=None) -> Informe` en `src/ultimo_timbre/engine/__init__.py`, sin I/O, sin red y sin reloj, aceptando `grilla=None` para producir informe sin montos (FR-051, contrato `library-api.md`)
+- [X] T068 [US1] Implementar la derivación de `Informe.estado_general` a partir de los estados de sus componentes en `src/ultimo_timbre/models/informe.py` (FR-046c, I6)
+- [X] T069 [US1] Implementar `src/ultimo_timbre/render/json_out.py` determinista: `sort_keys=True`, `ensure_ascii=False`, `Decimal` serializado como string y colecciones con orden explícito (FR-048, SC-003)
+- [X] T070 [US1] Exponer la superficie pública en `src/ultimo_timbre/__init__.py` con `__all__` y agregar `py.typed` (PEP 561) (contrato `library-api.md`)
 
 ### Correcciones de la US1 (tests ANTES de la implementación) ⚠️
 
@@ -178,25 +184,25 @@ el inciso aplicable y la fecha de habilitación con el detalle normativo, sin gr
 > **convención de conteo** sin declararla, y no estimaba la fecha futura de
 > habilitación que pide FR-016 / US1 esc. 2.
 
-- [X] T068 [P] [US1] Test: la convención de conteo de servicios es una regla `NO_VERIFICADA` que declara su **valor por defecto aplicado**, en `tests/unit/test_convencion_conteo.py` (Cuestión abierta #5, FR-006)
-- [X] T069 [P] [US1] Test: las dos convenciones (días reales sin arrastre vs meses de 30 días con arrastre) se calculan y pueden diferir, en `tests/unit/test_convencion_conteo.py` (Principio II)
-- [X] T070 [P] [US1] Test: un requisito que se cumple **a 3 días del umbral** sale provisional con el condicionante de la convención, en `tests/unit/test_margen_convencion.py` (Cuestión abierta #5, FR-046b)
-- [X] T071 [P] [US1] Test: el caso dorado del inc. b (26 años contra 25 requeridos) **sigue definitivo**: lejos del umbral la convención no decide, en `tests/golden/test_inc_b.py`
-- [X] T072 [P] [US1] Test: cada requisito de edad y de servicio declara su `estado` y su margen al umbral, en `tests/unit/test_margen_convencion.py`
-- [X] T073 [P] [US1] Test: sin derecho a la fecha evaluada y **con** período en curso, el motor estima la fecha en que se cumpliría cada inciso, en `tests/unit/test_estimacion_habilitacion.py` (FR-016, US1 esc. 2)
-- [X] T074 [P] [US1] Test: la estimación lleva el condicionante `supuesto_continuidad`, en `tests/unit/test_estimacion_habilitacion.py` (FR-002e, FR-046b)
-- [X] T075 [P] [US1] Test: sin derecho y **sin** período en curso, se informa que no puede estimarse sin servicios futuros; si lo único que falta es edad, sí se estima, en `tests/unit/test_estimacion_habilitacion.py` (FR-016)
-- [X] T076 [P] [US1] Caso dorado actualizado: 24 años de servicio y 52 de edad informa el faltante **y** la fecha estimada de cada inciso, en `tests/golden/test_no_cumple.py` (US1 esc. 2)
+- [X] T071 [P] [US1] Test: la convención de conteo de servicios es una regla `NO_VERIFICADA` que declara su **valor por defecto aplicado**, en `tests/unit/test_convencion_conteo.py` (Cuestión abierta #5, FR-006)
+- [X] T072 [P] [US1] Test: las dos convenciones (días reales sin arrastre vs meses de 30 días con arrastre) se calculan y pueden diferir, en `tests/unit/test_convencion_conteo.py` (Principio II)
+- [X] T073 [P] [US1] Test: un requisito que se cumple **a 3 días del umbral** sale provisional con el condicionante de la convención, en `tests/unit/test_margen_convencion.py` (Cuestión abierta #5, FR-046b)
+- [X] T074 [P] [US1] Test: el caso dorado del inc. b (26 años contra 25 requeridos) **sigue definitivo**: lejos del umbral la convención no decide, en `tests/golden/test_inc_b.py`
+- [X] T075 [P] [US1] Test: cada requisito de edad y de servicio declara su `estado` y su margen al umbral, en `tests/unit/test_margen_convencion.py`
+- [X] T076 [P] [US1] Test: sin derecho a la fecha evaluada y **con** período en curso, el motor estima la fecha en que se cumpliría cada inciso, en `tests/unit/test_estimacion_habilitacion.py` (FR-016, US1 esc. 2)
+- [X] T077 [P] [US1] Test: la estimación lleva el condicionante `supuesto_continuidad`, en `tests/unit/test_estimacion_habilitacion.py` (FR-002e, FR-046b)
+- [X] T078 [P] [US1] Test: sin derecho y **sin** período en curso, se informa que no puede estimarse sin servicios futuros; si lo único que falta es edad, sí se estima, en `tests/unit/test_estimacion_habilitacion.py` (FR-016)
+- [X] T079 [P] [US1] Caso dorado actualizado: 24 años de servicio y 52 de edad informa el faltante **y** la fecha estimada de cada inciso, en `tests/golden/test_no_cumple.py` (US1 esc. 2)
 
-> Requiere T068–T076 escritas y fallando.
+> Requiere T071–T079 escritas y fallando.
 
-- [X] T077 [US1] Agregar a `rules/v1/no_verificadas.yaml` la regla `computo.convencion_de_conteo` (Cuestión abierta #5): días calendario reales contra meses de 30 días, fecha final inclusiva o exclusiva, y arrastre de días residuales a meses. Declara como **valor por defecto aplicado** la convención actual —días reales, fecha final inclusiva, sin arrastre— marcada provisional
-- [X] T078 [US1] Agregar el campo `valor_por_defecto_aplicado` a `Regla` en `src/ultimo_timbre/models/normativa.py` y a `schemas/rule.schema.json`: distingue una regla sin verificar que **igual tuvo que elegir algo** de una que deja su valor en `null` (Principio I)
-- [X] T079 [US1] Implementar `ConvencionConteo` en `src/ultimo_timbre/models/enums.py` y la segunda convención en `src/ultimo_timbre/engine/calendario.py`, con el umbral de arrastre tomado de la regla y no escrito en el código (FR-007)
-- [X] T080 [US1] Agregar `estado` y `margen_dias` a `ResultadoRequisito`, y `estado` a `ResultadoInciso`, en `src/ultimo_timbre/models/informe.py` y en `contracts/informe.schema.json` (FR-046b)
-- [X] T081 [US1] Implementar el **margen de sensibilidad** en `src/ultimo_timbre/engine/elegibilidad.py`: un requisito sale provisional cuando las dos convenciones discrepan, o cuando su margen al umbral es menor o igual que el desplazamiento que la convención puede producir. Lejos del umbral sigue definitivo (Cuestión abierta #5, FR-046b)
-- [X] T082 [US1] Agregar `estimado_para` y `motivo_sin_estimacion` a `ResultadoInciso` en `src/ultimo_timbre/models/informe.py` y en `contracts/informe.schema.json` (FR-016)
-- [X] T083 [US1] Implementar la estimación de habilitación futura en `src/ultimo_timbre/engine/elegibilidad.py`: proyecta los períodos en curso bajo supuesto de continuidad sobre un horizonte, con el condicionante `supuesto_continuidad`. Si lo que falta es servicio y no hay período en curso, informa que no puede estimarse; si lo único que falta es edad, sí estima (FR-016, FR-002e)
+- [X] T080 [US1] Agregar a `rules/v1/no_verificadas.yaml` la regla `computo.convencion_de_conteo` (Cuestión abierta #5): días calendario reales contra meses de 30 días, fecha final inclusiva o exclusiva, y arrastre de días residuales a meses. Declara como **valor por defecto aplicado** la convención actual —días reales, fecha final inclusiva, sin arrastre— marcada provisional
+- [X] T081 [US1] Agregar el campo `valor_por_defecto_aplicado` a `Regla` en `src/ultimo_timbre/models/normativa.py` y a `schemas/rule.schema.json`: distingue una regla sin verificar que **igual tuvo que elegir algo** de una que deja su valor en `null` (Principio I)
+- [X] T082 [US1] Implementar `ConvencionConteo` en `src/ultimo_timbre/models/enums.py` y la segunda convención en `src/ultimo_timbre/engine/calendario.py`, con el umbral de arrastre tomado de la regla y no escrito en el código (FR-007)
+- [X] T083 [US1] Agregar `estado` y `margen_dias` a `ResultadoRequisito`, y `estado` a `ResultadoInciso`, en `src/ultimo_timbre/models/informe.py` y en `contracts/informe.schema.json` (FR-046b)
+- [X] T084 [US1] Implementar el **margen de sensibilidad** en `src/ultimo_timbre/engine/elegibilidad.py`: un requisito sale provisional cuando las dos convenciones discrepan, o cuando su margen al umbral es menor o igual que el desplazamiento que la convención puede producir. Lejos del umbral sigue definitivo (Cuestión abierta #5, FR-046b)
+- [X] T085 [US1] Agregar `estimado_para` y `motivo_sin_estimacion` a `ResultadoInciso` en `src/ultimo_timbre/models/informe.py` y en `contracts/informe.schema.json` (FR-016)
+- [X] T086 [US1] Implementar la estimación de habilitación futura en `src/ultimo_timbre/engine/elegibilidad.py`: proyecta los períodos en curso bajo supuesto de continuidad sobre un horizonte, con el condicionante `supuesto_continuidad`. Si lo que falta es servicio y no hay período en curso, informa que no puede estimarse; si lo único que falta es edad, sí estima (FR-016, FR-002e)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -215,27 +221,38 @@ advertencia que nombra la situación y su norma.
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T084 [P] [US2] Property test del invariante I7: si existe una advertencia con `bloquea_calculo`, ningún escenario tiene `haber`, en `tests/properties/test_bloqueo.py` (FR-044, FR-045)
-- [ ] T085 [P] [US2] Caso dorado: dos cargos superpuestos más de 3 años continuos que alcanzan al cargo base se clasifican `simultaneidad_computable_art47` y no se calcula el incremento, en `tests/golden/test_simultaneidad.py` `[DL 9650/80, art. 47; Res. IPS 995/2021]` (US2 esc. 1, FR-043)
-- [ ] T086 [P] [US2] Caso dorado: períodos con `caja_aportes` distinta de `ips` se reportan fuera de alcance sin computarse, en `tests/golden/test_otra_caja.py` `[DL 9650/80, arts. 66 y 67]` (US2 esc. 2, FR-044)
-- [ ] T087 [P] [US2] Caso dorado: establecimiento de gestión privada se detecta y se informa sin calcular, en `tests/golden/test_privado.py` (US2 esc. 4, FR-045)
-- [ ] T088 [P] [US2] Caso dorado: si los servicios docentes no alcanzan ningún inciso y existen no docentes, la advertencia nombra el prorrateo como vía posible y la elegibilidad queda no definitiva, en `tests/golden/test_prorrateo_posible.py` `[DL 9650/80, art. 27]` (US2 esc. 5, FR-015a)
-- [ ] T089 [P] [US2] Test: un caso fuera de alcance **igual devuelve un `Informe`** con elegibilidad parcial, detecciones y desglose, sin `haber`, y no lanza excepción, en `tests/unit/test_informe_parcial.py` (FR-045a)
-- [ ] T090 [P] [US2] Unitario: clasificación de superposiciones en las tres categorías, con el mismo cargo en el mismo establecimiento cayendo en `posible_error_carga`, en `tests/unit/test_superposiciones.py` (FR-004)
-- [ ] T091 [P] [US2] Unitario: toda regla `NO_VERIFICADA` que interviene produce un `Condicionante` de clase `regla_no_verificada` con su `sentido_impacto`, en `tests/unit/test_condicionantes_regla.py` (FR-046, FR-046b)
-- [ ] T092 [P] [US2] Unitario: las situaciones del caso (`cargo_fuera_de_catalogo`, `override_manual`, `supuesto_continuidad`) producen `Condicionante` de clase `situacion_del_caso`, en `tests/unit/test_condicionantes_situacion.py` (FR-046b)
-- [ ] T093 [P] [US2] Caso dorado: un haber que depende de la escala de antigüedad sale marcado provisional con su explicación, en `tests/golden/test_provisional_antiguedad.py` (US2 esc. 3, Cuestión abierta #1)
+- [X] T087 [P] [US2] Property test del invariante I7: si existe una advertencia con `bloquea_calculo`, ningún escenario tiene `haber`, en `tests/properties/test_bloqueo.py` (FR-044, FR-045)
+- [X] T088 [P] [US2] Caso dorado: dos cargos superpuestos más de 3 años continuos que alcanzan al cargo base se clasifican `simultaneidad_computable_art47` y no se calcula el incremento, en `tests/golden/test_simultaneidad.py` `[DL 9650/80, art. 47; Res. IPS 995/2021]` (US2 esc. 1, FR-043)
+- [X] T089 [P] [US2] Caso dorado: períodos con `caja_aportes` distinta de `ips` se reportan fuera de alcance sin computarse, en `tests/golden/test_otra_caja.py` `[DL 9650/80, arts. 66 y 67]` (US2 esc. 2, FR-044)
+- [X] T090 [P] [US2] Caso dorado: establecimiento de gestión privada se detecta y se informa sin calcular, en `tests/golden/test_privado.py` (US2 esc. 4, FR-045)
+- [X] T091 [P] [US2] Caso dorado: si los servicios docentes no alcanzan ningún inciso y existen no docentes, la advertencia nombra el prorrateo como vía posible y la elegibilidad queda no definitiva, en `tests/golden/test_prorrateo_posible.py` `[DL 9650/80, art. 27]` (US2 esc. 5, FR-015a)
+- [X] T092 [P] [US2] Test: un caso fuera de alcance **igual devuelve un `Informe`** con elegibilidad parcial, detecciones y desglose, sin `haber`, y no lanza excepción, en `tests/unit/test_informe_parcial.py` (FR-045a)
+- [X] T093 [P] [US2] Unitario: clasificación de superposiciones en las tres categorías, con el mismo cargo en el mismo establecimiento cayendo en `posible_error_carga`, en `tests/unit/test_superposiciones.py` (FR-004)
+- [X] T094 [P] [US2] Unitario: toda regla `NO_VERIFICADA` que interviene produce un `Condicionante` de clase `regla_no_verificada` con su `sentido_impacto`, en `tests/unit/test_condicionantes_regla.py` (FR-046, FR-046b)
+- [X] T095 [P] [US2] Unitario: las situaciones del caso (`cargo_fuera_de_catalogo`, `override_manual`, `supuesto_continuidad`) producen `Condicionante` de clase `situacion_del_caso`, en `tests/unit/test_condicionantes_situacion.py` (FR-046b)
+- [X] T096 [P] [US2] Caso dorado: un haber que depende de la escala de antigüedad sale marcado provisional con su explicación, en `tests/golden/test_provisional_antiguedad.py` (US2 esc. 3, Cuestión abierta #1)
 
 ### Implementation for User Story 2
 
-> Requiere T084–T093 escritas y fallando.
+> Requiere T087–T096 escritas y fallando.
 
-- [ ] T094 [US2] Implementar la detección y clasificación de superposiciones en `src/ultimo_timbre/engine/alcance.py` con las tres categorías de FR-004, discriminando `posible_error_carga` por cargo y establecimiento iguales
-- [ ] T095 [US2] Implementar en `engine/alcance.py` la detección de servicios fuera de alcance: `caja_aportes != ips` (FR-044), `tipo != estatal_dgcye` (FR-045) y el promedio de 36 meses del tercer párrafo del art. 41 (FR-020b)
-- [ ] T096 [US2] Implementar en `engine/alcance.py` la detección de servicios no docentes y la advertencia condicional de prorrateo cuando los docentes no alcanzan ningún inciso (FR-015, FR-015a)
-- [ ] T097 [US2] Implementar el emisor de advertencias con `codigo`, `norma`, `sentido_impacto` y `bloquea_calculo` en `src/ultimo_timbre/engine/advertencias.py` (FR-041)
-- [ ] T098 [US2] Implementar la construcción de `Condicionante` para ambas clases y su propagación a cada `Monto` en `src/ultimo_timbre/engine/condicionantes.py` (FR-046a, FR-046b)
-- [ ] T099 [US2] Implementar en `calcular()` el camino de informe parcial: ante advertencias bloqueantes se omite el haber y se conserva todo lo demás explicado, sin lanzar excepción (FR-045a, FR-047)
+- [X] T097 [US2] Implementar la detección y clasificación de superposiciones en `src/ultimo_timbre/engine/alcance.py` con las tres categorías de FR-004, discriminando `posible_error_carga` por cargo y establecimiento iguales
+- [X] T098 [US2] Implementar en `engine/alcance.py` la detección de servicios fuera de alcance: `caja_aportes != ips` (FR-044), `tipo != estatal_dgcye` (FR-045) y el promedio de 36 meses del tercer párrafo del art. 41 (FR-020b)
+- [X] T099 [US2] Implementar en `engine/alcance.py` la detección de servicios no docentes y la advertencia condicional de prorrateo cuando los docentes no alcanzan ningún inciso (FR-015, FR-015a)
+- [X] T100 [US2] Implementar el emisor de advertencias con `codigo`, `norma`, `sentido_impacto` y `bloquea_calculo` en `src/ultimo_timbre/engine/advertencias.py` (FR-041)
+- [X] T101 [US2] Implementar la construcción de `Condicionante` para ambas clases y su propagación a cada `Monto` en `src/ultimo_timbre/engine/condicionantes.py` (FR-046a, FR-046b)
+- [X] T102 [US2] Implementar en `calcular()` el camino de informe parcial: ante advertencias bloqueantes se omite el haber y se conserva todo lo demás explicado, sin lanzar excepción (FR-045a, FR-047)
+
+### Correcciones a la User Story 2
+
+> **Tests primero, igual que el resto (Principio VI).**
+
+- [X] T103 [P] [US2] Test: el `sentido_impacto` de `fuera_de_alcance_otra_caja` es `indeterminado` y el mensaje explica el desplazamiento de la caja otorgante, en `tests/golden/test_otra_caja.py` `[DL 9650/80, art. 67]` (FR-044, FR-046b)
+- [X] T104 [P] [US2] Test: (a) inc. b holgado con inc. d sensible deja la elegibilidad **definitiva**; (b) inc. b sensible cuya caída dejaría al inc. c como más favorable la deja **provisional**, en `tests/unit/test_condicionante_informativo.py` (FR-017, FR-046b, Cuestión abierta #5)
+
+- [X] T105 [US2] Corregir en `src/ultimo_timbre/engine/condicionantes.py` el `SENTIDO` de `fuera_de_alcance_otra_caja` a `indeterminado` y reescribir su `QUE_FALTA`: por el art. 67 la caja otorgante es la de mayor tiempo con aportes, así que computar los servicios de la otra caja podría desplazar el otorgamiento a esa caja, con otro régimen, otros requisitos y otro haber —que puede ser menor—. Va explícito en la tabla y no librado al valor por defecto, porque ahí `None` significa «no mueve el resultado» (FR-044, FR-046b)
+- [X] T106 [US2] Reescribir el mensaje de la advertencia en `src/ultimo_timbre/engine/alcance.py` para decir el motivo citando el art. 67, en lugar de remitir solo a la reciprocidad (FR-046b, Principio VIII)
+- [X] T107 [US2] Implementar la regla de **condicionantes informativos**: un condicionante sobre un inciso que no es el más favorable no vuelve provisional la elegibilidad ni el `estado_general`, salvo que de darse vuelta cambiaría si hay derecho o cuál es el inciso más favorable. Se documenta en `src/ultimo_timbre/engine/condicionantes.py` y se implementa en `engine/elegibilidad.py` (`_ranking`, `_sensibilidades_que_importan`), que decide qué sensibilidades registrar **después** de elegir el inciso. No debilita I5: el condicionante informativo no se registra, y lo que queda asentado es el `estado` y el `margen_dias` del inciso (FR-017, FR-046b)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -253,34 +270,35 @@ enumera los meses que lo sustentan y descarta candidatos con su razón, sin gril
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T100 [P] [US3] Property test del invariante I2: el porcentaje nunca supera el máximo legal del artículo aplicable, cualquiera sea la entrada, en `tests/properties/test_tope_porcentaje.py` (FR-028)
-- [ ] T101 [P] [US3] Caso dorado: Director 40 meses consecutivos frente a Maestro 25 años elige el de mayor jerarquía con los meses que lo sustentan, en `tests/golden/test_cargo_base_36.py` `[DL 9650/80, art. 41 (texto Ley 13968); Res. IPS 14/10]` (US3 esc. 1)
-- [ ] T102 [P] [US3] Caso dorado: cargo con 60 meses alternados y nunca 36 consecutivos califica por la vía alternada, en `tests/golden/test_cargo_base_60.py` (US3 esc. 2, FR-019)
-- [ ] T103 [P] [US3] Caso dorado: Director 20 meses y Vicedirector 48 consecutivos regula por el **cargo inferior** y lo explica, en `tests/golden/test_cargo_inferior.py` `[DL 9650/80, art. 41]` (US3 esc. 3, FR-020a)
-- [ ] T104 [P] [US3] Caso dorado: ningún cargo alcanza 36/60 y se informa el promedio de 36 meses como fuera de alcance v1 sin calcular, en `tests/golden/test_promedio_36.py` `[DL 9650/80, art. 41, tercer párrafo]` (US3 esc. 4, FR-020b)
-- [ ] T105 [P] [US3] Caso dorado: acceso por inc. b con todas las condiciones cumplidas 5 años antes aplica 85 %, en `tests/golden/test_porcentaje_inc_b.py` `[DL 9650/80, art. 43; Res. IPS 995/2021, Anexo, punto 2.1.a]` (US3 esc. 5)
-- [ ] T106 [P] [US3] Caso dorado: docente que completa 25 años de servicio **a los 54 años** obtiene 75 % al habilitarse y 80 % tres años después, con la advertencia de la lectura literal, en `tests/golden/test_excedente_54.py` (US3 esc. 6, FR-027a, FR-027b)
-- [ ] T107 [P] [US3] Caso dorado: acceso por inc. d sin excedente aplica 70 %, en `tests/golden/test_porcentaje_inc_d.py` `[DL 9650/80, art. 41]` (US3 esc. 7)
-- [ ] T108 [P] [US3] Caso dorado: cargo cuya condición de al frente de alumnos depende de la extensión discutida de la Ley 13469 sale provisional con impacto 70 % vs 75 %, en `tests/golden/test_ley_13469.py` `[SCBA causa A 74801 (2020), Cuestión abierta #8]` (US3 esc. 8, FR-002c)
-- [ ] T109 [P] [US3] Unitario: racha máxima de meses consecutivos y cardinalidad de meses alternados sobre el conjunto unión, en `tests/unit/test_cargo_base_conteo.py` (FR-019, FR-004a)
-- [ ] T110 [P] [US3] Unitario: el excedente se cuenta desde que se cumplen **todas** las condiciones del inciso, no solo la edad, en `tests/unit/test_excedente.py` (FR-027a)
-- [ ] T111 [P] [US3] Unitario: cálculo del porcentaje de la lectura literal alternativa con `sentido_impacto: al_alza`, en `tests/unit/test_lectura_literal.py` (FR-027b)
-- [ ] T112 [P] [US3] Unitario: empate de jerarquía entre dos cargos emite `empate_jerarquia` y deja el cargo base provisional, en `tests/unit/test_empate_jerarquia.py` (FR-022, Cuestión abierta #4)
+- [ ] T108 [P] [US3] Property test del invariante I2: el porcentaje nunca supera el máximo legal del artículo aplicable, cualquiera sea la entrada, en `tests/properties/test_tope_porcentaje.py` (FR-028)
+- [ ] T109 [P] [US3] Caso dorado: Director 40 meses consecutivos frente a Maestro 25 años elige el de mayor jerarquía con los meses que lo sustentan, en `tests/golden/test_cargo_base_36.py` `[DL 9650/80, art. 41 (texto Ley 13968); Res. IPS 14/10]` (US3 esc. 1)
+- [ ] T110 [P] [US3] Caso dorado: cargo con 60 meses alternados y nunca 36 consecutivos califica por la vía alternada, en `tests/golden/test_cargo_base_60.py` (US3 esc. 2, FR-019)
+- [ ] T111 [P] [US3] Caso dorado: Director 20 meses y Vicedirector 48 consecutivos regula por el **cargo inferior** y lo explica, en `tests/golden/test_cargo_inferior.py` `[DL 9650/80, art. 41]` (US3 esc. 3, FR-020a)
+- [ ] T112 [P] [US3] Caso dorado: ningún cargo alcanza 36/60 y se informa el promedio de 36 meses como fuera de alcance v1 sin calcular, en `tests/golden/test_promedio_36.py` `[DL 9650/80, art. 41, tercer párrafo]` (US3 esc. 4, FR-020b)
+- [ ] T113 [P] [US3] Caso dorado: acceso por inc. b con todas las condiciones cumplidas 5 años antes aplica 85 %, en `tests/golden/test_porcentaje_inc_b.py` `[DL 9650/80, art. 43; Res. IPS 995/2021, Anexo, punto 2.1.a]` (US3 esc. 5)
+- [ ] T114 [P] [US3] Caso dorado: docente que completa 25 años de servicio **a los 54 años** obtiene 75 % al habilitarse y 80 % tres años después, con la advertencia de la lectura literal, en `tests/golden/test_excedente_54.py` (US3 esc. 6, FR-027a, FR-027b)
+- [ ] T115 [P] [US3] Caso dorado: acceso por inc. d sin excedente aplica 70 %, en `tests/golden/test_porcentaje_inc_d.py` `[DL 9650/80, art. 41]` (US3 esc. 7)
+- [ ] T116 [P] [US3] Caso dorado: cargo cuya condición de al frente de alumnos depende de la extensión discutida de la Ley 13469 sale provisional con impacto 70 % vs 75 %, en `tests/golden/test_ley_13469.py` `[SCBA causa A 74801 (2020), Cuestión abierta #8]` (US3 esc. 8, FR-002c)
+- [ ] T117 [P] [US3] Unitario: racha máxima de meses consecutivos y cardinalidad de meses alternados sobre el conjunto unión, en `tests/unit/test_cargo_base_conteo.py` (FR-019, FR-004a)
+- [ ] T118 [P] [US3] Unitario: el excedente se cuenta desde que se cumplen **todas** las condiciones del inciso, no solo la edad, en `tests/unit/test_excedente.py` (FR-027a)
+- [ ] T119 [P] [US3] Unitario: cálculo del porcentaje de la lectura literal alternativa con `sentido_impacto: al_alza`, en `tests/unit/test_lectura_literal.py` (FR-027b)
+- [ ] T120 [P] [US3] Unitario: empate de jerarquía entre dos cargos emite `empate_jerarquia` y deja el cargo base provisional, en `tests/unit/test_empate_jerarquia.py` (FR-022, Cuestión abierta #4)
 
 ### Implementation for User Story 3
 
-> Requiere T100–T112 escritas y fallando.
+> Requiere T108–T120 escritas y fallando.
 
-- [ ] T113 [US3] Implementar `src/ultimo_timbre/engine/cargo_base.py`: identificación del cargo de mayor jerarquía con 36 meses consecutivos o 60 alternados sobre el conjunto unión de meses (FR-019, research R2)
-- [ ] T114 [US3] Implementar la exposición de los meses que sustentan el cargo base y la vía por la que califica en `engine/cargo_base.py` (FR-020)
-- [ ] T115 [US3] Implementar el descenso al cargo inferior cuando el de mayor jerarquía no alcanza los 36/60, con su explicación en el desglose (FR-020a)
-- [ ] T116 [US3] Implementar la detección del caso del tercer párrafo del art. 41 (promedio de 36 meses) como fuera de alcance v1, reusando `engine/alcance.py` (FR-020b)
-- [ ] T117 [US3] Implementar la lista de candidatos descartados con su razón y meses alcanzados en `engine/cargo_base.py` (FR-021)
-- [ ] T118 [US3] Implementar el marcado provisional del cargo base por las Cuestiones abiertas #3, #4 y #5, incluida la situación de revista, en `engine/cargo_base.py` (FR-022, FR-023, FR-024, FR-024a)
-- [ ] T119 [US3] Implementar `src/ultimo_timbre/engine/porcentaje.py` con el 70 % del art. 41, los excedentes del art. 42 y los porcentajes docentes del art. 43, leyendo los valores desde `rules/v1/haber.yaml` (FR-025, FR-026, FR-027)
-- [ ] T120 [US3] Implementar el cómputo del excedente desde que se cumplen todas las condiciones del inciso en `engine/porcentaje.py` (FR-027a, `Res. IPS 995/2021, Anexo, punto 2.1.a`)
-- [ ] T121 [US3] Implementar la advertencia `lectura_literal_excedente` con el porcentaje alternativo y su `sentido_impacto` en `engine/porcentaje.py` (FR-027b)
-- [ ] T122 [US3] Implementar el tope del porcentaje por artículo aplicable y la fecha exacta de cada excedente en `engine/porcentaje.py` (FR-028, FR-029)
+- [ ] T121 [US3] Implementar `src/ultimo_timbre/engine/cargo_base.py`: identificación del cargo de mayor jerarquía con 36 meses consecutivos o 60 alternados sobre el conjunto unión de meses (FR-019, research R2)
+- [ ] T122 [US3] Implementar la exposición de los meses que sustentan el cargo base y la vía por la que califica en `engine/cargo_base.py` (FR-020)
+- [ ] T123 [US3] Implementar el descenso al cargo inferior cuando el de mayor jerarquía no alcanza los 36/60, con su explicación en el desglose (FR-020a)
+- [ ] T124 [US3] Implementar la detección del caso del tercer párrafo del art. 41 (promedio de 36 meses) como fuera de alcance v1, reusando `engine/alcance.py` (FR-020b)
+- [ ] T125 [US3] Implementar la lista de candidatos descartados con su razón y meses alcanzados en `engine/cargo_base.py` (FR-021)
+- [ ] T126 [US3] Implementar el marcado provisional del cargo base por las Cuestiones abiertas #3, #4 y #5, incluida la situación de revista, en `engine/cargo_base.py` (FR-022, FR-023, FR-024, FR-024a)
+- [ ] T127 [US3] Implementar `src/ultimo_timbre/engine/porcentaje.py` con el 70 % del art. 41, los excedentes del art. 42 y los porcentajes docentes del art. 43, leyendo los valores desde `rules/v1/haber.yaml` (FR-025, FR-026, FR-027)
+- [ ] T128 [US3] Implementar el cómputo del excedente desde que se cumplen todas las condiciones del inciso en `engine/porcentaje.py` (FR-027a, `Res. IPS 995/2021, Anexo, punto 2.1.a`)
+- [ ] T129 [US3] Implementar la advertencia `lectura_literal_excedente` con el porcentaje alternativo y su `sentido_impacto` en `engine/porcentaje.py` (FR-027b)
+- [ ] T130 [US3] Implementar el tope del porcentaje por artículo aplicable y la fecha exacta de cada excedente en `engine/porcentaje.py` (FR-028, FR-029)
+- [ ] T131 [US3] Completar la clasificación `simultaneidad_computable_art47` en `src/ultimo_timbre/engine/alcance.py`: pasarle el **cargo base** ya determinado y reemplazar el criterio provisorio que solo mira la duración del solapamiento. FR-004 pide las dos condiciones —≥ 3 años continuos **y** que la simultaneidad alcance al cargo base—; la US2 solo pudo implementar la primera porque el cargo base todavía no existía. `clasificar_superposiciones` ya recibe `cargo_base` como parámetro opcional (FR-004, FR-043)
 
 **Checkpoint**: MVP completo (US1 + US2 + US3). El motor responde elegibilidad, límites, cargo base y porcentaje **sin necesitar grilla salarial**.
 
@@ -296,38 +314,38 @@ verificar el monto y que el informe declara la versión de grilla usada.
 
 ### Carga de la primera grilla aprobada
 
-- [ ] T123 [US4] Crear `.github/CODEOWNERS` cubriendo `grids/**` y `rules/**`
-- [ ] T124 [US4] Implementar el check de CI `validate-grid-approval` en `.github/workflows/ci.yml`: falla si un PR que toca `grids/**` deja `aprobada_por` o `aprobada_en` vacíos, y con un solo mantenedor valida que `aprobada_por` coincida con quien **fusiona** el PR (research R4)
-- [ ] T125 [US4] Escribir `docs/adr/0002-aprobacion-de-grillas.md` registrando la política escalonada y su disparador explícito: **el segundo mantenedor con permiso de merge** activa la exigencia de aprobador distinto del autor vía CODEOWNERS (research R4, Principio IX)
-- [ ] T126 [MANUAL] [US4] **Tarea del mantenedor, no del agente**: transcribir desde el texto de la norma salarial vigente la primera `grids/2026-01.yaml`, con norma de origen, enlace, vigencia, `extraida_en`, `aprobada_por`, `aprobada_en` y los valores por cargo descompuestos en componentes con `bonificable` y `remunerativo` (FR-008, FR-031a). Ningún importe puede inventarse ni inferirse. **No bloquea los tests de US4**, que corren con la grilla ficticia de T038
+- [ ] T132 [US4] Crear `.github/CODEOWNERS` cubriendo `grids/**` y `rules/**`
+- [ ] T133 [US4] Implementar el check de CI `validate-grid-approval` en `.github/workflows/ci.yml`: falla si un PR que toca `grids/**` deja `aprobada_por` o `aprobada_en` vacíos, y con un solo mantenedor valida que `aprobada_por` coincida con quien **fusiona** el PR (research R4)
+- [ ] T134 [US4] Escribir `docs/adr/0002-aprobacion-de-grillas.md` registrando la política escalonada y su disparador explícito: **el segundo mantenedor con permiso de merge** activa la exigencia de aprobador distinto del autor vía CODEOWNERS (research R4, Principio IX)
+- [ ] T135 [MANUAL] [US4] **Tarea del mantenedor, no del agente**: transcribir desde el texto de la norma salarial vigente la primera `grids/2026-01.yaml`, con norma de origen, enlace, vigencia, `extraida_en`, `aprobada_por`, `aprobada_en` y los valores por cargo descompuestos en componentes con `bonificable` y `remunerativo` (FR-008, FR-031a). Ningún importe puede inventarse ni inferirse. **No bloquea los tests de US4**, que corren con la grilla ficticia de T038
 
 ### Tests for User Story 4 (OBLIGATORIO — va ANTES de la implementación) ⚠️
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T127 [PENDIENTE-DATOS] [US4] Caso dorado con una resolución **real del IPS anonimizada**, valuado con la **grilla histórica vigente a la fecha del cese real de ese caso** (SC-002), en `tests/golden/test_haber_historico.py`. Requiere que el mantenedor consiga la resolución: **no bloquea US4 ni el release del MVP**, y hasta entonces queda marcado `xfail` con su motivo
+- [ ] T136 [PENDIENTE-DATOS] [US4] Caso dorado con una resolución **real del IPS anonimizada**, valuado con la **grilla histórica vigente a la fecha del cese real de ese caso** (SC-002), en `tests/golden/test_haber_historico.py`. Requiere que el mantenedor consiga la resolución: **no bloquea US4 ni el release del MVP**, y hasta entonces queda marcado `xfail` con su motivo
 
 > **Los demás casos dorados de US4 son sintéticos** y usan la grilla ficticia de T038.
 > Verifican la mecánica del cálculo, que es lo que puede verificarse sin datos reales; lo que no
-> pueden verificar es la coincidencia con el IPS, que es exactamente lo que espera T111.
-- [ ] T128 [P] [US4] Caso dorado: grilla vigente ausente o no aprobada produce advertencia `grilla_ausente`, indica con qué grilla se calculó y marca el monto provisional, en `tests/golden/test_grilla_ausente.py` (US4 esc. 2, FR-034)
-- [ ] T129 [P] [US4] Test: ninguna vía de salida entrega el valor del monto sin su `estado` y sus `condicionantes` —informe, exportación JSON, texto y lectura por librería—, en `tests/properties/test_monto_inseparable.py` (FR-046a, SC-011, US4 esc. 5)
-- [ ] T130 [P] [US4] Test: el informe expone `estado_general` legible por máquina con valor `definitivo` o `provisional`, en `tests/contract/test_estado_general.py` (FR-046c, SC-012, US4 esc. 6)
-- [ ] T131 [P] [US4] Unitario: la antigüedad se aplica **solo sobre los componentes bonificables**, nunca sobre el total del cargo, en `tests/unit/test_antiguedad_componentes.py` (FR-031b)
-- [ ] T132 [P] [US4] Unitario: el redondeo se aplica en un único punto con política explícita y sale marcado provisional, en `tests/unit/test_redondeo.py` (FR-033, Cuestión abierta #6)
-- [ ] T133 [P] [US4] Unitario: el aviso de estimación orientativa y el de movilidad del art. 50 están presentes en todo informe con montos, en `tests/unit/test_avisos.py` (FR-042, FR-030c)
-- [ ] T134 [P] [US4] Test: una grilla sin `aprobada_por` no puede cargarse, en `tests/unit/test_grilla_no_aprobada.py` (FR-010, Principio IX)
+> pueden verificar es la coincidencia con el IPS, que es exactamente lo que espera T136.
+- [ ] T137 [P] [US4] Caso dorado: grilla vigente ausente o no aprobada produce advertencia `grilla_ausente`, indica con qué grilla se calculó y marca el monto provisional, en `tests/golden/test_grilla_ausente.py` (US4 esc. 2, FR-034)
+- [ ] T138 [P] [US4] Test: ninguna vía de salida entrega el valor del monto sin su `estado` y sus `condicionantes` —informe, exportación JSON, texto y lectura por librería—, en `tests/properties/test_monto_inseparable.py` (FR-046a, SC-011, US4 esc. 5)
+- [ ] T139 [P] [US4] Test: el informe expone `estado_general` legible por máquina con valor `definitivo` o `provisional`, en `tests/contract/test_estado_general.py` (FR-046c, SC-012, US4 esc. 6)
+- [ ] T140 [P] [US4] Unitario: la antigüedad se aplica **solo sobre los componentes bonificables**, nunca sobre el total del cargo, en `tests/unit/test_antiguedad_componentes.py` (FR-031b)
+- [ ] T141 [P] [US4] Unitario: el redondeo se aplica en un único punto con política explícita y sale marcado provisional, en `tests/unit/test_redondeo.py` (FR-033, Cuestión abierta #6)
+- [ ] T142 [P] [US4] Unitario: el aviso de estimación orientativa y el de movilidad del art. 50 están presentes en todo informe con montos, en `tests/unit/test_avisos.py` (FR-042, FR-030c)
+- [ ] T143 [P] [US4] Test: una grilla sin `aprobada_por` no puede cargarse, en `tests/unit/test_grilla_no_aprobada.py` (FR-010, Principio IX)
 
 ### Implementation for User Story 4
 
-> Requiere T127–T134 escritas y fallando.
+> Requiere T136–T143 escritas y fallando.
 
-- [ ] T135 [US4] Implementar `src/ultimo_timbre/engine/haber.py`: valuación del cargo base sumando los componentes que el conjunto de reglas marca como integrantes de la remuneración, y aplicación del porcentaje (FR-030, FR-031, FR-031a)
-- [ ] T136 [US4] Implementar la aplicación de la antigüedad solo sobre componentes bonificables, con el paso correspondiente en el desglose (FR-031b)
-- [ ] T137 [US4] Implementar el `quantize()` centralizado en `engine/haber.py` con política parametrizada desde el conjunto de reglas y `ROUND_HALF_UP` por defecto declarado como provisional (FR-033, research R1)
-- [ ] T138 [US4] Implementar la advertencia `grilla_ausente` y el condicionante asociado cuando la grilla vigente al cese no está cargada (FR-034)
-- [ ] T139 [US4] Implementar la construcción de `Monto` con `grilla_version`, `a_valores_de`, `estado` y `condicionantes` siempre poblados (FR-046a)
-- [ ] T140 [US4] Implementar los avisos de estimación orientativa y de movilidad del art. 50 en `engine/haber.py` (FR-042, FR-030c)
+- [ ] T144 [US4] Implementar `src/ultimo_timbre/engine/haber.py`: valuación del cargo base sumando los componentes que el conjunto de reglas marca como integrantes de la remuneración, y aplicación del porcentaje (FR-030, FR-031, FR-031a)
+- [ ] T145 [US4] Implementar la aplicación de la antigüedad solo sobre componentes bonificables, con el paso correspondiente en el desglose (FR-031b)
+- [ ] T146 [US4] Implementar el `quantize()` centralizado en `engine/haber.py` con política parametrizada desde el conjunto de reglas y `ROUND_HALF_UP` por defecto declarado como provisional (FR-033, research R1)
+- [ ] T147 [US4] Implementar la advertencia `grilla_ausente` y el condicionante asociado cuando la grilla vigente al cese no está cargada (FR-034)
+- [ ] T148 [US4] Implementar la construcción de `Monto` con `grilla_version`, `a_valores_de`, `estado` y `condicionantes` siempre poblados (FR-046a)
+- [ ] T149 [US4] Implementar los avisos de estimación orientativa y de movilidad del art. 50 en `engine/haber.py` (FR-042, FR-030c)
 
 **Checkpoint**: el motor emite montos, siempre con su estado y sus condicionantes inseparables.
 
@@ -344,22 +362,22 @@ sus porcentajes y el orden cronológico de la comparación.
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T141 [P] [US5] Caso dorado: habilitación 75 %, excedente de 3 años 80 % y de 5 años 85 %, cada uno con su monto, en `tests/golden/test_escenarios.py` (US5 esc. 1, FR-036)
-- [ ] T142 [P] [US5] Test: todos los escenarios usan la **misma** `grilla_version` y el mismo `a_valores_de`, de modo que la diferencia de monto se explique solo por porcentaje y antigüedad, en `tests/properties/test_escenarios_comparables.py` (FR-036a)
-- [ ] T143 [P] [US5] Unitario: la antigüedad se proyecta a la fecha de cada escenario y crece mientras no se alcance el tope, apareciendo como paso del desglose, en `tests/unit/test_antiguedad_proyectada.py` (FR-030b, US5 esc. 5)
-- [ ] T144 [P] [US5] Unitario: una fecha de cese anterior a la habilitación informa que no hay derecho y cuánto falta, sin emitir monto, en `tests/unit/test_cese_temprano.py` (US5 esc. 3, FR-035)
-- [ ] T145 [P] [US5] Test: los escenarios futuros declaran `montos_a_valores_de_hoy` y `haber_movil_art_50`, en `tests/unit/test_avisos_escenarios.py` (FR-030a, FR-030c, US5 esc. 4 y 6)
-- [ ] T146 [P] [US5] Unitario: ordenamiento cronológico estable de escenarios provistos y derivados, en `tests/unit/test_orden_escenarios.py` (FR-037)
+- [ ] T150 [P] [US5] Caso dorado: habilitación 75 %, excedente de 3 años 80 % y de 5 años 85 %, cada uno con su monto, en `tests/golden/test_escenarios.py` (US5 esc. 1, FR-036)
+- [ ] T151 [P] [US5] Test: todos los escenarios usan la **misma** `grilla_version` y el mismo `a_valores_de`, de modo que la diferencia de monto se explique solo por porcentaje y antigüedad, en `tests/properties/test_escenarios_comparables.py` (FR-036a)
+- [ ] T152 [P] [US5] Unitario: la antigüedad se proyecta a la fecha de cada escenario y crece mientras no se alcance el tope, apareciendo como paso del desglose, en `tests/unit/test_antiguedad_proyectada.py` (FR-030b, US5 esc. 5)
+- [ ] T153 [P] [US5] Unitario: una fecha de cese anterior a la habilitación informa que no hay derecho y cuánto falta, sin emitir monto, en `tests/unit/test_cese_temprano.py` (US5 esc. 3, FR-035)
+- [ ] T154 [P] [US5] Test: los escenarios futuros declaran `montos_a_valores_de_hoy` y `haber_movil_art_50`, en `tests/unit/test_avisos_escenarios.py` (FR-030a, FR-030c, US5 esc. 4 y 6)
+- [ ] T155 [P] [US5] Unitario: ordenamiento cronológico estable de escenarios provistos y derivados, en `tests/unit/test_orden_escenarios.py` (FR-037)
 
 ### Implementation for User Story 5
 
-> Requiere T141–T146 escritas y fallando.
+> Requiere T150–T155 escritas y fallando.
 
-- [ ] T147 [US5] Implementar `src/ultimo_timbre/engine/escenarios.py`: derivación de los escenarios de habilitación y de excedentes de 3 y 5 años, además de las fechas provistas (FR-036)
-- [ ] T148 [US5] Implementar la valuación de escenarios futuros con la **última grilla aprobada**, sin proyección salarial, declarando `a_valores_de` (FR-030a)
-- [ ] T149 [US5] Implementar la proyección de la antigüedad a la fecha de cada escenario, con su paso en el desglose y el condicionante por el tope `NO_VERIFICADA` (FR-030b, FR-032, Cuestión abierta #1)
-- [ ] T150 [US5] Implementar la garantía de comparabilidad: todos los escenarios con la misma grilla (FR-036a)
-- [ ] T151 [US5] Implementar el ordenamiento cronológico de escenarios y el caso sin derecho a la fecha evaluada (FR-035, FR-037)
+- [ ] T156 [US5] Implementar `src/ultimo_timbre/engine/escenarios.py`: derivación de los escenarios de habilitación y de excedentes de 3 y 5 años, además de las fechas provistas (FR-036)
+- [ ] T157 [US5] Implementar la valuación de escenarios futuros con la **última grilla aprobada**, sin proyección salarial, declarando `a_valores_de` (FR-030a)
+- [ ] T158 [US5] Implementar la proyección de la antigüedad a la fecha de cada escenario, con su paso en el desglose y el condicionante por el tope `NO_VERIFICADA` (FR-030b, FR-032, Cuestión abierta #1)
+- [ ] T159 [US5] Implementar la garantía de comparabilidad: todos los escenarios con la misma grilla (FR-036a)
+- [ ] T160 [US5] Implementar el ordenamiento cronológico de escenarios y el caso sin derecho a la fecha evaluada (FR-035, FR-037)
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -377,27 +395,27 @@ y el código de salida correcto, con la máquina desconectada de la red.
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T152 [P] [US6] Test: `calcular` con un caso válido emite el informe completo y termina con exit 0, incluso si `estado_general` es `provisional`, en `tests/cli/test_exit_exito.py` (US6 esc. 1, FR-056)
-- [ ] T153 [P] [US6] Test: entrada inválida devuelve exit 2 con un mensaje que nombra el campo y el período y describe la corrección, en `tests/cli/test_exit_invalido.py` (US6 esc. 2, FR-057)
-- [ ] T154 [P] [US6] Test: un informe con al menos una advertencia `bloquea_calculo` devuelve exit 3 **y emite igualmente el informe parcial**, en `tests/cli/test_exit_fuera_de_alcance.py` (FR-045b)
-- [ ] T155 [P] [US6] Test: el motor produce el mismo informe con los sockets bloqueados, en `tests/test_sin_red.py` (US6 esc. 3, SC-007)
-- [ ] T156 [P] [US6] Test de canarios: ningún dato personal marcado aparece en la salida de diagnóstico de una corrida completa, en `tests/properties/test_canarios.py` (invariante I8, FR-054, SC-008, US6 esc. 4)
-- [ ] T157 [P] [US6] Test: `--fecha-calculo` fija produce informes idénticos en dos corridas separadas, en `tests/cli/test_reproducibilidad.py` (FR-001a)
-- [ ] T158 [P] [US6] Test: la salida de texto y la JSON derivan del mismo `Informe` y ninguna recalcula, en `tests/unit/test_render_equivalente.py` (research R5)
-- [ ] T159 [P] [US6] Test: `calcular` por librería y por CLI producen resultados idénticos, en `tests/test_equivalencia_cli_libreria.py` (FR-051)
+- [ ] T161 [P] [US6] Test: `calcular` con un caso válido emite el informe completo y termina con exit 0, incluso si `estado_general` es `provisional`, en `tests/cli/test_exit_exito.py` (US6 esc. 1, FR-056)
+- [ ] T162 [P] [US6] Test: entrada inválida devuelve exit 2 con un mensaje que nombra el campo y el período y describe la corrección, en `tests/cli/test_exit_invalido.py` (US6 esc. 2, FR-057)
+- [ ] T163 [P] [US6] Test: un informe con al menos una advertencia `bloquea_calculo` devuelve exit 3 **y emite igualmente el informe parcial**, en `tests/cli/test_exit_fuera_de_alcance.py` (FR-045b)
+- [ ] T164 [P] [US6] Test: el motor produce el mismo informe con los sockets bloqueados, en `tests/test_sin_red.py` (US6 esc. 3, SC-007)
+- [ ] T165 [P] [US6] Test de canarios: ningún dato personal marcado aparece en la salida de diagnóstico de una corrida completa, en `tests/properties/test_canarios.py` (invariante I8, FR-054, SC-008, US6 esc. 4)
+- [ ] T166 [P] [US6] Test: `--fecha-calculo` fija produce informes idénticos en dos corridas separadas, en `tests/cli/test_reproducibilidad.py` (FR-001a)
+- [ ] T167 [P] [US6] Test: la salida de texto y la JSON derivan del mismo `Informe` y ninguna recalcula, en `tests/unit/test_render_equivalente.py` (research R5)
+- [ ] T168 [P] [US6] Test: `calcular` por librería y por CLI producen resultados idénticos, en `tests/test_equivalencia_cli_libreria.py` (FR-051)
 
 ### Implementation for User Story 6
 
-> Requiere T152–T159 escritas y fallando.
+> Requiere T161–T168 escritas y fallando.
 
-- [ ] T160 [US6] Implementar `src/ultimo_timbre/render/texto.py`: salida legible en terminal renderizada desde el mismo `Informe`, sin lógica de cálculo propia (research R5)
-- [ ] T161 [US6] Implementar `ultimo-timbre calcular` en `src/ultimo_timbre/cli/main.py` con Typer y las opciones `--formato`, `--salida`, `--reglas`, `--grilla` y `--fecha-calculo` (FR-055, contrato `cli.md`)
-- [ ] T162 [US6] Implementar el relleno de `fecha_de_calculo` con la fecha del sistema **en la CLI** cuando el caso no la declara, dejándola asentada en el informe (FR-001a)
-- [ ] T163 [US6] Implementar los códigos de salida 0, 2, 3 y 4 en `cli/main.py`, derivando el 3 de la presencia de advertencias bloqueantes y dejando el 1 sin asignar (FR-056, FR-045b)
-- [ ] T164 [US6] Implementar los mensajes de error que nombran campo y período y describen la corrección posible en `cli/main.py` (FR-057, Principio VIII)
-- [ ] T165 [US6] Implementar `ultimo-timbre validar` y `ultimo-timbre versiones` en `cli/main.py` (contrato `cli.md`)
-- [ ] T166 [US6] Configurar `logging.NullHandler()` en la librería y la configuración de logging solo en la CLI, con identificadores técnicos anónimos (FR-054, research R12)
-- [ ] T167 [US6] Registrar el entry point `ultimo-timbre` en `pyproject.toml`
+- [ ] T169 [US6] Implementar `src/ultimo_timbre/render/texto.py`: salida legible en terminal renderizada desde el mismo `Informe`, sin lógica de cálculo propia (research R5)
+- [ ] T170 [US6] Implementar `ultimo-timbre calcular` en `src/ultimo_timbre/cli/main.py` con Typer y las opciones `--formato`, `--salida`, `--reglas`, `--grilla` y `--fecha-calculo` (FR-055, contrato `cli.md`)
+- [ ] T171 [US6] Implementar el relleno de `fecha_de_calculo` con la fecha del sistema **en la CLI** cuando el caso no la declara, dejándola asentada en el informe (FR-001a)
+- [ ] T172 [US6] Implementar los códigos de salida 0, 2, 3 y 4 en `cli/main.py`, derivando el 3 de la presencia de advertencias bloqueantes y dejando el 1 sin asignar (FR-056, FR-045b)
+- [ ] T173 [US6] Implementar los mensajes de error que nombran campo y período y describen la corrección posible en `cli/main.py` (FR-057, Principio VIII)
+- [ ] T174 [US6] Implementar `ultimo-timbre validar` y `ultimo-timbre versiones` en `cli/main.py` (contrato `cli.md`)
+- [ ] T175 [US6] Configurar `logging.NullHandler()` en la librería y la configuración de logging solo en la CLI, con identificadores técnicos anónimos (FR-054, research R12)
+- [ ] T176 [US6] Registrar el entry point `ultimo-timbre` en `pyproject.toml`
 
 **Checkpoint**: motor completo, usable como librería y desde terminal.
 
@@ -407,17 +425,17 @@ y el código de salida correcto, con la máquina desconectada de la red.
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T168 [P] Crear los casos de ejemplo en `examples/` que usa `quickstart.md`: `caso-inc-b.yaml`, `caso-escenarios.yaml`, `caso-54-anios.yaml`, `caso-otra-caja.yaml`, `caso-privado.yaml`, `caso-simultaneo.yaml`, `caso-provisional.yaml`
-- [ ] T169 [P] Documentar la interfaz pública de librería en `docs/api.md` con ejemplos de uso sin I/O
-- [ ] T170 [P] Escribir `README.md` con instalación por uv, uso de CLI y de librería, y el aviso de estimación orientativa
-- [ ] T171 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)
-- [ ] T172 [P] Completar los ADR faltantes en `docs/adr/` para R2, R5, R7, R12 y R13
-- [ ] T173 Agregar al CI el test de determinismo multiplataforma que compara el informe del mismo caso producido en Linux, macOS y Windows (SC-003, SC-007)
-- [ ] T174 Test de rendimiento en `tests/test_rendimiento.py`: un caso sintético de **30 años de historia de servicios con 5 escenarios de cese** produce su informe completo en **menos de 5 segundos**, y el test falla si lo supera (SC-006). Usa la grilla ficticia de T038 y mide solo `calcular()`, sin el tiempo de carga de reglas
-- [ ] T175 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
-- [ ] T176 Verificar cobertura de ramas: ≥95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, ≥80 % resto (Principio VI)
-- [ ] T177 Security hardening: confirmar bandit, pip-audit, gitleaks y SBOM sin hallazgos altos/críticos (Principio VII)
-- [ ] T178 Ejecutar la validación completa de `quickstart.md` (verificaciones 1 a 8) y corregir desvíos
+- [ ] T177 [P] Crear los casos de ejemplo en `examples/` que usa `quickstart.md`: `caso-inc-b.yaml`, `caso-escenarios.yaml`, `caso-54-anios.yaml`, `caso-otra-caja.yaml`, `caso-privado.yaml`, `caso-simultaneo.yaml`, `caso-provisional.yaml`
+- [ ] T178 [P] Documentar la interfaz pública de librería en `docs/api.md` con ejemplos de uso sin I/O
+- [ ] T179 [P] Escribir `README.md` con instalación por uv, uso de CLI y de librería, y el aviso de estimación orientativa
+- [ ] T180 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)
+- [ ] T181 [P] Completar los ADR faltantes en `docs/adr/` para R2, R5, R7, R12 y R13
+- [ ] T182 Agregar al CI el test de determinismo multiplataforma que compara el informe del mismo caso producido en Linux, macOS y Windows (SC-003, SC-007)
+- [ ] T183 Test de rendimiento en `tests/test_rendimiento.py`: un caso sintético de **30 años de historia de servicios con 5 escenarios de cese** produce su informe completo en **menos de 5 segundos**, y el test falla si lo supera (SC-006). Usa la grilla ficticia de T038 y mide solo `calcular()`, sin el tiempo de carga de reglas
+- [ ] T184 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
+- [ ] T185 Verificar cobertura de ramas: ≥95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, ≥80 % resto (Principio VI)
+- [ ] T186 Security hardening: confirmar bandit, pip-audit, gitleaks y SBOM sin hallazgos altos/críticos (Principio VII)
+- [ ] T187 Ejecutar la validación completa de `quickstart.md` (verificaciones 1 a 8) y corregir desvíos
 
 ---
 
@@ -428,11 +446,11 @@ demostrarse **sin validación contra el IPS**. Su mecánica se verifica con caso
 grilla ficticia de T038.
 
 El **release comercial queda bloqueado** hasta que **SC-002** se cumpla con al menos **un caso
-real del IPS anonimizado** (T111). Hasta entonces el motor puede usarse internamente y para
+real del IPS anonimizado** (T136). Hasta entonces el motor puede usarse internamente y para
 demostración, pero no ofrecerse a gremios ni estudios: ningún informe producido por una versión
 que no reprodujo un cálculo real del IPS puede presentarse como estimación profesional.
 
-- [ ] T179 [MANUAL] Verificar el gate de release antes de habilitar acceso a organizaciones: T111 en verde con al menos un caso real del IPS anonimizado, SC-002 cumplido con diferencia cero
+- [ ] T188 [MANUAL] Verificar el gate de release antes de habilitar acceso a organizaciones: T136 en verde con al menos un caso real del IPS anonimizado, SC-002 cumplido con diferencia cero
 
 ---
 
@@ -452,7 +470,7 @@ que no reprodujo un cálculo real del IPS puede presentarse como estimación pro
 - **User Story 1 (P1)**: Solo depende de Foundational. Entrega `engine/calendario.py`, que US3 y US5 reutilizan.
 - **User Story 2 (P2)**: Depende de Foundational. Usa el informe de US1 para colgar advertencias, pero sus detecciones son testeables por separado.
 - **User Story 3 (P3)**: Depende de Foundational y del calendario de US1 (unión de tramos y conteo de meses). El marcado provisional del cargo base usa los condicionantes de US2.
-- **User Story 4 (P4)**: Depende de US3 (cargo base y porcentaje). La carga de la primera grilla aprobada es T107–T110; sus **tests no la esperan**, porque corren con la grilla ficticia de T038.
+- **User Story 4 (P4)**: Depende de US3 (cargo base y porcentaje). La carga de la primera grilla aprobada es T115–T118; sus **tests no la esperan**, porque corren con la grilla ficticia de T038.
 - **User Story 5 (P5)**: Depende de US4 para los montos por escenario; la derivación de fechas de excedente ya existe desde US3 (FR-029).
 - **User Story 6 (P6)**: Depende de que exista un `Informe` que renderizar; funciona con el alcance de US1 en adelante.
 
@@ -541,8 +559,8 @@ With multiple developers:
 ## Notes
 
 - [P] tasks = different files, no dependencies. Las series que comparten archivo
-  (`pyproject.toml` en T002–T007, `ci.yml` en T008–T012 y T108, `models/caso.py` en T029 y T033,
-  `models/informe.py` en T032 y T065) van en orden
+  (`pyproject.toml` en T002–T007, `ci.yml` en T008–T012 y T116, `models/caso.py` en T029 y T033,
+  `models/informe.py` en T032 y T068) van en orden
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - **Verificá que los tests fallan antes de implementar** — es un requisito constitucional, no una

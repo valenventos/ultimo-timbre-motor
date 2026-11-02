@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Último Timbre — motor de cálculo de la jubilación ordinaria docente del IPS.
 
-Superficie pública del paquete (T067). Todo lo que no esté en `__all__` es
+Superficie pública del paquete (T070). Todo lo que no esté en `__all__` es
 interno y puede cambiar sin un MAJOR.
 
 `calcular` no hace I/O, no abre sockets y no consulta el reloj: la fecha de

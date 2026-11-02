@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T068, T069 — la convención de conteo es una decisión declarada.
+"""T071, T072 — la convención de conteo es una decisión declarada.
 
 El motor no puede *no* contar: tiene que elegir si cuenta días calendario
 reales o meses de 30 días, si la fecha final es inclusiva, y si arrastra los
@@ -29,7 +29,7 @@ def reglas() -> ConjuntoDeReglas:
 
 
 # --------------------------------------------------------------------------- #
-# T068 — la regla existe, no está verificada y declara su default aplicado
+# T071 — la regla existe, no está verificada y declara su default aplicado
 # --------------------------------------------------------------------------- #
 
 
@@ -85,7 +85,7 @@ def test_las_demas_reglas_no_verificadas_siguen_sin_valor(
 
 
 # --------------------------------------------------------------------------- #
-# T069 — las dos convenciones se calculan y pueden diferir
+# T072 — las dos convenciones se calculan y pueden diferir
 # --------------------------------------------------------------------------- #
 
 

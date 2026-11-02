@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T073, T074, T075 — estimación de la habilitación futura (FR-016, US1 esc. 2).
+"""T076, T077, T078 — estimación de la habilitación futura (FR-016, US1 esc. 2).
 
 Cuando no hay derecho a la fecha evaluada, informar solo el faltante deja al
 profesional con la mitad de la respuesta. El motor estima **cuándo** se
@@ -54,7 +54,7 @@ def _sin_periodo_en_curso() -> Informe:
 
 
 # --------------------------------------------------------------------------- #
-# T073 — con período en curso se estima
+# T076 — con período en curso se estima
 # --------------------------------------------------------------------------- #
 
 
@@ -102,7 +102,7 @@ def test_un_inciso_cumplido_no_lleva_estimacion() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# T074 — la estimación lleva su condicionante
+# T077 — la estimación lleva su condicionante
 # --------------------------------------------------------------------------- #
 
 
@@ -123,7 +123,7 @@ def test_el_informe_con_estimacion_es_provisional() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# T075 — sin período en curso
+# T078 — sin período en curso
 # --------------------------------------------------------------------------- #
 
 

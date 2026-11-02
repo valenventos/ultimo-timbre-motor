@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T050 — unión de tramos y meses cubiertos (FR-004a, invariante I9)."""
+"""T053 — unión de tramos y meses cubiertos (FR-004a, invariante I9)."""
 
 from __future__ import annotations
 

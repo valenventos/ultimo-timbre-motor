@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T047 — caso dorado del inciso b `[DL 9650/80, art. 24 inc. b]` (US1 esc. 1).
+"""T050 — caso dorado del inciso b `[DL 9650/80, art. 24 inc. b]` (US1 esc. 1).
 
 Docente nacida el 1980-03-15 con 26 años al frente de alumnos al 2030-03-31:
 cumple el art. 24 inc. b (50 años de edad y 25 de servicios al frente), y la
@@ -8,7 +8,7 @@ fecha de habilitación es la del cumpleaños 50, porque los 25 años de servicio
 ya estaban alcanzados antes.
 
 Caso **sintético**, no una resolución real del IPS: el caso dorado real es
-T111, marcado `[PENDIENTE-DATOS]`.
+T119, marcado `[PENDIENTE-DATOS]`.
 """
 
 from __future__ import annotations
@@ -87,7 +87,7 @@ def test_el_resultado_es_definitivo(informe: Informe) -> None:
 
 
 def test_lejos_del_umbral_la_convencion_no_decide(informe: Informe) -> None:
-    """T071: 26 años contra 25 requeridos. Ninguna convención de conteo cambia
+    """T074: 26 años contra 25 requeridos. Ninguna convención de conteo cambia
     ese resultado, así que el requisito sigue siendo definitivo."""
     inc_b = next(i for i in informe.elegibilidad.incisos if i.inciso == "b")
     assert inc_b.estado is EstadoResultado.DEFINITIVO

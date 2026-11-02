@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Serialización determinista del informe (T066, FR-048, SC-003).
+"""Serialización determinista del informe (T069, FR-048, SC-003).
 
 Dos corridas del mismo caso tienen que producir el mismo JSON **byte a byte**:
 sin eso, el `diff` entre dos informes es ruido y nadie puede auditar qué cambió

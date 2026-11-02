@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T045 — invariante I3: determinismo byte a byte (FR-048, SC-003).
+"""T048 — invariante I3: determinismo byte a byte (FR-048, SC-003).
 
 Mismas entradas y mismas versiones ⇒ informe idéntico. Incluye el caso que
 motiva FR-001a: correr el mismo caso en otro día no puede cambiar nada, porque

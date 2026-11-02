@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T055 — la fecha de cálculo entra como dato, no desde el reloj (FR-001a).
+"""T058 — la fecha de cálculo entra como dato, no desde el reloj (FR-001a).
 
 Sin esto el determinismo valdría solo dentro de la misma jornada: un caso
 archivado junto a un expediente tiene que producir el mismo informe cuando se lo

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T054 — el informe de elegibilidad sin grilla valida contra su contrato.
+"""T057 — el informe de elegibilidad sin grilla valida contra su contrato.
 
 La US1 entrega un informe sin montos. Que valide contra el mismo
 `informe.schema.json` que usarán las historias siguientes es lo que hace que el

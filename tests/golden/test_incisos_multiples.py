@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T049 — varios incisos cumplidos en fechas distintas (US1 esc. 4, FR-017).
+"""T052 — varios incisos cumplidos en fechas distintas (US1 esc. 4, FR-017).
 
 Nacida el 1970-01-10, servicios desde 1990-02-01 al 2025-12-31: al cese tiene
 55 años y 35 de servicio, así que cumple el inc. b y el inc. d, habilitados en

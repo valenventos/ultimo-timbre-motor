@@ -311,5 +311,5 @@ def test_una_version_inexistente_falla_con_reglas_no_disponibles() -> None:
 
 
 def test_no_hay_ninguna_grilla_aprobada_todavia() -> None:
-    """La primera grilla llega con la US4 (T110), y es tarea manual."""
+    """La primera grilla llega con la US4 (T118), y es tarea manual."""
     assert versiones.versiones_disponibles().grillas == ()

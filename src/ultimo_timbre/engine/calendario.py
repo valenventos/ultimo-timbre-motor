@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Cómputo de tiempo de servicio (T058, research R2).
+"""Cómputo de tiempo de servicio (T061, research R2).
 
 Tres reglas de este módulo, todas del Principio II:
 

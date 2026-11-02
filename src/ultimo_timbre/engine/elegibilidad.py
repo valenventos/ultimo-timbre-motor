@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Elegibilidad por el art. 24 (T059, T060, T061).
+"""Elegibilidad por el art. 24 (T062, T063, T064).
 
 Ningún umbral está escrito acá: las edades, los años de servicio y las horas
 cátedra salen de `rules/v1/requisitos.yaml` (Principio I, FR-007). Si la regla
@@ -36,7 +36,7 @@ from ultimo_timbre.models.informe import (
     ResultadoInciso,
     ResultadoRequisito,
 )
-from ultimo_timbre.models.normativa import ConjuntoDeReglas, Norma, Regla
+from ultimo_timbre.models.normativa import ConjuntoDeReglas, Norma, Regla, ValorRegla
 from ultimo_timbre.rules import catalogo as cat
 
 __all__ = ["Umbrales", "evaluar"]
@@ -70,6 +70,7 @@ def _al_frente(
     cese: dt.date,
     reglas: ConjuntoDeReglas,
     traza: Trazador,
+    en_alcance: set[int],
 ) -> set[int]:
     """Los `idx` de los períodos que cuentan como al frente de alumnos.
 
@@ -81,7 +82,7 @@ def _al_frente(
     al_frente: set[int] = set()
 
     for periodo in caso.historia.periodos:
-        if periodo.fuera_de_alcance:
+        if periodo.idx not in en_alcance:
             continue
         derivada = cat.derivar(
             reglas.catalogo_cargos,
@@ -130,18 +131,6 @@ def _al_frente(
                     sentido_impacto=condicionante.impacto_si_no_verificada,
                     periodo_idx=periodo.idx,
                 )
-        if derivada.difiere_del_catalogo:
-            traza.advertencia(
-                CodigoAdvertencia.DATO_CORREGIDO_A_MANO,
-                f"la condición del período {periodo.idx} fue corregida a mano y "
-                "difiere del catálogo",
-                periodo_idx=periodo.idx,
-            )
-            traza.condicionante_de_situacion(
-                CodigoAdvertencia.DATO_CORREGIDO_A_MANO,
-                "la corrección manual de un dato derivado del catálogo no está "
-                "respaldada por el catálogo versionado",
-            )
 
     return al_frente
 
@@ -442,8 +431,9 @@ def _evaluar_inciso(
 
     cumple = all(r.cumple for r in requisitos)
     sensible = any(r.estado is EstadoResultado.PROVISIONAL for r in requisitos)
-    if sensible:
-        _advertir_convencion(letra, reglas, traza)
+    # La sensibilidad se deja asentada en el inciso, pero **no** se registra acá
+    # como condicionante: eso se decide después de saber cuál es el inciso más
+    # favorable (ver `_sensibilidades_que_importan`).
 
     habilitado_desde: dt.date | None = None
     falta: Faltante | None = None
@@ -530,10 +520,20 @@ def evaluar(
     *,
     reglas: ConjuntoDeReglas,
     traza: Trazador,
+    idx_en_alcance: frozenset[int] | None = None,
 ) -> Elegibilidad:
-    """Evalúa los tres incisos y el mínimo general a una fecha de cese."""
-    en_alcance = {p.idx for p in caso.historia.periodos if not p.fuera_de_alcance}
-    al_frente = _al_frente(caso, cese, reglas, traza)
+    """Evalúa los tres incisos y el mínimo general a una fecha de cese.
+
+    `idx_en_alcance` viene de `engine.alcance.detectar`: son los períodos que el
+    motor puede computar. Sin él se calcula de forma directa, que es lo que
+    necesitan los escenarios secundarios.
+    """
+    en_alcance = (
+        set(idx_en_alcance)
+        if idx_en_alcance is not None
+        else {p.idx for p in caso.historia.periodos if not p.fuera_de_alcance}
+    )
+    al_frente = _al_frente(caso, cese, reglas, traza, en_alcance)
     _condicionantes_de_la_historia(caso, cese, reglas, traza)
 
     servicio = calendario.servicio_total(caso.historia, cese, idx_incluidos=en_alcance)
@@ -583,7 +583,12 @@ def evaluar(
     )
 
     # ------------------------------------------------- inciso más favorable
-    mas_favorable = _elegir_mas_favorable(list(resultados), reglas, traza)
+    mas_favorable = _elegir_mas_favorable(resultados, reglas, traza)
+
+    # Recién ahora se sabe qué sensibilidades pueden mover el resultado. Las
+    # que no pueden quedan informadas en su inciso y no condicionan el informe.
+    for letra in _sensibilidades_que_importan(resultados, reglas):
+        _advertir_convencion(letra, reglas, traza)
 
     return Elegibilidad(
         incisos=resultados,
@@ -595,43 +600,109 @@ def evaluar(
     )
 
 
-def _elegir_mas_favorable(
-    resultados: list[ResultadoInciso],
-    reglas: ConjuntoDeReglas,
-    traza: Trazador,
-) -> str | None:
-    """El inciso que da el mejor haber (FR-017).
+class _Candidato(NamedTuple):
+    """Lo mínimo que el ranking necesita de un inciso.
 
-    El inc. b accede por el art. 43, cuya base es 75 %; los incisos c y d van
-    por el art. 41, con 70 %. A igual porcentaje gana el que se habilita antes.
+    Se rankea sobre esto y no sobre `ResultadoInciso` para poder evaluar
+    hipótesis —«¿y si este inciso no se cumpliera?»— sin construir modelos
+    inválidos.
     """
-    cumplidos = [r for r in resultados if r.cumple]
-    if not cumplidos:
-        return None
 
+    inciso: str
+    cumple: bool
+    desde: dt.date
+
+
+_Base = tuple[Regla, ValorRegla]
+
+
+def _bases(reglas: ConjuntoDeReglas) -> dict[str, _Base]:
+    """El artículo y la base porcentual de cada inciso, leídos de las reglas."""
     art41 = _regla(reglas, "haber.art41.base")
     art43 = _regla(reglas, "haber.art43.base")
-    base = {
+    return {
         "b": (art43, art43.valor or {}),
         "c": (art41, art41.valor or {}),
         "d": (art41, art41.valor or {}),
     }
 
-    def clave(r: ResultadoInciso) -> tuple[Decimal, dt.date]:
-        _, valor = base[r.inciso]
-        porcentaje = Decimal(str(valor.get("porcentaje", "0")))
-        # más porcentaje primero; a igualdad, habilitación más temprana
-        return (-porcentaje, r.habilitado_desde or dt.date.max)
 
-    elegido = min(cumplidos, key=clave)
-    regla_elegida, valor = base[elegido.inciso]
-    traza.paso(
-        f"Inciso más favorable: {elegido.inciso}",
-        regla_elegida,
-        entrada="incisos cumplidos: " + ", ".join(r.inciso for r in cumplidos),
-        salida=(
-            f"inc. {elegido.inciso} por {regla_elegida.norma.texto} "
-            f"(base {valor.get('porcentaje')})"
-        ),
+def _ranking(candidatos: tuple[_Candidato, ...], reglas: ConjuntoDeReglas) -> str | None:
+    """El inciso más favorable entre los que se cumplen, sin tocar la traza.
+
+    El inc. b accede por el art. 43, cuya base es 75 %; los incisos c y d van
+    por el art. 41, con 70 %. A igual porcentaje gana el que se habilita antes.
+    """
+    cumplidos = [c for c in candidatos if c.cumple]
+    if not cumplidos:
+        return None
+    bases = _bases(reglas)
+
+    def clave(c: _Candidato) -> tuple[Decimal, dt.date]:
+        _, valor = bases[c.inciso]
+        porcentaje = Decimal(str((valor or {}).get("porcentaje", "0")))
+        # más porcentaje primero; a igualdad, habilitación más temprana
+        return (-porcentaje, c.desde)
+
+    return min(cumplidos, key=clave).inciso
+
+
+def _candidatos(resultados: tuple[ResultadoInciso, ...]) -> tuple[_Candidato, ...]:
+    return tuple(
+        _Candidato(r.inciso, r.cumple, r.habilitado_desde or dt.date.max) for r in resultados
     )
-    return elegido.inciso
+
+
+def _sensibilidades_que_importan(
+    resultados: tuple[ResultadoInciso, ...],
+    reglas: ConjuntoDeReglas,
+) -> tuple[str, ...]:
+    """Qué incisos sensibles pueden mover el resultado (FR-046b).
+
+    Implementa la regla documentada en `engine.condicionantes`, sección
+    «Condicionantes informativos»: la sensibilidad de un inciso condiciona el
+    informe solo si, de darse vuelta, cambiaría **si hay derecho** o **cuál es
+    el inciso más favorable** —y con él el artículo, el porcentaje y el haber—.
+
+    Se mide dando vuelta un inciso a la vez y volviendo a rankear. Al inciso
+    que se voltea *hacia* «cumple» se le da la fecha de habilitación más
+    temprana posible, para que gane el desempate si pudiera ganarlo: el
+    criterio se equivoca hacia marcar provisional, nunca hacia ocultar la duda.
+    """
+    base = _candidatos(resultados)
+    actual = _ranking(base, reglas)
+    importan: list[str] = []
+
+    for r in resultados:
+        if r.estado is not EstadoResultado.PROVISIONAL:
+            continue
+        hipotetica = r.habilitado_desde or r.estimado_para or dt.date.min
+        volteados = tuple(
+            _Candidato(c.inciso, not c.cumple, hipotetica) if c.inciso == r.inciso else c
+            for c in base
+        )
+        if _ranking(volteados, reglas) != actual:
+            importan.append(r.inciso)
+
+    return tuple(importan)
+
+
+def _elegir_mas_favorable(
+    resultados: tuple[ResultadoInciso, ...],
+    reglas: ConjuntoDeReglas,
+    traza: Trazador,
+) -> str | None:
+    """El inciso que da el mejor haber (FR-017), dejando el paso en la traza."""
+    elegido = _ranking(_candidatos(resultados), reglas)
+    if elegido is None:
+        return None
+
+    regla_elegida, valor = _bases(reglas)[elegido]
+    valor = valor or {}
+    traza.paso(
+        f"Inciso más favorable: {elegido}",
+        regla_elegida,
+        entrada="incisos cumplidos: " + ", ".join(r.inciso for r in resultados if r.cumple),
+        salida=(f"inc. {elegido} por {regla_elegida.norma.texto} (base {valor.get('porcentaje')})"),
+    )
+    return elegido

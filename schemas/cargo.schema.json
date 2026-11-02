@@ -1,17 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ultimotimbre.ar/schemas/cargo/v1.json",
   "title": "Catálogo de cargos docentes",
-  "description": "Fuente de verdad de la condición 'al frente de alumnos' y de la naturaleza del servicio (FR-002a, FR-002d). Un cargo ausente del catálogo no se asume: queda indeterminado, se advierte cargo_fuera_de_catalogo y el resultado sale provisional.",
+  "description": "La forma de rules/<version>/cargos.yaml: las reglas que respaldan la condición de al frente de alumnos y el catálogo de cargos propiamente dicho. Es la fuente de verdad de esa condición y de la naturaleza del servicio (FR-002a, FR-002d). Un cargo ausente del catálogo no se asume: queda indeterminado, se advierte cargo_fuera_de_catalogo y el resultado sale provisional. La versión no viaja en el documento: es el nombre del directorio (rules/v1).",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "version",
+    "reglas",
     "entradas"
   ],
   "properties": {
-    "version": {
-      "type": "string"
+    "reglas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "rule.schema.json"
+      },
+      "description": "Las reglas que las entradas citan por `regla_id` o `regla_umbral`. Viven en el mismo documento que el catálogo porque solo lo condicionan a él."
     },
     "entradas": {
       "type": "array",

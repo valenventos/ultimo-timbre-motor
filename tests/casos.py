@@ -13,7 +13,12 @@ from ultimo_timbre.models.caso import (
     HistoriaDeServicios,
     PeriodoDeServicio,
 )
-from ultimo_timbre.models.enums import CajaAportes, SituacionRevista, TipoEstablecimiento
+from ultimo_timbre.models.enums import (
+    CajaAportes,
+    NaturalezaServicio,
+    SituacionRevista,
+    TipoEstablecimiento,
+)
 
 ESTATAL = Establecimiento(tipo=TipoEstablecimiento.ESTATAL_DGCYE)
 PRIVADO = Establecimiento(tipo=TipoEstablecimiento.PRIVADO)
@@ -89,4 +94,95 @@ def caso_incisos_multiples() -> Caso:
         nacimiento="1970-01-10",
         ceses=["2025-12-31"],
         fecha_de_calculo="2026-01-02",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Casos de referencia de la US2 (límites del motor)
+# ---------------------------------------------------------------------------
+
+
+def caso_otra_caja() -> Caso:
+    """US2 esc. 2 — 20 años al IPS y 10 a ANSES `[DL 9650/80, arts. 66 y 67]`."""
+    return caso(
+        periodo(desde="2006-03-01", hasta="2026-02-28"),
+        periodo(
+            "maestro_de_grado",
+            desde="1996-03-01",
+            hasta="2006-02-28",
+            caja_aportes=CajaAportes.ANSES,
+        ),
+        nacimiento="1970-05-10",
+        ceses=["2026-02-28"],
+        fecha_de_calculo="2026-03-01",
+    )
+
+
+def caso_privado() -> Caso:
+    """US2 esc. 4 — un tramo en un establecimiento de gestión privada."""
+    return caso(
+        periodo(desde="2006-03-01", hasta="2026-02-28"),
+        periodo(
+            "maestro_de_grado",
+            desde="1996-03-01",
+            hasta="2006-02-28",
+            establecimiento=PRIVADO,
+        ),
+        nacimiento="1970-05-10",
+        ceses=["2026-02-28"],
+        fecha_de_calculo="2026-03-01",
+    )
+
+
+def caso_simultaneidad() -> Caso:
+    """US2 esc. 1 — dos cargos distintos superpuestos más de 3 años continuos."""
+    return caso(
+        periodo("maestro_de_grado", desde="1996-03-01", hasta="2026-02-28"),
+        periodo("preceptor", desde="2010-03-01", hasta="2020-02-29"),
+        nacimiento="1970-05-10",
+        ceses=["2026-02-28"],
+        fecha_de_calculo="2026-03-01",
+    )
+
+
+def caso_simultaneidad_breve() -> Caso:
+    """Solapamiento real pero de menos de 3 años: no alcanza el art. 47."""
+    return caso(
+        periodo("maestro_de_grado", desde="1996-03-01", hasta="2026-02-28"),
+        periodo("preceptor", desde="2010-03-01", hasta="2011-02-28"),
+        nacimiento="1970-05-10",
+        ceses=["2026-02-28"],
+        fecha_de_calculo="2026-03-01",
+    )
+
+
+def caso_error_de_carga() -> Caso:
+    """Mismo cargo y mismo establecimiento solapados: casi siempre carga duplicada."""
+    return caso(
+        periodo("maestro_de_grado", desde="1996-03-01", hasta="2026-02-28"),
+        periodo("maestro_de_grado", desde="2010-03-01", hasta="2015-02-28"),
+        nacimiento="1970-05-10",
+        ceses=["2026-02-28"],
+        fecha_de_calculo="2026-03-01",
+    )
+
+
+def caso_prorrateo_posible() -> Caso:
+    """US2 esc. 5 — los docentes no alcanzan, pero hay no docentes al IPS.
+
+    La naturaleza no docente entra por `naturaleza_override`: el catálogo
+    versionado todavía no tiene ningún cargo no docente, porque ninguna norma
+    citada en la spec lo documenta.
+    """
+    return caso(
+        periodo(desde="2010-06-01", hasta="2026-05-31"),
+        periodo(
+            "maestro_de_grado",
+            desde="1996-06-01",
+            hasta="2010-05-31",
+            naturaleza_override=NaturalezaServicio.NO_DOCENTE,
+        ),
+        nacimiento="1974-05-01",
+        ceses=["2026-05-31"],
+        fecha_de_calculo="2026-06-01",
     )

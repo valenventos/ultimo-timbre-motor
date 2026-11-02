@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Trazado del cálculo: desglose, procedencias y condicionantes (T062, T063).
+"""Trazado del cálculo: desglose, procedencias y condicionantes (T065, T066).
 
 El desglose **es** el producto (Principio IV): un abogado tiene que poder
 rastrear cada número hasta su norma. Este módulo es el único lugar donde se
@@ -13,8 +13,8 @@ pero lo que entrega son tuplas inmutables.
 
 from __future__ import annotations
 
+from ultimo_timbre.engine import condicionantes as _cond
 from ultimo_timbre.models.enums import (
-    ClaseCondicionante,
     CodigoAdvertencia,
     OrigenDato,
     SentidoImpacto,
@@ -127,38 +127,40 @@ class Trazador:
         )
 
     # ---------------------------------------------------------- condicionantes
-    def condicionante_de_regla(self, regla: Regla) -> None:
-        """Una regla `NO_VERIFICADA` que intervino (FR-046b).
+    def agregar_advertencia(self, advertencia: Advertencia) -> None:
+        """Agrega una advertencia ya construida por `engine.advertencias`."""
+        self._advertencias.append(advertencia)
 
-        Se indexa por `regla_id` para no repetir la misma regla aunque
-        intervenga en varios pasos.
+    def agregar_condicionante(self, condicionante: Condicionante) -> None:
+        """Agrega un condicionante ya construido por `engine.condicionantes`.
+
+        Se indexa por `referencia` para no repetir el mismo aunque intervenga en
+        varios pasos.
         """
-        if regla.impacto_si_no_verificada is None:
-            return
-        self._condicionantes[regla.id] = Condicionante(
-            clase=ClaseCondicionante.REGLA_NO_VERIFICADA,
-            referencia=regla.id,
-            norma=regla.norma,
-            sentido_impacto=regla.impacto_si_no_verificada,
-            que_falta_verificar=regla.que_falta_verificar or "sin especificar",
-        )
+        self._condicionantes[condicionante.referencia] = condicionante
+
+    def condicionante_de_regla(self, regla: Regla) -> None:
+        """Una regla `NO_VERIFICADA` que intervino (FR-046b)."""
+        construido = _cond.de_regla(regla)
+        if construido is not None:
+            self.agregar_condicionante(construido)
 
     def condicionante_de_situacion(
         self,
         codigo: CodigoAdvertencia,
-        que_falta_verificar: str,
+        que_falta_verificar: str | None = None,
         *,
-        sentido_impacto: SentidoImpacto = SentidoImpacto.INDETERMINADO,
+        sentido_impacto: SentidoImpacto | None = None,
         magnitud_estimada: str | None = None,
     ) -> None:
         """Una situación del caso que introduce incertidumbre (FR-046b)."""
-        self._condicionantes[codigo.value] = Condicionante(
-            clase=ClaseCondicionante.SITUACION_DEL_CASO,
-            referencia=codigo.value,
-            norma=None,
-            sentido_impacto=sentido_impacto,
-            magnitud_estimada=magnitud_estimada,
-            que_falta_verificar=que_falta_verificar,
+        self.agregar_condicionante(
+            _cond.de_situacion(
+                codigo,
+                que_falta_verificar,
+                sentido_impacto=sentido_impacto,
+                magnitud_estimada=magnitud_estimada,
+            )
         )
 
     # ------------------------------------------------------------------ salida

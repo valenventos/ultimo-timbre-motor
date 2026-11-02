@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T056 — el informe declara con qué versiones se produjo (FR-009).
+"""T059 — el informe declara con qué versiones se produjo (FR-009).
 
 Sin esto, un informe no es auditable: dos resultados distintos del mismo caso
 podrían venir de dos conjuntos de reglas y no habría forma de saberlo.

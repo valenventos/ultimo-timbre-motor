@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T053 — edad al cese y habilitación por inciso (FR-011 a FR-016)."""
+"""T056 — edad al cese y habilitación por inciso (FR-011 a FR-016)."""
 
 from __future__ import annotations
 

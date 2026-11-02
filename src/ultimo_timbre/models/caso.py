@@ -213,7 +213,7 @@ class PeriodoDeServicio(BaseModel):
 class Superposicion(BaseModel):
     """Un solapamiento detectado entre dos períodos (FR-004).
 
-    La clasificación definitiva la fija la US2 (T073): decidir si una
+    La clasificación definitiva la fija la US2 (T076): decidir si una
     simultaneidad es computable por el art. 47 exige saber si alcanza al cargo
     base, y eso no se conoce todavía acá. Lo que el modelo sí decide es lo
     estructural —mismo cargo y mismo establecimiento es carga duplicada— y deja

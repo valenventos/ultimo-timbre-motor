@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""T044 — invariante I1: el orden de carga no altera el informe (FR-049, SC-010).
+"""T047 — invariante I1: el orden de carga no altera el informe (FR-049, SC-010).
 
 La normalización de `HistoriaDeServicios` hace que esto valga por construcción,
 pero el invariante se verifica sobre el informe completo: alcanza con que un
