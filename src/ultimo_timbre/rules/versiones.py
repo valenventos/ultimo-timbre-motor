@@ -86,6 +86,7 @@ def _regla(datos: dict[str, Any]) -> Regla:
         impacto_si_no_verificada=SentidoImpacto(impacto) if impacto else None,
         que_falta_verificar=datos.get("que_falta_verificar"),
         cuestion_abierta=datos.get("cuestion_abierta"),
+        valor_por_defecto_aplicado=bool(datos.get("valor_por_defecto_aplicado", False)),
         valor=datos.get("valor"),
     )
 

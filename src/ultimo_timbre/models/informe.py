@@ -124,6 +124,10 @@ class ResultadoRequisito(BaseModel):
     norma: Norma
     valor_alcanzado: str | None = None
     valor_requerido: str | None = None
+    estado: EstadoResultado = EstadoResultado.DEFINITIVO
+    """Provisional cuando la convención de conteo decide el resultado."""
+    margen_dias: int | None = None
+    """Días entre el valor alcanzado y el umbral. `None` si no aplica (edad)."""
 
 
 class ResultadoInciso(BaseModel):
@@ -137,6 +141,11 @@ class ResultadoInciso(BaseModel):
     requisitos: tuple[ResultadoRequisito, ...] = ()
     habilitado_desde: dt.date | None = None
     falta: Faltante | None = None
+    estado: EstadoResultado = EstadoResultado.DEFINITIVO
+    estimado_para: dt.date | None = None
+    """Fecha en que se cumpliría, proyectando los períodos en curso (FR-016)."""
+    motivo_sin_estimacion: str | None = None
+    """Por qué no se pudo estimar. Excluyente con `estimado_para`."""
 
 
 class Elegibilidad(BaseModel):
@@ -267,6 +276,12 @@ class Informe(BaseModel):
     desglose: tuple[PasoDelDesglose, ...]
     procedencias: tuple[Procedencia, ...]
     advertencias: tuple[Advertencia, ...]
+    condicionantes: tuple[Condicionante, ...] = ()
+    """Lo que impide que el informe sea definitivo (FR-046b).
+
+    Vive también acá y no solo dentro de cada `Monto` porque un informe sin
+    montos —el de la US1— igual tiene que poder explicar por qué es provisional.
+    """
     version_reglas: str = Field(min_length=1)
     aviso_estimacion: str = Field(min_length=1)
     aviso_movilidad: str = Field(min_length=1)
@@ -279,7 +294,8 @@ class Informe(BaseModel):
     def _derivar_estado_general(self) -> Self:
         """FR-046c, invariante I6: se deriva, no se acepta como entrada."""
         provisional = (
-            self.elegibilidad.estado is EstadoResultado.PROVISIONAL
+            bool(self.condicionantes)
+            or self.elegibilidad.estado is EstadoResultado.PROVISIONAL
             or (
                 self.cargo_base is not None
                 and self.cargo_base.estado is EstadoResultado.PROVISIONAL

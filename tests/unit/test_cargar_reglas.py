@@ -54,8 +54,16 @@ def test_toda_regla_declara_su_norma(reglas: ConjuntoDeReglas) -> None:
 
 
 def test_ninguna_regla_no_verificada_lleva_valor(reglas: ConjuntoDeReglas) -> None:
-    """La regla de datos: nada se completa con un valor plausible."""
+    """La regla de datos: nada se completa con un valor plausible.
+
+    La excepción son las reglas que declaran `valor_por_defecto_aplicado`: el
+    motor no puede *no* elegir una convención de conteo, así que la elección se
+    declara en lugar de esconderse en el código.
+    """
     for regla in reglas.no_verificadas:
+        if regla.valor_por_defecto_aplicado:
+            assert regla.valor is not None, f"{regla.id} declara un default sin valor"
+            continue
         assert regla.valor is None, f"{regla.id} tiene un valor tentativo"
 
 

@@ -14,6 +14,7 @@ Dos decisiones estructurales viven acá:
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Iterable
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -37,6 +38,7 @@ __all__ = [
     "PeriodoDeServicio",
     "Superposicion",
     "Tramo",
+    "unir_tramos",
 ]
 
 MODELO = ConfigDict(strict=True, frozen=True, extra="forbid")
@@ -234,6 +236,31 @@ class Superposicion(BaseModel):
     """
 
 
+def unir_tramos(tramos: Iterable[Tramo]) -> tuple[Tramo, ...]:
+    """Fusiona tramos solapados o contiguos en una secuencia disjunta y ordenada.
+
+    Es la primitiva del cómputo sobre la **unión** (FR-004a, invariante I9).
+    Vive acá y no en `engine/` para que no haya dos implementaciones de la
+    fusión: `engine.calendario` la reusa con su filtro por período.
+
+    Dos tramos a un día de distancia se fusionan: un día de diferencia entre el
+    fin de un cargo y el inicio del siguiente no abre un hueco real en la
+    carrera.
+    """
+    ordenados = sorted(tramos, key=lambda t: (t.desde, t.hasta))
+    if not ordenados:
+        return ()
+    unidos: list[Tramo] = [ordenados[0]]
+    for tramo in ordenados[1:]:
+        ultimo = unidos[-1]
+        if tramo.desde <= ultimo.hasta + dt.timedelta(days=1):
+            if tramo.hasta > ultimo.hasta:
+                unidos[-1] = Tramo(desde=ultimo.desde, hasta=tramo.hasta)
+        else:
+            unidos.append(tramo)
+    return tuple(unidos)
+
+
 def _clave_orden(p: PeriodoDeServicio) -> tuple[dt.date, bool, dt.date, str]:
     """Orden total y estable. Un período en curso va después del cerrado que empieza igual."""
     return (p.desde, p.hasta is None, p.hasta or dt.date.max, p.cargo)
@@ -313,22 +340,7 @@ class HistoriaDeServicios(BaseModel):
         Sumar duraciones es el error clásico de este dominio: produce historias
         de 40 años de servicio sobre una carrera de 25.
         """
-        tramos = sorted(
-            (t for p in self.periodos if (t := p.tramo_a(hasta)) is not None),
-            key=lambda t: (t.desde, t.hasta),
-        )
-        if not tramos:
-            return ()
-        unidos: list[Tramo] = [tramos[0]]
-        for tramo in tramos[1:]:
-            ultimo = unidos[-1]
-            # contiguo o solapado: un día de diferencia no abre un hueco real
-            if tramo.desde <= ultimo.hasta + dt.timedelta(days=1):
-                if tramo.hasta > ultimo.hasta:
-                    unidos[-1] = Tramo(desde=ultimo.desde, hasta=tramo.hasta)
-            else:
-                unidos.append(tramo)
-        return tuple(unidos)
+        return unir_tramos(t for p in self.periodos if (t := p.tramo_a(hasta)) is not None)
 
     def meses_cubiertos(self, hasta: dt.date) -> frozenset[MesCalendario]:
         """El conjunto unión de meses calendario cubiertos."""

@@ -5,57 +5,137 @@
   "description": "Una regla aplicable expresada como dato versionado (Principio I). Todo importe y porcentaje viaja como string numérico: un number de YAML/JSON se convierte a float binario antes de que el modelo lo vea, y ahí el error ya es invisible (research R1).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "norma", "tipo", "estado", "valor"],
+  "required": [
+    "id",
+    "norma",
+    "tipo",
+    "estado",
+    "valor"
+  ],
   "properties": {
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)*$",
       "description": "Identificador estable. Es lo que viaja a los logs y al desglose: nunca un dato personal (FR-054)."
     },
-    "norma": { "$ref": "#/$defs/norma" },
+    "norma": {
+      "$ref": "#/$defs/norma"
+    },
     "tipo": {
-      "enum": ["letra_ley", "interpretacion"],
+      "enum": [
+        "letra_ley",
+        "interpretacion"
+      ],
       "description": "Principio I: la letra de la ley no se mezcla con las interpretaciones del IPS, la jurisprudencia o la práctica administrativa."
     },
-    "estado": { "enum": ["verificado", "no_verificada"] },
-    "vigencia_desde": { "type": ["string", "null"], "format": "date" },
-    "vigencia_hasta": { "type": ["string", "null"], "format": "date" },
+    "estado": {
+      "enum": [
+        "verificado",
+        "no_verificada"
+      ]
+    },
+    "vigencia_desde": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "vigencia_hasta": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
     "verificada_en": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date",
       "description": "Requerido cuando estado = verificado."
     },
     "impacto_si_no_verificada": {
-      "enum": ["al_alza", "a_la_baja", "indeterminado", null],
+      "enum": [
+        "al_alza",
+        "a_la_baja",
+        "indeterminado",
+        null
+      ],
       "description": "Requerido cuando estado = no_verificada. Sin esto no se puede cumplir FR-046b, que obliga a informar en qué sentido la regla podría alterar el resultado."
     },
     "que_falta_verificar": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "minLength": 1,
       "description": "Requerido cuando estado = no_verificada. Decir «no verificada» sin decir qué falta no sirve a nadie."
     },
     "cuestion_abierta": {
-      "type": ["integer", "null"],
+      "type": [
+        "integer",
+        "null"
+      ],
       "minimum": 1,
       "description": "Número de la Cuestión abierta del dominio que bloquea la verificación."
     },
-    "valor": { "$ref": "#/$defs/valor" }
+    "valor": {
+      "$ref": "#/$defs/valor"
+    },
+    "valor_por_defecto_aplicado": {
+      "type": "boolean",
+      "default": false,
+      "description": "true cuando la regla no está verificada pero el motor igual tuvo que elegir algo (por ejemplo la convención de conteo de tiempo): `valor` trae entonces la convención aplicada, declarada provisional. Sin este campo no se distingue de una regla que deja su valor en null porque el motor puede negarse a calcular."
+    }
   },
   "allOf": [
     {
-      "if": { "properties": { "estado": { "const": "verificado" } }, "required": ["estado"] },
+      "if": {
+        "properties": {
+          "estado": {
+            "const": "verificado"
+          }
+        },
+        "required": [
+          "estado"
+        ]
+      },
       "then": {
-        "required": ["verificada_en"],
-        "properties": { "verificada_en": { "type": "string" } }
+        "required": [
+          "verificada_en"
+        ],
+        "properties": {
+          "verificada_en": {
+            "type": "string"
+          }
+        }
       }
     },
     {
-      "if": { "properties": { "estado": { "const": "no_verificada" } }, "required": ["estado"] },
-      "then": {
-        "required": ["impacto_si_no_verificada", "que_falta_verificar"],
+      "if": {
         "properties": {
-          "impacto_si_no_verificada": { "type": "string" },
-          "que_falta_verificar": { "type": "string" }
+          "estado": {
+            "const": "no_verificada"
+          }
+        },
+        "required": [
+          "estado"
+        ]
+      },
+      "then": {
+        "required": [
+          "impacto_si_no_verificada",
+          "que_falta_verificar"
+        ],
+        "properties": {
+          "impacto_si_no_verificada": {
+            "type": "string"
+          },
+          "que_falta_verificar": {
+            "type": "string"
+          }
         }
       }
     }
@@ -69,38 +149,109 @@
     "norma": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["texto", "ley"],
+      "required": [
+        "texto",
+        "ley"
+      ],
       "properties": {
-        "texto": { "type": "string", "minLength": 1 },
-        "ley": { "type": "string", "minLength": 1 },
-        "articulo": { "type": ["string", "null"] },
-        "inciso": { "type": ["string", "null"] },
-        "enlace": { "type": ["string", "null"] }
+        "texto": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ley": {
+          "type": "string",
+          "minLength": 1
+        },
+        "articulo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inciso": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enlace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "valor": {
       "description": "El contenido de la regla. `null` cuando la regla existe pero su valor no está verificado: eso es preferible a un número plausible (Principio I).",
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "object",
           "properties": {
-            "porcentaje": { "$ref": "#/$defs/decimal_str" },
-            "importe": { "$ref": "#/$defs/decimal_str" },
-            "tope": { "$ref": "#/$defs/decimal_str" },
-            "edad": { "type": "integer", "minimum": 0 },
-            "edad_minima": { "type": "integer", "minimum": 0 },
-            "anios_servicio": { "type": "integer", "minimum": 0 },
-            "anios_al_frente": { "type": "integer", "minimum": 0 },
-            "anios_con_aportes": { "type": "integer", "minimum": 0 },
-            "horas_catedra": { "type": "integer", "minimum": 0 },
-            "meses_consecutivos": { "type": "integer", "minimum": 0 },
-            "meses_alternados": { "type": "integer", "minimum": 0 },
-            "anios_excedente": { "type": "integer", "minimum": 0 },
-            "anios_continuos": { "type": "integer", "minimum": 0 }
+            "porcentaje": {
+              "$ref": "#/$defs/decimal_str"
+            },
+            "importe": {
+              "$ref": "#/$defs/decimal_str"
+            },
+            "tope": {
+              "$ref": "#/$defs/decimal_str"
+            },
+            "edad": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "edad_minima": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "anios_servicio": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "anios_al_frente": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "anios_con_aportes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "horas_catedra": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "meses_consecutivos": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "meses_alternados": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "anios_excedente": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "anios_continuos": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "dias_por_mes_alternativa": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "arrastre_de_dias": {
+              "type": "boolean"
+            }
           },
           "additionalProperties": {
-            "not": { "type": "number" },
+            "not": {
+              "type": "number"
+            },
             "description": "Ninguna clave no declarada puede llevar un number. Una clave numérica nueva se agrega arriba con su tipo explícito."
           }
         }

@@ -87,6 +87,37 @@ reglas:
     cuestion_abierta: 5
     valor: null
 
+  # Cuestión abierta #5 — la convención de conteo del tiempo de servicio.
+  #
+  # A diferencia de las demás reglas de este archivo, acá `valor` NO va en null:
+  # el motor no puede *no* contar el tiempo. Tuvo que elegir una convención, y
+  # la elección se declara —con `valor_por_defecto_aplicado: true`— en lugar de
+  # quedar escondida en el código. El resultado de todo requisito que dependa
+  # de ella y esté cerca del umbral sale provisional (FR-046b).
+  - id: computo.convencion_de_conteo
+    norma:
+      texto: "DL 9650/80, art. 24 (cómputo de años de servicio) — convención no documentada"
+      ley: "DL 9650/80"
+      articulo: "24"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la convención con que el IPS computa el tiempo de servicio: días
+      calendario reales o meses de 30 días; si la fecha final del período es
+      inclusiva o exclusiva; y si los días residuales de cada tramo se arrastran
+      a meses. El motor aplica por defecto días reales con fecha final inclusiva
+      y sin arrastre, y marca como provisional todo requisito cuyo margen al
+      umbral sea menor o igual que el desplazamiento que el cambio de convención
+      puede producir.
+    cuestion_abierta: 5
+    valor_por_defecto_aplicado: true
+    valor:
+      convencion: "dias_reales"
+      fecha_final: "inclusiva"
+      arrastre_de_dias: false
+      dias_por_mes_alternativa: 30
+
   # Cuestión abierta #6
   - id: redondeo.politica_ips
     norma:

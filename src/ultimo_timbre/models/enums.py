@@ -17,6 +17,7 @@ __all__ = [
     "ClasificacionSuperposicion",
     "CodigoAdvertencia",
     "CondicionAlFrente",
+    "ConvencionConteo",
     "EstadoRegla",
     "EstadoResultado",
     "Formato",
@@ -82,6 +83,20 @@ class CondicionAlFrente(StrEnum):
 
     DIRECTA = "directa"
     POR_HORAS_CATEDRA = "por_horas_catedra"
+
+
+class ConvencionConteo(StrEnum):
+    """Cómo se cuenta el tiempo de servicio (Cuestión abierta #5).
+
+    El motor no puede *no* elegir una, así que la elección se declara en la
+    regla `computo.convencion_de_conteo` en lugar de quedar escondida en el
+    código. `DIAS_REALES` es la aplicada por defecto.
+    """
+
+    DIAS_REALES = "dias_reales"
+    """Días calendario reales, fecha final inclusiva, sin arrastre de residuos."""
+    MESES_30 = "meses_30"
+    """Meses de 30 días, fecha final exclusiva, con arrastre de días a meses."""
 
 
 class EstadoRegla(StrEnum):

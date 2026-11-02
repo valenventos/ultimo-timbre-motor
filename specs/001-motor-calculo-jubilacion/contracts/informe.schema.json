@@ -16,7 +16,8 @@
     "advertencias",
     "version_reglas",
     "aviso_estimacion",
-    "aviso_movilidad"
+    "aviso_movilidad",
+    "condicionantes"
   ],
   "properties": {
     "schema_version": {
@@ -90,6 +91,13 @@
       "type": "string",
       "format": "date",
       "description": "La fecha de cálculo con la que se produjo el informe (FR-001a). Permite reproducir el resultado exacto más adelante."
+    },
+    "condicionantes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condicionante"
+      },
+      "description": "Lo que impide que el informe sea definitivo (FR-046b). Vive también en la raíz y no solo dentro de cada monto, porque un informe sin montos igual tiene que poder explicar por qué es provisional."
     }
   },
   "$defs": {
@@ -280,6 +288,28 @@
               "$ref": "#/$defs/decimal"
             }
           }
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ],
+          "default": "definitivo"
+        },
+        "estimado_para": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Fecha en que se cumpliría el inciso, proyectando los períodos en curso bajo supuesto de continuidad (FR-016). Excluyente con motivo_sin_estimacion."
+        },
+        "motivo_sin_estimacion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Por qué no se pudo estimar la fecha. Excluyente con estimado_para."
         }
       }
     },
@@ -312,6 +342,21 @@
         },
         "norma": {
           "$ref": "#/$defs/norma"
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ],
+          "default": "definitivo",
+          "description": "Provisional cuando la convención de conteo de tiempo decide el resultado: el margen al umbral es menor o igual que el desplazamiento que el cambio de convención puede producir (Cuestión abierta #5)."
+        },
+        "margen_dias": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Días entre el valor alcanzado y el umbral. null cuando no aplica (edad)."
         }
       }
     },

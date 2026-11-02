@@ -16,10 +16,18 @@ Dos mitades:
 from __future__ import annotations
 
 import ast
-import importlib.util
+import builtins
+import datetime as _dt
+import socket
 from pathlib import Path
+from typing import Any
 
 import pytest
+
+from tests.casos import caso_inc_b
+from ultimo_timbre.engine import calcular
+from ultimo_timbre.models.informe import Informe
+from ultimo_timbre.rules import versiones
 
 RAIZ = Path(__file__).resolve().parent.parent
 PAQUETE = RAIZ / "src" / "ultimo_timbre"
@@ -137,24 +145,58 @@ def test_el_detector_de_imports_encuentra_uno_plantado(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Mitad dinámica — requiere `calcular()`, que llega con la US1 (T061)
+# Mitad dinámica — ya es verificable: `calcular()` existe desde la US1 (T064)
 # ---------------------------------------------------------------------------
-_HAY_CALCULAR = importlib.util.find_spec("ultimo_timbre.engine") is not None and hasattr(
-    importlib.import_module("ultimo_timbre.engine"), "calcular"
-)
-
-pendiente_us1 = pytest.mark.skipif(
-    not _HAY_CALCULAR,
-    reason="`calcular()` se implementa en la US1 (T061); el aislamiento en ejecución "
-    "se verifica recién entonces",
-)
 
 
-@pendiente_us1
-def test_calcular_no_escribe_a_disco() -> None:  # pragma: no cover - llega con la US1
-    raise AssertionError("pendiente de implementar junto con calcular() en la US1")
+def _informe() -> Informe:
+    return calcular(caso_inc_b(), reglas=versiones.cargar_reglas("v1"))
 
 
-@pendiente_us1
-def test_calcular_no_abre_sockets() -> None:  # pragma: no cover - llega con la US1
-    raise AssertionError("pendiente de implementar junto con calcular() en la US1")
+def test_calcular_no_escribe_a_disco(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-053: `calcular` recibe datos ya cargados; no persiste nada."""
+    original = builtins.open
+
+    def espia(*args: Any, **kwargs: Any) -> Any:
+        modo = str(args[1]) if len(args) > 1 else str(kwargs.get("mode", "r"))
+        if any(c in modo for c in ("w", "a", "x", "+")):
+            msg = f"calcular() intentó escribir en {args[0]!r}"
+            raise AssertionError(msg)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(builtins, "open", espia)
+    _informe()
+
+
+def test_calcular_no_abre_sockets(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Principio V, SC-007: el motor corre sin red."""
+
+    def prohibido(*_args: Any, **_kwargs: Any) -> Any:
+        msg = "calcular() intentó abrir un socket"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(socket, "socket", prohibido)
+    monkeypatch.setattr(socket, "create_connection", prohibido)
+    monkeypatch.setattr(socket, "getaddrinfo", prohibido)
+    _informe()
+
+
+def test_calcular_no_consulta_el_reloj(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FR-001a: la fecha de cálculo entra en el caso, no desde el sistema."""
+
+    class FechaSinHoy(_dt.date):
+        @classmethod
+        def today(cls) -> FechaSinHoy:
+            msg = "calcular() llamó a date.today()"
+            raise AssertionError(msg)
+
+    monkeypatch.setattr(_dt, "date", FechaSinHoy)
+    _informe()
+
+
+def test_calcular_es_puro_no_muta_el_caso() -> None:
+    """Principio II: los modelos son `frozen`; esto lo verifica de punta a punta."""
+    caso = caso_inc_b()
+    antes = caso.model_dump(mode="json")
+    calcular(caso, reglas=versiones.cargar_reglas("v1"))
+    assert caso.model_dump(mode="json") == antes

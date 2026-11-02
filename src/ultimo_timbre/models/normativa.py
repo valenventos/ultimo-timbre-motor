@@ -69,6 +69,14 @@ class Regla(BaseModel):
     impacto_si_no_verificada: SentidoImpacto | None = None
     que_falta_verificar: str | None = None
     cuestion_abierta: int | None = None
+    valor_por_defecto_aplicado: bool = False
+    """La regla no está verificada pero el motor **igual tuvo que elegir algo**.
+
+    Distingue dos situaciones que no son lo mismo: una regla cuyo valor queda en
+    `null` porque el motor puede negarse a calcular (un porcentaje, un tope), y
+    una cuya ausencia no es una opción —no se puede *no* contar el tiempo—. En
+    el segundo caso `valor` trae la convención aplicada, declarada provisional.
+    """
     valor: ValorRegla = None
 
     @model_validator(mode="after")
