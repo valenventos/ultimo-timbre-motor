@@ -16,6 +16,7 @@ aparte con las funciones de `ultimo_timbre.rules`.
 from __future__ import annotations
 
 from ultimo_timbre.engine import calcular
+from ultimo_timbre.entrada import cargar_caso, cargar_caso_desde_texto
 from ultimo_timbre.errors import (
     CasoInvalido,
     FueraDeAlcance,
@@ -83,6 +84,7 @@ from ultimo_timbre.models.normativa import (
     Regla,
 )
 from ultimo_timbre.render.json_out import informe_a_dict, informe_a_json
+from ultimo_timbre.render.texto import informe_a_texto
 from ultimo_timbre.rules.versiones import (
     cargar_grilla,
     cargar_reglas,
@@ -156,11 +158,14 @@ __all__ = [
     # cálculo
     "calcular",
     # carga de datos normativos
+    "cargar_caso",
+    "cargar_caso_desde_texto",
     "cargar_grilla",
     "cargar_reglas",
     "grilla_vigente_a",
     # serialización
     "informe_a_dict",
     "informe_a_json",
+    "informe_a_texto",
     "versiones_disponibles",
 ]

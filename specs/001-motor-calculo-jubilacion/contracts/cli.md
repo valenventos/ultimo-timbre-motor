@@ -75,12 +75,33 @@ Todo error de entrada nombra **el campo y el período afectado**, y describe la 
 (FR-057, Principio VIII):
 
 ```
-Error en el período 3 (Maestro de grado, 2015-03-01 a 2014-12-31):
-  la fecha de fin es anterior a la de inicio.
-  Corregí 'hasta' para que sea posterior a 'desde'.
+Error en el período 1 (maestro_de_grado, 2015-03-01 a 2014-12-31):
+  el campo 'hasta' no es válido. Corregí 'hasta' para que sea posterior o igual a 'desde'.
 ```
 
 Ningún mensaje de error deja al usuario sin una acción posible.
+
+### Dos destinos, dos niveles de detalle
+
+FR-057 pide un mensaje accionable y FR-054 prohíbe datos personales en logs, métricas, trazas y
+reportes de error. No se contradicen: hablan de **destinos distintos**.
+
+| Destino | Qué lleva | Por qué |
+|---|---|---|
+| **El objeto `CasoInvalido`** | índice anónimo del período, nombre del campo, corrección | Es lo que un `logger.exception()` captura y lo que termina en un archivo que puede ir a cualquier parte (FR-054) |
+| **La pantalla de la CLI** | lo anterior **más** el cargo, `desde` y `hasta` de ese período | Es el dato de quien corrió el comando, en su propia terminal. Con treinta períodos cargados, «el período 1» obliga a contar renglones (FR-057) |
+| **El logging** | nunca ningún valor del caso, ni con `--verboso` | FR-054, verificado con canarios (SC-008, invariante I8) |
+
+El enriquecimiento lo hace la CLI **en el momento de imprimir**, releyendo el documento con
+`entrada.leer_documento`. No pasa por la excepción, no se guarda y no se loguea.
+
+**Qué no se enriquece, ni en la pantalla**: la fecha de nacimiento y el nombre del
+establecimiento. No ayudan a encontrar la línea del archivo y son más identificatorios que un
+cargo y un par de fechas, así que se quedan afuera de las dos salidas.
+
+Verificado en `tests/cli/test_error_enriquecido.py`, que afirma las tres filas de la tabla sobre
+la misma corrida: el dato aparece en la pantalla, no aparece en el objeto de excepción y no
+aparece en los `LogRecord`.
 
 ## Garantías
 

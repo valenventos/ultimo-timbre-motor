@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# CASO DE EJEMPLO — datos inventados.
+# No corresponde a ninguna persona real. Sirve para probar el motor y para
+# mostrar el formato de entrada que espera `ultimo-timbre calcular`.
+#
+# Acceso por el art. 24 inc. b: 26 años al frente de alumnos y 50 de edad al
+# cese. Es el camino más favorable, porque el art. 43 parte del 75 %.
+schema_version: "1.0.0"
+fecha_de_calculo: 2030-04-01
+fecha_nacimiento: 1980-03-15
+fechas_cese:
+  - 2030-03-31
+historia:
+  periodos:
+    - cargo: maestro_de_grado
+      establecimiento:
+        tipo: estatal_dgcye
+      desde: 2004-03-01
+      hasta: 2030-03-31
+      caja_aportes: ips
+      situacion_revista: titular

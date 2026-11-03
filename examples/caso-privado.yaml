@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# CASO DE EJEMPLO — datos inventados.
+# No corresponde a ninguna persona real. Sirve para probar el motor y para
+# mostrar el formato de entrada que espera `ultimo-timbre calcular`.
+#
+# Establecimiento de gestión privada: fuera del Alcance de la v1 (FR-045).
+schema_version: "1.0.0"
+fecha_de_calculo: 2026-11-02
+fecha_nacimiento: 1970-05-10
+fechas_cese:
+  - 2026-02-28
+historia:
+  periodos:
+    - cargo: maestro_de_grado
+      establecimiento:
+        tipo: privado
+      desde: 2000-03-01
+      hasta: 2026-02-28
+      caja_aportes: ips
+      situacion_revista: titular

@@ -414,27 +414,27 @@ y el código de salida correcto, con la máquina desconectada de la red.
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T167 [P] [US6] Test: `calcular` con un caso válido emite el informe completo y termina con exit 0, incluso si `estado_general` es `provisional`, en `tests/cli/test_exit_exito.py` (US6 esc. 1, FR-056)
-- [ ] T168 [P] [US6] Test: entrada inválida devuelve exit 2 con un mensaje que nombra el campo y el período y describe la corrección, en `tests/cli/test_exit_invalido.py` (US6 esc. 2, FR-057)
-- [ ] T169 [P] [US6] Test: un informe con al menos una advertencia `bloquea_calculo` devuelve exit 3 **y emite igualmente el informe parcial**, en `tests/cli/test_exit_fuera_de_alcance.py` (FR-045b)
-- [ ] T170 [P] [US6] Test: el motor produce el mismo informe con los sockets bloqueados, en `tests/test_sin_red.py` (US6 esc. 3, SC-007)
-- [ ] T171 [P] [US6] Test de canarios: ningún dato personal marcado aparece en la salida de diagnóstico de una corrida completa, en `tests/properties/test_canarios.py` (invariante I8, FR-054, SC-008, US6 esc. 4)
-- [ ] T172 [P] [US6] Test: `--fecha-calculo` fija produce informes idénticos en dos corridas separadas, en `tests/cli/test_reproducibilidad.py` (FR-001a)
-- [ ] T173 [P] [US6] Test: la salida de texto y la JSON derivan del mismo `Informe` y ninguna recalcula, en `tests/unit/test_render_equivalente.py` (research R5)
-- [ ] T174 [P] [US6] Test: `calcular` por librería y por CLI producen resultados idénticos, en `tests/test_equivalencia_cli_libreria.py` (FR-051)
+- [X] T167 [P] [US6] Test: `calcular` con un caso válido emite el informe completo y termina con exit 0, incluso si `estado_general` es `provisional`, en `tests/cli/test_exit_exito.py` (US6 esc. 1, FR-056)
+- [X] T168 [P] [US6] Test: entrada inválida devuelve exit 2 con un mensaje que nombra el campo y el período y describe la corrección, en `tests/cli/test_exit_invalido.py` (US6 esc. 2, FR-057)
+- [X] T169 [P] [US6] Test: un informe con al menos una advertencia `bloquea_calculo` devuelve exit 3 **y emite igualmente el informe parcial**, en `tests/cli/test_exit_fuera_de_alcance.py` (FR-045b)
+- [X] T170 [P] [US6] Test: el motor produce el mismo informe con los sockets bloqueados, en `tests/test_sin_red.py` (US6 esc. 3, SC-007)
+- [X] T171 [P] [US6] Test de canarios: ningún dato personal marcado aparece en la salida de diagnóstico de una corrida completa, en `tests/properties/test_canarios.py` (invariante I8, FR-054, SC-008, US6 esc. 4)
+- [X] T172 [P] [US6] Test: `--fecha-calculo` fija produce informes idénticos en dos corridas separadas, en `tests/cli/test_reproducibilidad.py` (FR-001a)
+- [X] T173 [P] [US6] Test: la salida de texto y la JSON derivan del mismo `Informe` y ninguna recalcula, en `tests/unit/test_render_equivalente.py` (research R5)
+- [X] T174 [P] [US6] Test: `calcular` por librería y por CLI producen resultados idénticos, en `tests/test_equivalencia_cli_libreria.py` (FR-051)
 
 ### Implementation for User Story 6
 
 > Requiere T167–T174 escritas y fallando.
 
-- [ ] T175 [US6] Implementar `src/ultimo_timbre/render/texto.py`: salida legible en terminal renderizada desde el mismo `Informe`, sin lógica de cálculo propia (research R5)
-- [ ] T176 [US6] Implementar `ultimo-timbre calcular` en `src/ultimo_timbre/cli/main.py` con Typer y las opciones `--formato`, `--salida`, `--reglas`, `--grilla` y `--fecha-calculo` (FR-055, contrato `cli.md`)
-- [ ] T177 [US6] Implementar el relleno de `fecha_de_calculo` con la fecha del sistema **en la CLI** cuando el caso no la declara, dejándola asentada en el informe (FR-001a)
-- [ ] T178 [US6] Implementar los códigos de salida 0, 2, 3 y 4 en `cli/main.py`, derivando el 3 de la presencia de advertencias bloqueantes y dejando el 1 sin asignar (FR-056, FR-045b)
-- [ ] T179 [US6] Implementar los mensajes de error que nombran campo y período y describen la corrección posible en `cli/main.py` (FR-057, Principio VIII)
-- [ ] T180 [US6] Implementar `ultimo-timbre validar` y `ultimo-timbre versiones` en `cli/main.py` (contrato `cli.md`)
-- [ ] T181 [US6] Configurar `logging.NullHandler()` en la librería y la configuración de logging solo en la CLI, con identificadores técnicos anónimos (FR-054, research R12)
-- [ ] T182 [US6] Registrar el entry point `ultimo-timbre` en `pyproject.toml`
+- [X] T175 [US6] Implementar `src/ultimo_timbre/render/texto.py`: salida legible en terminal renderizada desde el mismo `Informe`, sin lógica de cálculo propia (research R5)
+- [X] T176 [US6] Implementar `ultimo-timbre calcular` en `src/ultimo_timbre/cli/main.py` con Typer y las opciones `--formato`, `--salida`, `--reglas`, `--grilla` y `--fecha-calculo` (FR-055, contrato `cli.md`)
+- [X] T177 [US6] Implementar el relleno de `fecha_de_calculo` con la fecha del sistema **en la CLI** cuando el caso no la declara, dejándola asentada en el informe (FR-001a)
+- [X] T178 [US6] Implementar los códigos de salida 0, 2, 3 y 4 en `cli/main.py`, derivando el 3 de la presencia de advertencias bloqueantes y dejando el 1 sin asignar (FR-056, FR-045b)
+- [X] T179 [US6] Implementar los mensajes de error que nombran campo y período y describen la corrección posible en `cli/main.py` (FR-057, Principio VIII)
+- [X] T180 [US6] Implementar `ultimo-timbre validar` y `ultimo-timbre versiones` en `cli/main.py` (contrato `cli.md`)
+- [X] T181 [US6] Configurar `logging.NullHandler()` en la librería y la configuración de logging solo en la CLI, con identificadores técnicos anónimos (FR-054, research R12)
+- [X] T182 [US6] Registrar el entry point `ultimo-timbre` en `pyproject.toml`, y agregar `src/ultimo_timbre/__main__.py` para que `python -m ultimo_timbre` sea equivalente: sin eso, `python -m ultimo_timbre.cli.main` importa el módulo, no corre nada y termina con **exit 0**, el código que significa «informe emitido»
 
 **Checkpoint**: motor completo, usable como librería y desde terminal.
 

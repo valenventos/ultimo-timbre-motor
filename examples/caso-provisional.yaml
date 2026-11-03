@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# CASO DE EJEMPLO — datos inventados.
+# No corresponde a ninguna persona real. Sirve para probar el motor y para
+# mostrar el formato de entrada que espera `ultimo-timbre calcular`.
+#
+# Cargo base directivo con acceso por el inc. b: la Cuestión abierta #9 deja
+# el porcentaje provisional (70 % contra 75 % sobre el cargo base).
+schema_version: "1.0.0"
+fecha_de_calculo: 2024-01-02
+fecha_nacimiento: 1973-12-31
+fechas_cese:
+  - 2023-12-31
+historia:
+  periodos:
+    - cargo: maestro_de_grado
+      establecimiento:
+        tipo: estatal_dgcye
+      desde: 1994-01-01
+      hasta: 2019-12-31
+      caja_aportes: ips
+      situacion_revista: titular
+    - cargo: vicedirector
+      establecimiento:
+        tipo: estatal_dgcye
+      desde: 2020-01-01
+      hasta: 2023-12-31
+      caja_aportes: ips
+      situacion_revista: titular
