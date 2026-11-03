@@ -51,6 +51,37 @@ Separadas de `calcular` a propósito (research R7). Un consumidor que ya tiene l
 decide, y `calcular` emite la advertencia `grilla_ausente` con el monto marcado provisional
 (FR-034).
 
+### Procedencia de una grilla: dos campos distintos
+
+`GrillaSalarial.norma` es la **fuente de los valores** y es obligatoria.
+`GrillaSalarial.acto_aprobatorio` es el decreto o acta paritaria que les dio fuerza, y **puede ser
+`None`**.
+
+No es un descuido del modelo: la escala salarial de la Ley 10.579 que publica el Ministerio de
+Economía de la Provincia no cita, en ninguna de sus publicaciones mensuales, el acto que la
+aprueba. Rechazar la grilla dejaría al motor sin poder valuar nada con la única fuente oficial
+disponible; darla por firme le prestaría al monto una certeza que no tiene. La salida intermedia
+es admitirla y marcarla: todo monto calculado con una grilla sin acto aprobatorio lleva el
+condicionante `grilla_sin_acto_aprobatorio`, con `sentido_impacto: indeterminado`, y el informe
+sale provisional.
+
+### Índice escalafonario del catálogo
+
+`EntradaCatalogo.indice_escalafonario` es un `Decimal | None`, cargado desde un string numérico
+(research R1). Es el multiplicador del sueldo básico del cargo testigo, y por eso sirve a la vez
+como criterio de «mejor remunerado» de la `Res. IPS 995/2021` y como desempate verificable del
+art. 41.
+
+Está en `None` en todas las entradas de la v1 y eso es deliberado: el Anexo del art. 9º del
+Decreto 2397/2005, que aprueba el texto ordenado del nomenclador, no está publicado. Cada entrada
+apunta con `regla_indice` a `jerarquia.indices_escalafonarios`, que lo declara como Cuestión
+abierta #4.
+
+`indice_es_por_hora` marca los índices de hora cátedra, que no son comparables con los de cargo.
+Las entradas del catálogo llevan la **categoría** del nomenclador —`director_primera`,
+`director_segunda`, `bibliotecario_ensenanza_superior`— y no un nombre genérico, porque el
+nomenclador les asigna índices distintos.
+
 ### Serialización
 
 ```python

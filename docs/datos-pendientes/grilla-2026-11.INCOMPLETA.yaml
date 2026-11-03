@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  ESTO NO ES UNA GRILLA. NO MOVER A grids/ SIN COMPLETAR.                 ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Esqueleto de la escala de noviembre 2026 con **solo los valores verificados**
+# en una fuente, cada uno con su cita. Vive en `docs/datos-pendientes/` y no en
+# `grids/` por tres razones, explicadas en `relevamiento-2026-11.md`:
+#
+#   1. no se encontró la norma que aprueba la escala (campo `norma`, obligatorio);
+#   2. las bonificaciones en porcentaje no declaran su base de cálculo;
+#   3. el sueldo básico por cargo depende de un índice escalafonario que no se
+#      pudo verificar en una norma vigente.
+#
+# Si este archivo se moviera a `grids/` tal como está, el motor emitiría un
+# haber **menor** que el real con apariencia de correcto. El Principio X prefiere
+# no calcular a calcular mal.
+#
+# Para completarlo: resolver los tres bloqueantes, reemplazar cada FALTA, llenar
+# `aprobada_por` y `aprobada_en`, mover a `grids/2026-11.yaml` y abrir el PR. El
+# check `validate-grid-approval` de CI verifica que quien aprueba sea quien
+# fusiona (T133, research R4).
+
+version: "2026-11"
+
+# FALTA: el decreto o acta paritaria que aprueba esta escala. La página del
+# Ministerio de Economía publica las 15 escalas sin citar la norma de ninguna.
+norma:
+  texto: "FALTA — decreto o acta paritaria que aprueba la escala de noviembre de 2026"
+  ley: "FALTA"
+  articulo: null
+
+enlace: "https://www.ec.gba.gov.ar/areas/Sub_Politica_Coord_Eco/economialaboral/archivos/Escala%20salarial%20Ley%20N%C2%BA%2010.579%20-%20Noviembre%202026.pdf"
+
+vigencia_desde: "2026-11-01"
+extraida_en: "2026-11-03"
+
+# Vacíos a propósito: el mantenedor aprueba, no el agente (Principio IX).
+aprobada_por: ""
+aprobada_en: ""
+
+# ---------------------------------------------------------------------------
+# Componentes verificados, por si sirven al armar los cargos
+# ---------------------------------------------------------------------------
+#
+# Todos salen de la escala de noviembre 2026 citada en `enlace`. La columna
+# «pág.» es la página del PDF. Ninguno está inventado ni derivado.
+#
+#   pág. 1  —  sueldo básico del Preceptor (Índice Escalafonario 1.1)  370675.00
+#   pág. 1  —  código 455, Suma Fija, Rem. No Bonificable             150393.00
+#   pág. 1  —  código 438, cargos con Índice 1.1, Rem. No Bonif.      295476.00
+#   pág. 1  —  código 456, Directores y Vicedirectores (desde 2024-03)   7667.00
+#   pág. 1  —  código 668, Secretarios y Prosecretarios (desde 2024-03)  1740.00
+#   pág. 2  —  FONID / Conectividad, NO remunerativa                   32551.00
+#
+#   pág. 1  —  códigos 653 y 663, Preceptores            114.15 %  BASE: FALTA
+#   pág. 2  —  código 451, Índice >=1.20 y <=1.33         74.50 %  BASE: FALTA
+#   pág. 2  —  código 667, Horas Cátedra y Módulos        43.50 %  BASE: FALTA
+#   pág. 2  —  Decreto 1712/16 art. 8, Secretarios        37.00 %  BASE: FALTA
+#   pág. 2  —  Decreto 1712/16 art. 6, función difer.  67/74/78 %  BASE: FALTA
+#
+# `bonificable: false` en todas las bonificaciones porque la escala las llama
+# «No Bonificable». FALTA confirmar contra un recibo real que eso signifique
+# que la antigüedad no se aplica sobre ellas (FR-031b).
+
+valores:
+  preceptor:
+    - codigo_concepto: "basico"
+      descripcion: "Sueldo básico del Preceptor (Índice Escalafonario 1.1) — pág. 1"
+      importe: "370675.00"
+      bonificable: true
+      remunerativo: true
+    - codigo_concepto: "455"
+      descripcion: "Bonificación Remunerativa No Bonificable de Suma Fija — pág. 1"
+      importe: "150393.00"
+      bonificable: false
+      remunerativo: true
+    - codigo_concepto: "438"
+      descripcion: "Bonif. Rem. No Bonificable para cargos con Índice Escalafonario 1.1 — pág. 1"
+      importe: "295476.00"
+      bonificable: false
+      remunerativo: true
+    - codigo_concepto: "fonid_conectividad"
+      descripcion: "Bonif. No Remunerativa No Bonificable, Compensación FONID / Conectividad; modalidad del Decreto 1230/14 — pág. 2"
+      importe: "32551.00"
+      bonificable: false
+      remunerativo: false
+    # FALTA: códigos 653 y 663, «Bonif. Rem. No Bonificable para Preceptores»,
+    # 114,15 % desde el 1º de agosto de 2026 (pág. 1). Sin la base de cálculo no
+    # se puede expresar como importe, y sin este componente el haber del
+    # preceptor queda subestimado.
+
+  # FALTA el resto de los cargos del catálogo. Su sueldo básico se obtiene
+  # multiplicando el del Preceptor por el índice escalafonario del cargo, y ese
+  # índice no está verificado en una norma vigente:
+  #
+  #   maestro_de_grado                    índice 1,10 según Dec. 1301/05 Anexo I
+  #                                       sección XV más Dec. 2397/05 art. 2, sin
+  #                                       confirmar que siga vigente
+  #   director / vicedirector             no tienen índice único: depende de la
+  #                                       categoría del establecimiento
+  #   bibliotecario                       1,32 ó 1,44 según el tipo
+  #   horas_catedra_secundario            1,15 / 1,18 / 1,12, y son por hora
+  #   tecnico_docente_psicologia          no encontrado
+  #   tecnico_docente_educacion_especial  no encontrado
+  #   visitadora_higiene_escolar          no encontrado

@@ -156,7 +156,7 @@ def test_el_computo_del_excedente_es_una_interpretacion(reglas: ConjuntoDeReglas
     ("cargo", "ley"),
     [
         ("preceptor", "Ley 13469"),
-        ("bibliotecario", "Ley 13469"),
+        ("bibliotecario_ensenanza_superior", "Ley 13469"),
         ("tecnico_docente_psicologia", "Ley 10745"),
         ("tecnico_docente_educacion_especial", "Ley 10745"),
         ("visitadora_higiene_escolar", "Ley 11860"),
@@ -186,7 +186,7 @@ def test_maestro_de_grado_esta_al_frente_por_el_inciso_b(
     assert entrada.condiciona_resultado is False
 
 
-@pytest.mark.parametrize("cargo", ["director", "vicedirector"])
+@pytest.mark.parametrize("cargo", ["director_primera", "vicedirector_primera"])
 def test_director_y_vicedirector_no_estan_al_frente_pero_quedan_condicionados(
     reglas: ConjuntoDeReglas, cargo: str
 ) -> None:
@@ -213,7 +213,7 @@ def test_horas_catedra_se_modela_como_umbral_no_como_booleano(
     reglas: ConjuntoDeReglas,
 ) -> None:
     """El art. 24 inc. b asimila a los profesores que reúnen veinte horas cátedra."""
-    entrada = reglas.catalogo_cargos.buscar("horas_catedra_secundario")
+    entrada = reglas.catalogo_cargos.buscar("hora_catedra_secundaria")
     assert entrada is not None
     assert entrada.condicion is CondicionAlFrente.POR_HORAS_CATEDRA
     assert entrada.al_frente_de_alumnos is None
@@ -225,7 +225,7 @@ def test_el_umbral_de_horas_catedra_sale_de_la_regla_no_del_catalogo(
     reglas: ConjuntoDeReglas,
 ) -> None:
     """Principio I: el 20 es un valor normativo y vive en la regla."""
-    entrada = reglas.catalogo_cargos.buscar("horas_catedra_secundario")
+    entrada = reglas.catalogo_cargos.buscar("hora_catedra_secundaria")
     assert entrada is not None
     assert entrada.regla_umbral is not None
     regla = reglas.por_id(entrada.regla_umbral)

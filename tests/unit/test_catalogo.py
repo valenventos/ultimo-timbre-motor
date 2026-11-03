@@ -34,6 +34,7 @@ CATALOGO = CatalogoDeCargos(
         EntradaCatalogo(
             cargo="maestro_de_grado",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=True,
             naturaleza=NaturalezaServicio.DOCENTE,
             norma=LEY_13469,
@@ -42,6 +43,7 @@ CATALOGO = CatalogoDeCargos(
         EntradaCatalogo(
             cargo="preceptor",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=True,
             naturaleza=NaturalezaServicio.DOCENTE,
             norma=LEY_13469,
@@ -50,6 +52,7 @@ CATALOGO = CatalogoDeCargos(
         EntradaCatalogo(
             cargo="administrativo",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=False,
             naturaleza=NaturalezaServicio.NO_DOCENTE,
             norma=LEY_13469,
@@ -58,6 +61,7 @@ CATALOGO = CatalogoDeCargos(
         EntradaCatalogo(
             cargo="secretario_tecnico",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=True,
             naturaleza=NaturalezaServicio.DOCENTE,
             norma=LEY_13469,
@@ -67,8 +71,9 @@ CATALOGO = CatalogoDeCargos(
         # Verificado por la letra del art. 24 inc. b, pero condicionado por la
         # extensión discutida de la Ley 13469 (Cuestión abierta #8).
         EntradaCatalogo(
-            cargo="director",
+            cargo="director_primera",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=False,
             naturaleza=NaturalezaServicio.DOCENTE,
             norma=ART24_INC_B,
@@ -77,8 +82,9 @@ CATALOGO = CatalogoDeCargos(
         ),
         # La condición no es booleana: es un umbral de horas cátedra.
         EntradaCatalogo(
-            cargo="horas_catedra_secundario",
+            cargo="hora_catedra_secundaria",
             jerarquia=None,
+            regla_indice="jerarquia.indices_escalafonarios",
             al_frente_de_alumnos=None,
             naturaleza=NaturalezaServicio.DOCENTE,
             norma=ART24_INC_B,
@@ -183,7 +189,7 @@ def test_la_derivacion_declara_la_norma_que_la_sostiene() -> None:
 
 def test_director_no_esta_al_frente_por_la_letra_del_inciso_b() -> None:
     """El art. 24 inc. b enumera a quiénes alcanza y no incluye a director."""
-    d = cat.derivar(CATALOGO, construir_periodo("director"))
+    d = cat.derivar(CATALOGO, construir_periodo("director_primera"))
     assert d.al_frente_de_alumnos is False
     assert d.en_catalogo is True
     assert d.norma is not None
@@ -192,7 +198,7 @@ def test_director_no_esta_al_frente_por_la_letra_del_inciso_b() -> None:
 
 def test_director_queda_condicionado_por_la_extension_de_la_ley_13469() -> None:
     """Verificado por la letra, pero una regla sin verificar lo discute."""
-    d = cat.derivar(CATALOGO, construir_periodo("director"))
+    d = cat.derivar(CATALOGO, construir_periodo("director_primera"))
     assert d.condiciona_resultado is True
     assert d.regla_id == "al_frente.ley_13469.extension"
     assert CodigoAdvertencia.REGLA_NO_VERIFICADA in d.advertencias
@@ -204,14 +210,14 @@ def test_director_queda_condicionado_por_la_extension_de_la_ley_13469() -> None:
 
 
 def test_horas_catedra_no_es_booleano_y_declara_su_condicion() -> None:
-    d = cat.derivar(CATALOGO, construir_periodo("horas_catedra_secundario"))
+    d = cat.derivar(CATALOGO, construir_periodo("hora_catedra_secundaria"))
     assert d.condicion is CondicionAlFrente.POR_HORAS_CATEDRA
 
 
 def test_horas_catedra_alcanza_el_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
-        construir_periodo("horas_catedra_secundario"),
+        construir_periodo("hora_catedra_secundaria"),
         horas_catedra_simultaneas=20,
         umbral_horas_catedra=20,
     )
@@ -224,7 +230,7 @@ def test_horas_catedra_alcanza_el_umbral() -> None:
 def test_horas_catedra_no_alcanza_el_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
-        construir_periodo("horas_catedra_secundario"),
+        construir_periodo("hora_catedra_secundaria"),
         horas_catedra_simultaneas=19,
         umbral_horas_catedra=20,
     )
@@ -234,7 +240,7 @@ def test_horas_catedra_no_alcanza_el_umbral() -> None:
 def test_horas_catedra_sin_umbral_queda_indeterminado() -> None:
     """El motor no completa un umbral normativo por su cuenta (Principio I)."""
     d = cat.derivar(
-        CATALOGO, construir_periodo("horas_catedra_secundario"), horas_catedra_simultaneas=20
+        CATALOGO, construir_periodo("hora_catedra_secundaria"), horas_catedra_simultaneas=20
     )
     assert d.al_frente_de_alumnos is None
     assert d.requiere_umbral_horas_catedra is True
@@ -242,9 +248,7 @@ def test_horas_catedra_sin_umbral_queda_indeterminado() -> None:
 
 
 def test_horas_catedra_sin_horas_queda_indeterminado() -> None:
-    d = cat.derivar(
-        CATALOGO, construir_periodo("horas_catedra_secundario"), umbral_horas_catedra=20
-    )
+    d = cat.derivar(CATALOGO, construir_periodo("hora_catedra_secundaria"), umbral_horas_catedra=20)
     assert d.al_frente_de_alumnos is None
     assert d.requiere_umbral_horas_catedra is True
 
@@ -252,7 +256,7 @@ def test_horas_catedra_sin_horas_queda_indeterminado() -> None:
 def test_horas_catedra_usa_las_del_periodo_si_no_se_pasan_las_simultaneas() -> None:
     d = cat.derivar(
         CATALOGO,
-        construir_periodo("horas_catedra_secundario", horas_catedra=24),
+        construir_periodo("hora_catedra_secundaria", horas_catedra=24),
         umbral_horas_catedra=20,
     )
     assert d.horas_catedra_evaluadas == 24
@@ -263,7 +267,7 @@ def test_el_umbral_se_evalua_sobre_las_horas_simultaneas_no_las_del_periodo() ->
     """Veinte horas cátedra se reúnen sumando cargos simultáneos."""
     d = cat.derivar(
         CATALOGO,
-        construir_periodo("horas_catedra_secundario", horas_catedra=12),
+        construir_periodo("hora_catedra_secundaria", horas_catedra=12),
         horas_catedra_simultaneas=22,
         umbral_horas_catedra=20,
     )
@@ -274,7 +278,7 @@ def test_el_umbral_se_evalua_sobre_las_horas_simultaneas_no_las_del_periodo() ->
 def test_el_override_tambien_pisa_la_condicion_por_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
-        construir_periodo("horas_catedra_secundario", al_frente_override=True),
+        construir_periodo("hora_catedra_secundaria", al_frente_override=True),
         horas_catedra_simultaneas=10,
         umbral_horas_catedra=20,
     )

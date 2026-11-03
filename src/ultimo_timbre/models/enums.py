@@ -169,6 +169,7 @@ class CodigoAdvertencia(StrEnum):
     FUERA_DE_ALCANCE_PROMEDIO_36 = "fuera_de_alcance_promedio_36"
     REGLA_NO_VERIFICADA = "regla_no_verificada"
     GRILLA_AUSENTE = "grilla_ausente"
+    GRILLA_SIN_ACTO_APROBATORIO = "grilla_sin_acto_aprobatorio"
     CARGO_FUERA_DE_CATALOGO = "cargo_fuera_de_catalogo"
     EMPATE_JERARQUIA = "empate_jerarquia"
     LECTURA_LITERAL_EXCEDENTE = "lectura_literal_excedente"

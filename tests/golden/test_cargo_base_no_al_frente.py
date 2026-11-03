@@ -30,7 +30,7 @@ from decimal import Decimal
 import pytest
 
 from tests.casos import caso, f, periodo
-from tests.catalogos import con_jerarquia_ficticia
+from tests.catalogos import con_indices_ficticios
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.caso import Caso
 from ultimo_timbre.models.enums import (
@@ -45,7 +45,7 @@ from ultimo_timbre.rules import versiones
 pytestmark = pytest.mark.golden
 
 REGLAS = versiones.cargar_reglas("v1")
-REGLAS_JER = con_jerarquia_ficticia(REGLAS)
+REGLAS_JER = con_indices_ficticios(REGLAS)
 REGLA = "porcentaje.art43.cargo_base_no_al_frente"
 
 
@@ -59,7 +59,7 @@ def _caso() -> Caso:
     """
     return caso(
         periodo("maestro_de_grado", desde="1994-01-01", hasta="2019-12-31"),
-        periodo("vicedirector", desde="2020-01-01", hasta="2023-12-31"),
+        periodo("vicedirector_primera", desde="2020-01-01", hasta="2023-12-31"),
         nacimiento="1973-12-31",
         ceses=["2023-12-31"],
         fecha_de_calculo="2024-01-02",
@@ -95,12 +95,12 @@ def test_accede_por_el_inciso_b(informe: Informe) -> None:
 
 def test_el_cargo_base_es_la_vicedireccion(informe: Informe) -> None:
     assert informe.cargo_base is not None
-    assert informe.cargo_base.cargo == "vicedirector"
+    assert informe.cargo_base.cargo == "vicedirector_primera"
 
 
 def test_el_cargo_base_no_cuenta_al_frente_de_alumnos() -> None:
     """Resguardo del escenario: si contara, la Cuestión #9 no se plantearía."""
-    entrada = REGLAS.catalogo_cargos.buscar("vicedirector")
+    entrada = REGLAS.catalogo_cargos.buscar("vicedirector_primera")
     assert entrada is not None
     assert entrada.al_frente_de_alumnos is False
 
@@ -199,7 +199,7 @@ def test_el_inciso_d_no_activa_la_cuestion_9() -> None:
     """La #9 es del art. 43: quien accede por el art. 41 ya está en el 70 %."""
     informe = calcular(
         caso(
-            periodo("director", desde="1995-01-01", hasta="2025-01-10"),
+            periodo("director_primera", desde="1995-01-01", hasta="2025-01-10"),
             nacimiento="1969-01-10",
             ceses=["2025-01-10"],
             fecha_de_calculo="2025-01-11",

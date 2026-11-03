@@ -25,7 +25,7 @@ REGLAS = versiones.cargar_reglas("v1")
 
 inicios = st.dates(min_value=dt.date(1985, 1, 1), max_value=dt.date(2010, 12, 31))
 duraciones = st.integers(min_value=400, max_value=3000)
-cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario"])
+cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario_ensenanza_superior"])
 
 
 @st.composite

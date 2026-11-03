@@ -9,20 +9,67 @@
 
 reglas:
   # Cuestión abierta #1
+  # La escala del Decreto 818/13 está transcripta literalmente de su Anexo
+  # Único (https://normas.gba.gob.ar/documentos/BgAzqgfp.html), que el propio
+  # decreto dicta en función del art. 33 de la Ley 10.579. Los once tramos se
+  # verificaron uno por uno contra esa fuente, incluido el salto irregular de
+  # 84 % a 105 % a los 20 años, que no es un error de transcripción.
+  #
+  # Lo que queda `no_verificada` **no son los valores sino su vigencia**: el
+  # decreto es de 2013 y no se pudo comprobar que ninguna norma posterior lo
+  # haya modificado. Por eso el porcentaje se aplica y el haber sale
+  # provisional, con la escala original de la Ley 10.579 informada como
+  # lectura alternativa a la baja (`antiguedad.escala_ley_10579`).
+  #
+  # El decreto no declara tope: el último tramo es el de 24 años. Más allá de
+  # esa antigüedad el porcentaje se mantiene en 125 %.
   - id: antiguedad.escala_y_tope
     norma:
-      texto: "Ley 10579 art. 33; Decreto 818/13 y posteriores"
-      ley: "Ley 10579"
-      articulo: "33"
+      texto: >-
+        Decreto 818/13, Anexo Único (escala de bonificación por antigüedad,
+        dictado en función del art. 33 de la Ley 10.579)
+      ley: "Decreto 818/13"
+      articulo: "Anexo Único"
+      enlace: "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
     tipo: letra_ley
     estado: no_verificada
     impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      125 % contra 120 % en el tramo más alto, y 13 puntos de diferencia en el
+      primer tramo; sobre la parte bonificable del cargo
     que_falta_verificar: >-
-      la escala de bonificación por antigüedad vigente y su tope. El Decreto
-      818/13 fija 125 % a los 24 años; otras fuentes recientes mencionan 120 %.
-      Confirmar con norma vigente y recibos reales.
+      si la escala del Decreto 818/13, vigente desde el 1º de julio de 2013,
+      sigue siendo la aplicable, y si existe un tope distinto del último tramo.
+      Los once tramos están transcriptos de su Anexo Único; lo que no se pudo
+      verificar es que ninguna norma posterior los haya modificado. La escala
+      original de la Ley 10.579, art. 33, con tope 120 %, queda informada como
+      lectura alternativa a la baja.
     cuestion_abierta: 1
-    valor: null
+    valor_por_defecto_aplicado: true
+    valor:
+      escala:
+        - anios: 0
+          porcentaje: "0.13"
+        - anios: 2
+          porcentaje: "0.23"
+        - anios: 4
+          porcentaje: "0.33"
+        - anios: 7
+          porcentaje: "0.43"
+        - anios: 10
+          porcentaje: "0.54"
+        - anios: 12
+          porcentaje: "0.64"
+        - anios: 15
+          porcentaje: "0.74"
+        - anios: 17
+          porcentaje: "0.84"
+        - anios: 20
+          porcentaje: "1.05"
+        - anios: 22
+          porcentaje: "1.15"
+        - anios: 24
+          porcentaje: "1.25"
 
   # Cuestión abierta #2
   - id: remuneracion.conceptos_del_cargo
@@ -38,8 +85,26 @@ reglas:
       toma el IPS: básico, antigüedad, sumas fijas remunerativas no
       bonificables, códigos específicos, y cuáles quedan afuera. Mientras siga
       abierta, todo haber sale provisional.
+
+      El motor aplica por defecto **la letra del art. 40**: todos los
+      componentes del cargo, incluidos los no remunerativos, salvo los que el
+      artículo excluye expresamente —horas extras, asignaciones familiares,
+      viáticos, gastos de residencia y becas—. Qué componente concreto de la
+      grilla corresponde a cada concepto excluido lo declara la grilla con
+      `excluido_art40`, no el motor.
+
+      La lectura más restrictiva —solo los componentes remunerativos— queda
+      informada como alternativa a la baja (`remuneracion.solo_remunerativos`).
     cuestion_abierta: 2
-    valor: null
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "todos_los_componentes_del_cargo"
+      excluidos:
+        - "horas extras"
+        - "asignaciones familiares"
+        - "viáticos"
+        - "gastos de residencia"
+        - "becas"
 
   # Cuestión abierta #3
   - id: horas_catedra.como_carrera
@@ -58,17 +123,28 @@ reglas:
   # Cuestión abierta #4
   - id: jerarquia.criterio_comparacion
     norma:
-      texto: "Res. IPS 14/10 (acreditación de mayor jerarquía)"
-      ley: "Res. IPS 14/10"
+      texto: >-
+        Res. IPS 995/2021, Anexo, definición de CARGO BASE (cargo mejor
+        remunerado); Res. IPS 14/10 (acreditación de mayor jerarquía)
+      ley: "Res. IPS 995/2021"
+      articulo: "Anexo, definición de CARGO BASE"
     tipo: interpretacion
     estado: no_verificada
     impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      cambia qué cargo resulta base y, con él, el artículo y el porcentaje:
+      hasta 70 % contra 85 % según el inciso de acceso
     que_falta_verificar: >-
       el criterio para comparar la jerarquía entre cargos —puntaje, índice
-      escalafonario o remuneración— y su acreditación. Por eso `jerarquia`
-      queda en `null` en todo el catálogo.
+      escalafonario o remuneración— y su acreditación. El motor aplica por
+      defecto el **mejor remunerado** del Anexo de la Res. IPS 995/2021, que
+      tiene la ventaja de ser verificable contra la grilla sin necesitar el
+      escalafón. Sin grilla usa el índice escalafonario del nomenclador como
+      desempate, y sin ninguno de los dos declara el empate.
     cuestion_abierta: 4
-    valor: null
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "mejor_remunerado"
 
   # Cuestión abierta #5 (incluye la ampliación sobre situación de revista)
   - id: computo.licencias_suplencias_y_revista
@@ -131,7 +207,10 @@ reglas:
       `quantize()` centralizado con ROUND_HALF_UP declarado por defecto, y el
       último decimal no está garantizado hasta verificarlo.
     cuestion_abierta: 6
-    valor: null
+    valor_por_defecto_aplicado: true
+    valor:
+      politica_aplicada: "ROUND_HALF_UP"
+      decimales: 2
 
   # Cuestión abierta #9
   #
@@ -165,3 +244,39 @@ reglas:
     valor_por_defecto_aplicado: true
     valor:
       criterio_aplicado: "art_41"
+
+  # Cuestión abierta #4, segunda mitad: los **valores** de los índices.
+  #
+  # La #4 tiene dos partes y conviene distinguirlas. Una es el **criterio** para
+  # comparar cargos —puntaje, índice escalafonario o remuneración—, que es
+  # `jerarquia.criterio_comparacion`. La otra es que, aun eligiendo el índice
+  # como criterio, los índices vigentes por cargo **no están publicados**: el
+  # Anexo del art. 9º del Decreto 2397/2005, que aprueba el texto ordenado del
+  # nomenclador, no figura en la versión en línea de la norma.
+  #
+  # Lo que sí se encontró, con sus citas, y por qué no alcanza, está en
+  # `docs/datos-pendientes/relevamiento-2026-11.md`.
+  - id: jerarquia.indices_escalafonarios
+    norma:
+      texto: >-
+        Decreto 2397/2005, art. 9º (texto ordenado del nomenclador de cargos
+        docentes); Decreto 1301/2005, Anexo I
+      ley: "Decreto 2397/2005"
+      articulo: "9"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      cambia qué cargo resulta base y, con él, el artículo y el porcentaje:
+      hasta 70 % contra 85 % según el inciso de acceso
+    que_falta_verificar: >-
+      el índice escalafonario vigente de cada cargo. El Anexo del art. 9º del
+      Decreto 2397/2005 no está publicado en línea. El Decreto 1301/2005,
+      Anexo I, trae índices de abril de 2005 que el Decreto 2397/2005 modificó
+      —art. 2º los lleva de 1 a 1,1 y art. 3º incrementa 20 % los jerárquicos—,
+      y para Director, Vicedirector y Bibliotecario da **rangos** según
+      categoría del establecimiento y cantidad de secciones, no un valor único.
+      Sin los índices el motor no puede comparar cargos ni por jerarquía ni por
+      remuneración, y el cargo base queda provisional.
+    cuestion_abierta: 4
+    valor: null

@@ -89,12 +89,12 @@ def test_los_meses_se_recortan_a_la_fecha_de_cese() -> None:
 def test_solo_cuenta_los_meses_del_cargo_pedido() -> None:
     c = caso(
         periodo("maestro_de_grado", desde="2020-01-01", hasta="2020-12-31"),
-        periodo("director", desde="2021-01-01", hasta="2021-12-31"),
+        periodo("director_primera", desde="2021-01-01", hasta="2021-12-31"),
         nacimiento="1970-01-10",
         ceses=["2021-12-31"],
     )
     assert len(cargo_base.meses_del_cargo(c.historia, f("2021-12-31"), "maestro_de_grado")) == 12
-    assert len(cargo_base.meses_del_cargo(c.historia, f("2021-12-31"), "director")) == 12
+    assert len(cargo_base.meses_del_cargo(c.historia, f("2021-12-31"), "director_primera")) == 12
 
 
 @pytest.mark.parametrize("cargo", ["inexistente", ""])

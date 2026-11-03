@@ -99,7 +99,7 @@ def test_con_cargo_base_la_simultaneidad_debe_alcanzarlo() -> None:
     sups = _clasificar(
         periodo("maestro_de_grado", desde="2000-03-01", hasta="2026-02-28"),
         periodo("preceptor", desde="2010-03-01", hasta="2020-02-29"),
-        cargo_base="bibliotecario",
+        cargo_base="bibliotecario_ensenanza_superior",
     )
     assert sups[0].clasificacion is Clase.SIMULTANEIDAD_NO_COMPUTABLE
 
@@ -118,7 +118,7 @@ def test_las_tres_categorias_son_excluyentes() -> None:
         periodo("maestro_de_grado", desde="2000-03-01", hasta="2026-02-28"),
         periodo("maestro_de_grado", desde="2005-03-01", hasta="2010-02-28"),
         periodo("preceptor", desde="2012-03-01", hasta="2020-02-29"),
-        periodo("bibliotecario", desde="2022-03-01", hasta="2023-02-28"),
+        periodo("bibliotecario_ensenanza_superior", desde="2022-03-01", hasta="2023-02-28"),
     )
     clases = [s.clasificacion for s in sups]
     assert Clase.POSIBLE_ERROR_CARGA in clases

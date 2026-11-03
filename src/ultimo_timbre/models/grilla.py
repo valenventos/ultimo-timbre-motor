@@ -32,6 +32,15 @@ class ComponenteSalarial(BaseModel):
     descripcion: str = Field(min_length=1)
     importe: Decimal
     bonificable: bool
+    excluido_art40: bool = False
+    """Si el art. 40 del DL 9650/80 lo excluye de la remuneración del cargo.
+
+    El artículo excluye horas extras, asignaciones familiares, viáticos, gastos
+    de residencia y becas. Lo declara la **grilla** y no el motor, porque es un
+    dato del componente: qué código de concepto corresponde a cada uno de esos
+    conceptos depende de la escala, no de una regla general que el motor pueda
+    aplicar a ciegas.
+    """
     remunerativo: bool
     regla_id: str | None = None
 
@@ -70,8 +79,28 @@ class GrillaSalarial(BaseModel):
     valores: tuple[ValorCargo, ...] = Field(min_length=1)
     enlace: str | None = None
     vigencia_hasta: dt.date | None = None
+    acto_aprobatorio: Norma | None = None
+    """El decreto o acta paritaria que aprueba la escala. `None` es válido.
+
+    Una escala puede estar publicada oficialmente —la del Ministerio de
+    Economía de la Provincia, por ejemplo— **sin que la publicación cite el
+    acto que la aprobó**. Exigir el acto dejaría al motor sin poder valuar nada
+    con la fuente oficial disponible; dar la grilla por firme sin él le daría al
+    monto una certeza que no tiene.
+
+    La salida es intermedia: se admite la grilla, y todo monto calculado con
+    ella lleva el condicionante `grilla_sin_acto_aprobatorio`, con sentido
+    indeterminado. El profesional ve el número y ve de qué carece.
+
+    `norma` sigue siendo obligatoria y es la **fuente** de los valores; esto es
+    el acto que les dio fuerza, que es otra cosa.
+    """
     ficticia: bool = False
     """Solo las grillas de `tests/fixtures/`. El loader de `grids/` las rechaza."""
+
+    @property
+    def tiene_acto_aprobatorio(self) -> bool:
+        return self.acto_aprobatorio is not None
 
     @model_validator(mode="after")
     def _vigencia_coherente(self) -> Self:

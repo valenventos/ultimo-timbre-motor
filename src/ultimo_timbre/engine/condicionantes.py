@@ -75,6 +75,11 @@ QUE_FALTA: dict[CodigoAdvertencia, str] = {
         "qué grilla salarial rige a la fecha de cese: la vigente no está cargada "
         "y el monto se valuó con otra"
     ),
+    CodigoAdvertencia.GRILLA_SIN_ACTO_APROBATORIO: (
+        "con qué decreto o acta paritaria se aprobó la escala usada. La fuente "
+        "es una publicación oficial, pero no cita el acto que le dio fuerza, "
+        "así que no puede descartarse que haya sido modificada o que rija otra"
+    ),
     CodigoAdvertencia.CARGO_FUERA_DE_CATALOGO: (
         "la condición y la naturaleza del cargo: no figura en el catálogo "
         "versionado y el motor no las asume"
@@ -127,6 +132,9 @@ SENTIDO: dict[CodigoAdvertencia, SentidoImpacto] = {
     # que el de este régimen—. Va explícito y no librado al valor por defecto
     # porque `None` acá significa «no mueve el resultado», que es otra cosa.
     CodigoAdvertencia.FUERA_DE_ALCANCE_OTRA_CAJA: SentidoImpacto.INDETERMINADO,
+    # Sin el acto aprobatorio no se sabe si la escala publicada fue modificada
+    # ni en qué dirección: el monto podría ser mayor o menor.
+    CodigoAdvertencia.GRILLA_SIN_ACTO_APROBATORIO: SentidoImpacto.INDETERMINADO,
 }
 
 

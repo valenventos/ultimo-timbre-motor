@@ -24,8 +24,13 @@ from ultimo_timbre.rules import versiones
 REGLAS = versiones.cargar_reglas("v1")
 
 # cargos que condicionan y cargos que no, para cubrir los dos lados
-LIMPIOS = ["maestro_de_grado", "preceptor", "bibliotecario"]
-CONDICIONANTES = ["director", "vicedirector", "horas_catedra_secundario", "inexistente"]
+LIMPIOS = ["maestro_de_grado", "preceptor", "bibliotecario_ensenanza_superior"]
+CONDICIONANTES = [
+    "director_primera",
+    "vicedirector_primera",
+    "hora_catedra_secundaria",
+    "inexistente",
+]
 
 
 @st.composite
@@ -93,7 +98,7 @@ def test_todo_condicionante_declara_su_sentido_y_que_falta(c: Caso) -> None:
 
 def test_un_cargo_condicionado_vuelve_provisional_la_elegibilidad() -> None:
     c = caso(
-        periodo("director", desde="1995-03-01", hasta="2026-02-28"),
+        periodo("director_primera", desde="1995-03-01", hasta="2026-02-28"),
         nacimiento="1970-06-20",
         ceses=["2026-02-28"],
     )

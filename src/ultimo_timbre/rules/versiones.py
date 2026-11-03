@@ -94,9 +94,15 @@ def _regla(datos: dict[str, Any]) -> Regla:
 
 def _entrada_catalogo(datos: dict[str, Any]) -> EntradaCatalogo:
     naturaleza = datos.get("naturaleza")
+    indice = datos.get("indice_escalafonario")
     return EntradaCatalogo(
         cargo=str(datos["cargo"]),
         jerarquia=datos.get("jerarquia"),
+        # str -> Decimal en el borde: un `float` binario arruinaría un índice
+        # como 1,32 antes de que el modelo lo vea (research R1).
+        indice_escalafonario=a_decimal(indice) if indice is not None else None,
+        indice_es_por_hora=bool(datos.get("indice_es_por_hora", False)),
+        regla_indice=datos.get("regla_indice"),
         al_frente_de_alumnos=datos.get("al_frente_de_alumnos"),
         naturaleza=NaturalezaServicio(naturaleza) if naturaleza else None,
         norma=_norma(datos["norma"]),
@@ -173,6 +179,7 @@ def _grilla(datos: dict[str, Any], *, permitir_ficticia: bool, ruta: Path) -> Gr
                         importe=a_decimal(c["importe"]),
                         bonificable=bool(c["bonificable"]),
                         remunerativo=bool(c["remunerativo"]),
+                        excluido_art40=bool(c.get("excluido_art40", False)),
                         regla_id=c.get("regla_id"),
                     )
                     for c in componentes
@@ -195,6 +202,11 @@ def _grilla(datos: dict[str, Any], *, permitir_ficticia: bool, ruta: Path) -> Gr
         extraida_en=extraida_en,
         aprobada_por=str(datos["aprobada_por"]),
         aprobada_en=aprobada_en,
+        # `None` cuando la publicación oficial no cita el acto que la aprueba.
+        # No invalida la grilla: condiciona todo monto que salga de ella.
+        acto_aprobatorio=(
+            _norma(datos["acto_aprobatorio"]) if datos.get("acto_aprobatorio") else None
+        ),
         valores=tuple(valores),
         enlace=datos.get("enlace"),
         ficticia=ficticia,

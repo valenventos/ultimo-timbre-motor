@@ -129,13 +129,13 @@ def test_sin_periodos_vigentes_la_duracion_es_cero() -> None:
 def test_horas_catedra_simultaneas_suma_los_periodos_superpuestos() -> None:
     h = historia(
         periodo(
-            "horas_catedra_secundario",
+            "hora_catedra_secundaria",
             desde="2010-03-01",
             hasta="2020-02-28",
             horas_catedra=12,
         ),
         periodo(
-            "horas_catedra_secundario",
+            "hora_catedra_secundaria",
             desde="2012-03-01",
             hasta="2018-02-28",
             horas_catedra=10,
@@ -151,13 +151,13 @@ def test_horas_catedra_simultaneas_suma_los_periodos_superpuestos() -> None:
 def test_horas_catedra_simultaneas_ignora_los_periodos_disjuntos() -> None:
     h = historia(
         periodo(
-            "horas_catedra_secundario",
+            "hora_catedra_secundaria",
             desde="2010-03-01",
             hasta="2012-02-28",
             horas_catedra=12,
         ),
         periodo(
-            "horas_catedra_secundario",
+            "hora_catedra_secundaria",
             desde="2015-03-01",
             hasta="2018-02-28",
             horas_catedra=10,

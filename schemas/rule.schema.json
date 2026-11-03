@@ -254,6 +254,71 @@
             },
             "arrastre_de_dias": {
               "type": "boolean"
+            },
+            "decimales": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10,
+              "description": "Decimales a los que redondea la política aplicada (Cuestión abierta #6)."
+            },
+            "escala": {
+              "type": "array",
+              "minItems": 1,
+              "description": "Escala por tramos. Se declara con forma explícita y no como objeto libre porque `additionalProperties` solo alcanza al primer nivel: sin esto, un porcentaje anidado podría entrar como number y volverse float binario (research R1).",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "anios",
+                  "porcentaje"
+                ],
+                "properties": {
+                  "anios": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Años de antigüedad desde los que rige el tramo."
+                  },
+                  "porcentaje": {
+                    "$ref": "#/$defs/decimal_str"
+                  }
+                }
+              }
+            },
+            "excluidos": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Conceptos que la norma excluye expresamente de la base de cálculo. Son nombres de concepto, no códigos de grilla: qué componente concreto corresponde a cada uno lo declara la grilla."
+            },
+            "alternativa_de": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Regla de la que esta es una lectura alternativa que no se aplica."
+            },
+            "criterio_aplicado": {
+              "type": "string",
+              "minLength": 1
+            },
+            "politica_aplicada": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sentido": {
+              "enum": [
+                "al_alza",
+                "a_la_baja",
+                "indeterminado"
+              ]
+            },
+            "se_informa_como": {
+              "enum": [
+                "advertencia",
+                "condicionante"
+              ]
             }
           },
           "additionalProperties": {

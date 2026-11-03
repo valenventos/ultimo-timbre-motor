@@ -615,6 +615,7 @@
             "fuera_de_alcance_promedio_36",
             "regla_no_verificada",
             "grilla_ausente",
+            "grilla_sin_acto_aprobatorio",
             "cargo_fuera_de_catalogo",
             "empate_jerarquia",
             "lectura_literal_excedente",

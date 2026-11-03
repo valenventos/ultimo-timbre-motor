@@ -205,3 +205,70 @@ reglas:
     verificada_en: "2026-10-30"
     valor:
       se_informa: "el haber es móvil; el motor no proyecta la movilidad"
+
+  # Lecturas alternativas que el motor **no aplica** y sí informa, con el mismo
+  # criterio que las del art. 43: el profesional ve el número aplicado y ve el
+  # otro, en lugar de descubrirlo cuando el IPS resuelve (Principio IV).
+
+  # La escala original del Estatuto, anterior al Decreto 818/13. Transcripta de
+  # https://normas.gba.gob.ar/documentos/xkdoDUAB.html, art. 33, Capítulo VIII.
+  # Da menos en todos los tramos, y a diferencia del decreto declara tope.
+  - id: antiguedad.escala_ley_10579
+    norma:
+      texto: >-
+        Ley 10.579, art. 33, Capítulo VIII «De las remuneraciones» (escala
+        original de bonificación por antigüedad, tope 120 %)
+      ley: "Ley 10579"
+      articulo: "33"
+      enlace: "https://normas.gba.gob.ar/documentos/xkdoDUAB.html"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-11-03"
+    valor:
+      sentido: "a_la_baja"
+      alternativa_de: "antiguedad.escala_y_tope"
+      se_informa_como: "advertencia"
+      tope: "1.20"
+      escala:
+        - anios: 1
+          porcentaje: "0.10"
+        - anios: 2
+          porcentaje: "0.20"
+        - anios: 4
+          porcentaje: "0.30"
+        - anios: 7
+          porcentaje: "0.40"
+        - anios: 10
+          porcentaje: "0.50"
+        - anios: 12
+          porcentaje: "0.60"
+        - anios: 15
+          porcentaje: "0.70"
+        - anios: 17
+          porcentaje: "0.80"
+        - anios: 20
+          porcentaje: "1.00"
+        - anios: 22
+          porcentaje: "1.10"
+        - anios: 24
+          porcentaje: "1.20"
+
+  # La lectura restrictiva de la remuneración: solo los componentes
+  # remunerativos. Da menos que la letra del art. 40 porque deja afuera los no
+  # remunerativos que el artículo no excluye.
+  - id: remuneracion.solo_remunerativos
+    norma:
+      texto: >-
+        DL 9650/80, art. 40 (lectura restrictiva: solo los componentes
+        remunerativos integran la remuneración del cargo)
+      ley: "DL 9650/80"
+      articulo: "40"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-11-03"
+    valor:
+      criterio_aplicado: "componentes_remunerativos"
+      sentido: "a_la_baja"
+      alternativa_de: "remuneracion.conceptos_del_cargo"
+      se_informa_como: "advertencia"
+

@@ -23,7 +23,7 @@ HORIZONTE = dt.date(2040, 12, 31)
 
 inicios = st.dates(min_value=dt.date(1980, 1, 1), max_value=dt.date(2015, 12, 31))
 duraciones = st.integers(min_value=30, max_value=4000)
-cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario"])
+cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario_ensenanza_superior"])
 
 
 @st.composite

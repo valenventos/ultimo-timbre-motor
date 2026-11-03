@@ -29,7 +29,7 @@ CESE = dt.date(2026, 2, 28)
 
 inicios = st.dates(min_value=dt.date(1985, 1, 1), max_value=dt.date(2015, 12, 31))
 duraciones = st.integers(min_value=100, max_value=3000)
-cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario"])
+cargos = st.sampled_from(["maestro_de_grado", "preceptor", "bibliotecario_ensenanza_superior"])
 
 
 @st.composite

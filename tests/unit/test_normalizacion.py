@@ -29,13 +29,17 @@ def _p(cargo: str, desde: str, hasta: str | None = None) -> PeriodoDeServicio:
 
 
 A = _p("maestro_de_grado", "2000-03-01", "2010-02-28")
-B = _p("vicedirector", "2010-03-01", "2018-02-28")
-C = _p("director", "2018-03-01", "2026-02-28")
+B = _p("vicedirector_primera", "2010-03-01", "2018-02-28")
+C = _p("director_primera", "2018-03-01", "2026-02-28")
 
 
 def test_ordena_los_periodos_por_fecha_de_inicio() -> None:
     h = HistoriaDeServicios(periodos=(C, A, B))
-    assert [p.cargo for p in h.periodos] == ["maestro_de_grado", "vicedirector", "director"]
+    assert [p.cargo for p in h.periodos] == [
+        "maestro_de_grado",
+        "vicedirector_primera",
+        "director_primera",
+    ]
 
 
 def test_asigna_idx_consecutivo_desde_cero() -> None:
@@ -60,8 +64,8 @@ def test_la_normalizacion_es_estable_con_periodos_de_igual_inicio() -> None:
 
 def test_un_periodo_en_curso_se_ordena_al_final_de_su_fecha_de_inicio() -> None:
     """`hasta is None` no puede romper el orden."""
-    en_curso = _p("director", "2018-03-01", None)
-    cerrado = _p("director", "2018-03-01", "2020-02-28")
+    en_curso = _p("director_primera", "2018-03-01", None)
+    cerrado = _p("director_primera", "2018-03-01", "2020-02-28")
     h = HistoriaDeServicios(periodos=(en_curso, cerrado))
     assert h.periodos[0].hasta is not None
     assert h.periodos[1].hasta is None

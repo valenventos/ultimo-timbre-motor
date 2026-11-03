@@ -21,7 +21,7 @@ historia:
       hasta: 2019-12-31
       caja_aportes: ips
       situacion_revista: titular
-    - cargo: vicedirector
+    - cargo: vicedirector_primera
       establecimiento:
         tipo: estatal_dgcye
       desde: 2020-01-01

@@ -36,11 +36,12 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Set
+from decimal import Decimal
 from itertools import pairwise
 from typing import NamedTuple
 
 from ultimo_timbre.engine import advertencias as adv
-from ultimo_timbre.engine import calendario
+from ultimo_timbre.engine import calendario, haber
 from ultimo_timbre.engine import condicionantes as cond
 from ultimo_timbre.engine.desglose import Trazador
 from ultimo_timbre.errors import FueraDeAlcance
@@ -52,6 +53,7 @@ from ultimo_timbre.models.enums import (
     SituacionRevista,
     ViaCargoBase,
 )
+from ultimo_timbre.models.grilla import GrillaSalarial
 from ultimo_timbre.models.informe import CandidatoDescartado, CargoBase
 from ultimo_timbre.models.normativa import ConjuntoDeReglas, Regla
 
@@ -141,6 +143,10 @@ class _Candidato(NamedTuple):
     jerarquia: int | None
     via: ViaCargoBase | None
     """`None` significa que no alcanza ni los 36 consecutivos ni los 60 alternados."""
+    remuneracion: Decimal | None = None
+    """Lo que el cargo remunera según la grilla, o `None` si no hay grilla."""
+    indice: Decimal | None = None
+    """Índice escalafonario, o `None` si no está verificado o es por hora."""
 
 
 def _candidatos(
@@ -151,6 +157,7 @@ def _candidatos(
     idx_en_alcance: Set[int],
     consecutivos: int,
     alternados: int,
+    grilla: GrillaSalarial | None,
 ) -> tuple[_Candidato, ...]:
     cargos = sorted({p.cargo for p in caso.historia.periodos if p.idx in idx_en_alcance})
     salida: list[_Candidato] = []
@@ -165,6 +172,13 @@ def _candidatos(
             if len(meses) >= alternados
             else None
         )
+        # Un índice por hora no se compara con uno por cargo: mezclar las dos
+        # magnitudes da un resultado que parece válido y no lo es.
+        indice = (
+            entrada.indice_escalafonario
+            if entrada is not None and not entrada.indice_es_por_hora
+            else None
+        )
         salida.append(
             _Candidato(
                 cargo=cargo,
@@ -172,53 +186,123 @@ def _candidatos(
                 racha=racha,
                 jerarquia=entrada.jerarquia if entrada is not None else None,
                 via=via,
+                remuneracion=_remuneracion(cargo, grilla, reglas),
+                indice=indice,
             )
         )
     return tuple(salida)
 
 
-def _elegir(califican: tuple[_Candidato, ...]) -> tuple[_Candidato, tuple[_Candidato, ...]]:
-    """El cargo elegido y los que quedaron empatados con él.
+def _remuneracion(
+    cargo: str, grilla: GrillaSalarial | None, reglas: ConjuntoDeReglas
+) -> Decimal | None:
+    """Lo que el cargo remunera según la grilla, o `None` si no se puede saber.
 
-    Si **algún** candidato tiene `jerarquia` nula no hay orden que aplicar y
-    todos quedan empatados: comparar un número contra un `None` sería inventar
-    el criterio que la Cuestión abierta #4 todavía no fijó.
-
-    El desempate final —más meses, después alfabético— existe solo para que el
-    resultado sea reproducible (invariante I3). **No es un criterio normativo**,
-    y por eso cuando se usa el informe sale con `empate_jerarquia`.
+    `None` cuando no hay grilla o cuando la grilla no trae ese cargo. En los dos
+    casos el criterio de «mejor remunerado» no se puede aplicar y el motor cae
+    al siguiente, en lugar de inventar un cero que lo dejaría último.
     """
-    if any(c.jerarquia is None for c in califican):
-        empatados = califican
-    else:
-        tope = max(c.jerarquia for c in califican if c.jerarquia is not None)
-        empatados = tuple(c for c in califican if c.jerarquia == tope)
-    elegido = min(empatados, key=lambda c: (-len(c.meses), c.cargo))
-    return elegido, empatados
+    if grilla is None:
+        return None
+    valor = grilla.cargo(cargo)
+    if valor is None:
+        return None
+    return haber.remuneracion_del_cargo(valor, reglas=reglas)
 
 
-def _descenso_desde(candidatos: tuple[_Candidato, ...], elegido: _Candidato) -> str | None:
+CRITERIOS = {
+    "remuneracion": "remuneración (Res. IPS 995/2021)",
+    "indice": "índice escalafonario del nomenclador",
+}
+
+
+def _detalle_del_criterio(elegido: _Candidato, criterio: str) -> str:
+    if criterio == "remuneracion":
+        return f"remunera {elegido.remuneracion} según la grilla"
+    return f"índice escalafonario {elegido.indice}"
+
+
+def _mejor_por(califican: tuple[_Candidato, ...], atributo: str) -> tuple[_Candidato, ...] | None:
+    """Los candidatos con el valor más alto de un atributo, o `None` si falta.
+
+    Devuelve `None` en cuanto **alguno** no lo tiene: comparar un número contra
+    un `None` sería inventar un orden. Que falte en uno basta para que el
+    criterio entero no se pueda aplicar.
+    """
+    valores = [getattr(c, atributo) for c in califican]
+    if any(v is None for v in valores):
+        return None
+    tope = max(v for v in valores if v is not None)
+    return tuple(c for c in califican if getattr(c, atributo) == tope)
+
+
+def _elegir(califican: tuple[_Candidato, ...]) -> tuple[_Candidato, tuple[_Candidato, ...], str]:
+    """El cargo elegido, los que empataron con él y con qué criterio se eligió.
+
+    Tres criterios, en orden de **verificabilidad**:
+
+    1. **remuneración** (`Res. IPS 995/2021`, Anexo, definición de CARGO BASE):
+       el cargo mejor remunerado. Es el mejor de los tres porque se verifica
+       contra la grilla sin necesitar el escalafón, que es justamente lo que no
+       está publicado;
+    2. **índice escalafonario** del nomenclador, cuando no hay grilla. Es
+       verificable contra la norma, pero hoy ninguna entrada lo declara;
+    3. **nada**: se declara el empate y el cargo base sale provisional.
+
+    El desempate final —más meses, después alfabético— no es ninguno de los
+    tres: existe solo para que el resultado sea reproducible (invariante I3), y
+    por eso cuando decide, el informe sale con `empate_jerarquia`.
+    """
+    for criterio, atributo in (("remuneracion", "remuneracion"), ("indice", "indice")):
+        mejores = _mejor_por(califican, atributo)
+        if mejores is not None and len(mejores) == 1:
+            return mejores[0], mejores, criterio
+
+    elegido = min(califican, key=lambda c: (-len(c.meses), c.cargo))
+    return elegido, califican, "empate"
+
+
+# Qué atributo mira cada criterio. Vive acá y no repartido para que elegir el
+# cargo base y detectar el descenso usen, por construcción, la misma vara.
+ATRIBUTO_DEL_CRITERIO = {"remuneracion": "remuneracion", "indice": "indice"}
+
+
+def _descenso_desde(
+    candidatos: tuple[_Candidato, ...], elegido: _Candidato, criterio: str
+) -> str | None:
     """El cargo superior que no alcanzó los plazos, si lo hay (FR-020a).
 
-    Solo se puede afirmar un descenso cuando hay jerarquías conocidas para
-    comparar: sin ellas no existe «superior» ni «inferior», solo candidatos.
+    Se compara con **el mismo criterio** que eligió el cargo base: si el motor
+    eligió por remuneración, «superior» significa mejor remunerado; si eligió
+    por índice, mayor índice. Usar dos varas distintas para elegir y para
+    descender podría producir un informe que afirme un descenso desde un cargo
+    que, por el criterio aplicado, no era superior.
+
+    Devuelve `None` cuando el criterio fue el empate: sin vara no existe
+    «superior» ni «inferior», solo candidatos.
     """
-    if elegido.jerarquia is None:
+    atributo = ATRIBUTO_DEL_CRITERIO.get(criterio)
+    if atributo is None:
         return None
+    referencia = getattr(elegido, atributo)
+    if referencia is None:  # pragma: no cover - el criterio lo garantiza
+        return None
+
     superiores = [
         c
         for c in candidatos
-        if c.via is None and c.jerarquia is not None and c.jerarquia > elegido.jerarquia
+        if c.via is None and getattr(c, atributo) is not None and getattr(c, atributo) > referencia
     ]
     if not superiores:
         return None
-    return max(superiores, key=lambda c: (c.jerarquia or 0, c.cargo)).cargo
+    return max(superiores, key=lambda c: (getattr(c, atributo), c.cargo)).cargo
 
 
 def _razon_del_descarte(
     candidato: _Candidato,
     elegido: _Candidato,
     empatados: tuple[_Candidato, ...],
+    criterio: str,
     *,
     consecutivos: int,
     alternados: int,
@@ -228,6 +312,14 @@ def _razon_del_descarte(
             f"no alcanza los {consecutivos} meses consecutivos ni los "
             f"{alternados} alternados: llegó a {len(candidato.meses)} meses "
             f"con una racha máxima de {candidato.racha}"
+        )
+    if criterio == "remuneracion":
+        return (
+            f"remunera {candidato.remuneracion} contra {elegido.remuneracion} de «{elegido.cargo}»"
+        )
+    if criterio == "indice":
+        return (
+            f"índice escalafonario {candidato.indice} contra {elegido.indice} de «{elegido.cargo}»"
         )
     if candidato in empatados:
         return (
@@ -292,6 +384,7 @@ def determinar(
     reglas: ConjuntoDeReglas,
     traza: Trazador,
     idx_en_alcance: Set[int],
+    grilla: GrillaSalarial | None = None,
 ) -> CargoBase | None:
     """El cargo base del art. 41, o `None` si corresponde el promedio de 36 meses.
 
@@ -309,6 +402,7 @@ def determinar(
         idx_en_alcance=idx_en_alcance,
         consecutivos=consecutivos,
         alternados=alternados,
+        grilla=grilla,
     )
 
     # FR-021: cada candidato con sus meses queda en el desglose, incluso si al
@@ -333,9 +427,17 @@ def determinar(
         _advertir_promedio_36(candidatos, reglas=reglas, traza=traza)
         return None
 
-    elegido, empatados = _elegir(califican)
-    hay_empate = len(empatados) > 1
-    descenso = _descenso_desde(candidatos, elegido)
+    elegido, empatados, criterio = _elegir(califican)
+    hay_empate = criterio == "empate" and len(califican) > 1
+
+    if criterio != "empate":
+        traza.paso(
+            f"Cargo base elegido por {CRITERIOS[criterio]}",
+            _regla(reglas, REGLA_JERARQUIA),
+            entrada="candidatos: " + ", ".join(c.cargo for c in califican),
+            salida=f"«{elegido.cargo}» {_detalle_del_criterio(elegido, criterio)}",
+        )
+    descenso = _descenso_desde(candidatos, elegido, criterio)
 
     # `elegido` sale de `califican`, donde todos tienen vía: si llegara sin
     # ella, el motor eligió un cargo que no califica y eso es un error de
@@ -395,6 +497,7 @@ def determinar(
                     c,
                     elegido,
                     empatados,
+                    criterio,
                     consecutivos=consecutivos,
                     alternados=alternados,
                 ),

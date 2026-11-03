@@ -322,9 +322,9 @@ verificar el monto y que el informe declara la versión de grilla usada.
 
 ### Carga de la primera grilla aprobada
 
-- [ ] T135 [US4] Crear `.github/CODEOWNERS` cubriendo `grids/**` y `rules/**`
-- [ ] T136 [US4] Implementar el check de CI `validate-grid-approval` en `.github/workflows/ci.yml`: falla si un PR que toca `grids/**` deja `aprobada_por` o `aprobada_en` vacíos, y con un solo mantenedor valida que `aprobada_por` coincida con quien **fusiona** el PR (research R4)
-- [ ] T137 [US4] Escribir `docs/adr/0002-aprobacion-de-grillas.md` registrando la política escalonada y su disparador explícito: **el segundo mantenedor con permiso de merge** activa la exigencia de aprobador distinto del autor vía CODEOWNERS (research R4, Principio IX)
+- [X] T135 [US4] Crear `.github/CODEOWNERS` cubriendo `grids/**` y `rules/**`
+- [X] T136 [US4] Implementar el check de CI `validate-grid-approval` en `.github/workflows/ci.yml`: falla si un PR que toca `grids/**` deja `aprobada_por` o `aprobada_en` vacíos, y con un solo mantenedor valida que `aprobada_por` coincida con quien **fusiona** el PR (research R4)
+- [X] T137 [US4] Escribir `docs/adr/0002-aprobacion-de-grillas.md` registrando la política escalonada y su disparador explícito: **el segundo mantenedor con permiso de merge** activa la exigencia de aprobador distinto del autor vía CODEOWNERS (research R4, Principio IX)
 - [ ] T138 [MANUAL] [US4] **Tarea del mantenedor, no del agente**: transcribir desde el texto de la norma salarial vigente la primera `grids/2026-01.yaml`, con norma de origen, enlace, vigencia, `extraida_en`, `aprobada_por`, `aprobada_en` y los valores por cargo descompuestos en componentes con `bonificable` y `remunerativo` (FR-008, FR-031a). Ningún importe puede inventarse ni inferirse. **No bloquea los tests de US4**, que corren con la grilla ficticia de T038
 
 ### Tests for User Story 4 (OBLIGATORIO — va ANTES de la implementación) ⚠️
@@ -336,24 +336,24 @@ verificar el monto y que el informe declara la versión de grilla usada.
 > **Los demás casos dorados de US4 son sintéticos** y usan la grilla ficticia de T038.
 > Verifican la mecánica del cálculo, que es lo que puede verificarse sin datos reales; lo que no
 > pueden verificar es la coincidencia con el IPS, que es exactamente lo que espera T139.
-- [ ] T140 [P] [US4] Caso dorado: grilla vigente ausente o no aprobada produce advertencia `grilla_ausente`, indica con qué grilla se calculó y marca el monto provisional, en `tests/golden/test_grilla_ausente.py` (US4 esc. 2, FR-034)
-- [ ] T141 [P] [US4] Test: ninguna vía de salida entrega el valor del monto sin su `estado` y sus `condicionantes` —informe, exportación JSON, texto y lectura por librería—, en `tests/properties/test_monto_inseparable.py` (FR-046a, SC-011, US4 esc. 5)
-- [ ] T142 [P] [US4] Test: el informe expone `estado_general` legible por máquina con valor `definitivo` o `provisional`, en `tests/contract/test_estado_general.py` (FR-046c, SC-012, US4 esc. 6)
-- [ ] T143 [P] [US4] Unitario: la antigüedad se aplica **solo sobre los componentes bonificables**, nunca sobre el total del cargo, en `tests/unit/test_antiguedad_componentes.py` (FR-031b)
-- [ ] T144 [P] [US4] Unitario: el redondeo se aplica en un único punto con política explícita y sale marcado provisional, en `tests/unit/test_redondeo.py` (FR-033, Cuestión abierta #6)
-- [ ] T145 [P] [US4] Unitario: el aviso de estimación orientativa y el de movilidad del art. 50 están presentes en todo informe con montos, en `tests/unit/test_avisos.py` (FR-042, FR-030c)
-- [ ] T146 [P] [US4] Test: una grilla sin `aprobada_por` no puede cargarse, en `tests/unit/test_grilla_no_aprobada.py` (FR-010, Principio IX)
+- [X] T140 [P] [US4] Caso dorado: grilla vigente ausente o no aprobada produce advertencia `grilla_ausente`, indica con qué grilla se calculó y marca el monto provisional, en `tests/golden/test_grilla_ausente.py` (US4 esc. 2, FR-034)
+- [X] T141 [P] [US4] Test: ninguna vía de salida entrega el valor del monto sin su `estado` y sus `condicionantes` —informe, exportación JSON, texto y lectura por librería—, en `tests/properties/test_monto_inseparable.py` (FR-046a, SC-011, US4 esc. 5)
+- [X] T142 [P] [US4] Test: el informe expone `estado_general` legible por máquina con valor `definitivo` o `provisional`, en `tests/contract/test_estado_general.py` (FR-046c, SC-012, US4 esc. 6)
+- [X] T143 [P] [US4] Unitario: la antigüedad se aplica **solo sobre los componentes bonificables**, nunca sobre el total del cargo, en `tests/unit/test_antiguedad_componentes.py` (FR-031b)
+- [X] T144 [P] [US4] Unitario: el redondeo se aplica en un único punto con política explícita y sale marcado provisional, en `tests/unit/test_redondeo.py` (FR-033, Cuestión abierta #6)
+- [X] T145 [P] [US4] Unitario: el aviso de estimación orientativa y el de movilidad del art. 50 están presentes en todo informe con montos, en `tests/unit/test_avisos.py` (FR-042, FR-030c)
+- [X] T146 [P] [US4] Test: una grilla sin `aprobada_por` no puede cargarse, en `tests/unit/test_grilla_no_aprobada.py` (FR-010, Principio IX)
 
 ### Implementation for User Story 4
 
 > Requiere T139–T146 escritas y fallando.
 
-- [ ] T147 [US4] Implementar `src/ultimo_timbre/engine/haber.py`: valuación del cargo base sumando los componentes que el conjunto de reglas marca como integrantes de la remuneración, y aplicación del porcentaje (FR-030, FR-031, FR-031a)
-- [ ] T148 [US4] Implementar la aplicación de la antigüedad solo sobre componentes bonificables, con el paso correspondiente en el desglose (FR-031b)
-- [ ] T149 [US4] Implementar el `quantize()` centralizado en `engine/haber.py` con política parametrizada desde el conjunto de reglas y `ROUND_HALF_UP` por defecto declarado como provisional (FR-033, research R1)
-- [ ] T150 [US4] Implementar la advertencia `grilla_ausente` y el condicionante asociado cuando la grilla vigente al cese no está cargada (FR-034)
-- [ ] T151 [US4] Implementar la construcción de `Monto` con `grilla_version`, `a_valores_de`, `estado` y `condicionantes` siempre poblados (FR-046a)
-- [ ] T152 [US4] Implementar los avisos de estimación orientativa y de movilidad del art. 50 en `engine/haber.py` (FR-042, FR-030c)
+- [X] T147 [US4] Implementar `src/ultimo_timbre/engine/haber.py`: valuación del cargo base sumando los componentes que el conjunto de reglas marca como integrantes de la remuneración, y aplicación del porcentaje (FR-030, FR-031, FR-031a)
+- [X] T148 [US4] Implementar la aplicación de la antigüedad solo sobre componentes bonificables, con el paso correspondiente en el desglose (FR-031b)
+- [X] T149 [US4] Implementar el `quantize()` centralizado en `engine/haber.py` con política parametrizada desde el conjunto de reglas y `ROUND_HALF_UP` por defecto declarado como provisional (FR-033, research R1)
+- [X] T150 [US4] Implementar la advertencia `grilla_ausente` y el condicionante asociado cuando la grilla vigente al cese no está cargada (FR-034)
+- [X] T151 [US4] Implementar la construcción de `Monto` con `grilla_version`, `a_valores_de`, `estado` y `condicionantes` siempre poblados (FR-046a)
+- [X] T152 [US4] Implementar los avisos de estimación orientativa y de movilidad del art. 50 en `engine/haber.py` (FR-042, FR-030c)
 
 ### Cuestión abierta #4 — criterio de comparación de cargos
 
@@ -363,8 +363,8 @@ verificar el monto y que el informe declara la versión de grilla usada.
 > —comparar por remuneración— necesita la grilla.
 
 - [ ] T153 [MANUAL] [US4] **Tarea del mantenedor, no del agente**: transcribir al catálogo `rules/v1/cargos.yaml` el **índice escalafonario** de cada cargo desde el nomenclador de cargos docentes de la Provincia de Buenos Aires vigente, poblando `jerarquia` con su `norma` y su `enlace`. Ningún índice puede inventarse ni inferirse: el que no esté en el nomenclador queda en `null`. Convención de representación ya documentada en `schemas/cargo.schema.json`: **mayor entero = mayor jerarquía**
-- [ ] T154 [US4] Tests primero, con el **catálogo y la grilla ficticios** (`tests/catalogos.py` y `tests/fixtures/grilla-ficticia-test.yaml`), en `tests/golden/test_jerarquia_por_remuneracion.py` y `tests/unit/test_criterio_jerarquia.py`: (a) con grilla disponible el cargo base se elige por **mejor remunerado**; (b) a igual remuneración desempata el índice escalafonario del nomenclador; (c) **sin grilla** se mantiene el comportamiento actual —`empate_jerarquia` y cargo base provisional—; (d) el criterio queda registrado como **interpretación** y no como letra de la ley (FR-019, FR-022, Cuestión abierta #4)
-- [ ] T155 [US4] Implementar el criterio «mejor remunerado» en `src/ultimo_timbre/engine/cargo_base.py`, leyendo la regla `jerarquia.criterio_comparacion` actualizada a `[Res. IPS 995/2021, Anexo, definición de CARGO BASE]` con `tipo: interpretacion`: con grilla se compara por remuneración del cargo; sin grilla se conserva el empate y la marca provisional. El índice escalafonario del nomenclador (T153) actúa como **desempate verificable**, y el desempate por meses y orden alfabético queda solo como último recurso de determinismo (FR-019, FR-022, Cuestión abierta #4)
+- [X] T154 [US4] Tests primero, con el **catálogo y la grilla ficticios** (`tests/catalogos.py` y `tests/fixtures/grilla-ficticia-test.yaml`), en `tests/golden/test_jerarquia_por_remuneracion.py` y `tests/unit/test_criterio_jerarquia.py`: (a) con grilla disponible el cargo base se elige por **mejor remunerado**; (b) a igual remuneración desempata el índice escalafonario del nomenclador; (c) **sin grilla** se mantiene el comportamiento actual —`empate_jerarquia` y cargo base provisional—; (d) el criterio queda registrado como **interpretación** y no como letra de la ley (FR-019, FR-022, Cuestión abierta #4)
+- [X] T155 [US4] Implementar el criterio «mejor remunerado» en `src/ultimo_timbre/engine/cargo_base.py`, leyendo la regla `jerarquia.criterio_comparacion` actualizada a `[Res. IPS 995/2021, Anexo, definición de CARGO BASE]` con `tipo: interpretacion`: con grilla se compara por remuneración del cargo; sin grilla se conserva el empate y la marca provisional. El índice escalafonario del nomenclador (T153) actúa como **desempate verificable**, y el desempate por meses y orden alfabético queda solo como último recurso de determinismo (FR-019, FR-022, Cuestión abierta #4)
 
 **Checkpoint**: el motor emite montos, siempre con su estado y sus condicionantes inseparables.
 

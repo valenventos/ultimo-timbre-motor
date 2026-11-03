@@ -61,18 +61,37 @@ def test_la_escala_de_antiguedad_condiciona_el_resultado(informe: Informe) -> No
     assert cond.clase is ClaseCondicionante.REGLA_NO_VERIFICADA
 
 
-def test_el_condicionante_cita_la_ley_10579(informe: Informe) -> None:
+def test_el_condicionante_cita_el_decreto_818_13(informe: Informe) -> None:
+    """La escala aplicada es la del decreto, no la original del Estatuto.
+
+    La Ley 10.579, art. 33, queda como lectura alternativa a la baja: su escala
+    está cargada aparte, en `antiguedad.escala_ley_10579`.
+    """
     cond = _cond(informe, REGLA_ANTIGUEDAD)
     assert cond.norma is not None
-    assert cond.norma.ley == "Ley 10579"
-    assert cond.norma.articulo == "33"
+    assert cond.norma.ley == "Decreto 818/13"
+    assert cond.norma.articulo == "Anexo Único"
+    assert cond.norma.enlace == "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
 
 
 def test_el_condicionante_explica_que_falta_verificar(informe: Informe) -> None:
-    """Cuestión abierta #1: tope 120 % contra 125 %."""
+    """Cuestión abierta #1: lo que falta es la **vigencia**, no los valores.
+
+    Los once tramos están transcriptos del Anexo Único del Decreto 818/13. Lo
+    que no se pudo verificar es que ninguna norma posterior los haya
+    modificado, y eso es lo que el condicionante tiene que decir.
+    """
     cond = _cond(informe, REGLA_ANTIGUEDAD)
-    assert "125" in cond.que_falta_verificar
+    assert "vigente" in cond.que_falta_verificar or "sigue siendo" in cond.que_falta_verificar
     assert "120" in cond.que_falta_verificar
+
+
+def test_el_condicionante_declara_la_magnitud(informe: Informe) -> None:
+    """FR-046b: la dirección sola no alcanza; hace falta cuánto."""
+    cond = _cond(informe, REGLA_ANTIGUEDAD)
+    assert cond.magnitud_estimada is not None
+    assert "125" in cond.magnitud_estimada
+    assert "120" in cond.magnitud_estimada
 
 
 def test_tambien_condicionan_la_remuneracion_y_el_redondeo(informe: Informe) -> None:

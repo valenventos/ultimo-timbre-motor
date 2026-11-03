@@ -8,7 +8,7 @@ Director ejercido 40 meses consecutivos frente a Maestro ejercido 25 años: el
 motor elige el de mayor jerarquía entre los que alcanzan el requisito temporal,
 y enumera los meses que lo sustentan.
 
-**Por qué este test usa jerarquía ficticia**: con `rules/v1/cargos.yaml` la
+**Por qué este test usa índices ficticios**: con `rules/v1/cargos.yaml` la
 jerarquía es `null` en todos los cargos y la respuesta correcta es el empate
 (ver `tests/unit/test_empate_jerarquia.py`). Lo que se verifica acá es la
 mecánica del ranking, con el mismo criterio con que `grilla-ficticia-test.yaml`
@@ -20,7 +20,7 @@ from __future__ import annotations
 import pytest
 
 from tests.casos import caso, periodo
-from tests.catalogos import con_jerarquia_ficticia
+from tests.catalogos import con_indices_ficticios
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.caso import Caso
 from ultimo_timbre.models.enums import ViaCargoBase
@@ -29,14 +29,14 @@ from ultimo_timbre.rules import versiones
 
 pytestmark = pytest.mark.golden
 
-REGLAS = con_jerarquia_ficticia(versiones.cargar_reglas("v1"))
+REGLAS = con_indices_ficticios(versiones.cargar_reglas("v1"))
 
 
 def _caso() -> Caso:
     """Maestra 1996-2021 y directora 2021-09 a 2024-12 (40 meses corridos)."""
     return caso(
         periodo("maestro_de_grado", desde="1996-03-01", hasta="2021-08-31"),
-        periodo("director", desde="2021-09-01", hasta="2024-12-31"),
+        periodo("director_primera", desde="2021-09-01", hasta="2024-12-31"),
         nacimiento="1970-01-10",
         ceses=["2024-12-31"],
         fecha_de_calculo="2025-01-02",
@@ -50,7 +50,7 @@ def informe() -> Informe:
 
 def test_elige_el_cargo_de_mayor_jerarquia(informe: Informe) -> None:
     assert informe.cargo_base is not None
-    assert informe.cargo_base.cargo == "director"
+    assert informe.cargo_base.cargo == "director_primera"
 
 
 def test_califica_por_los_36_meses_consecutivos(informe: Informe) -> None:
@@ -71,7 +71,10 @@ def test_descarta_el_maestro_por_menor_jerarquia(informe: Informe) -> None:
     """FR-021: el descarte lleva su razón."""
     assert informe.cargo_base is not None
     descartado = next(d for d in informe.cargo_base.descartados if d.cargo == "maestro_de_grado")
-    assert "jerarquía" in descartado.razon
+    assert "índice escalafonario" in descartado.razon
+    # La razón nombra los dos valores comparados, no solo al ganador.
+    assert "2.50" in descartado.razon
+    assert "5.00" in descartado.razon
     assert descartado.meses_alcanzados == 306
 
 

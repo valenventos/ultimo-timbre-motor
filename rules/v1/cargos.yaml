@@ -60,12 +60,34 @@ reglas:
     cuestion_abierta: 8
     valor: null
 
+# ---------------------------------------------------------------------------
+# Entradas del catálogo
+# ---------------------------------------------------------------------------
+#
+# Cada entrada es un cargo **con su categoría**, tal como lo distingue el
+# nomenclador (Decreto 1301/2005, Anexo I «Nomenclador de cargos docentes»,
+# https://normas.gba.gob.ar/documentos/xaE1dU4x.html). No hay un cargo
+# «director» genérico porque el nomenclador no lo tiene: distingue Director de
+# Primera, de Segunda y de Tercera, con índices distintos según la categoría
+# del establecimiento. Un cargo genérico obligaría a elegir uno de los tres y
+# el informe no podría decir cuál eligió.
+#
+# `indice_escalafonario` está en **null en todas** las entradas: el Anexo del
+# art. 9º del Decreto 2397/2005, que aprueba el texto ordenado del nomenclador,
+# no está publicado. Todas apuntan a `jerarquia.indices_escalafonarios`, que lo
+# declara como Cuestión abierta #4. Lo relevado y por qué no alcanza está en
+# `docs/datos-pendientes/relevamiento-2026-11.md`.
+#
+# `jerarquia` sigue en null y separada del índice: una es un orden abstracto y
+# el otro el multiplicador del básico. El art. 41 habla de «mayor jerarquía» y
+# la Res. IPS 995/2021 de «mejor remunerado»; que coincidan es parte de lo que
+# la Cuestión #4 todavía no fijó.
 entradas:
-  # ---------------------------------------------------------------------------
-  # Verificados: una ley los asimila expresamente a «al frente de alumnos»
-  # ---------------------------------------------------------------------------
+  # ---- Asimilados al frente de alumnos por ley expresa ----
   - cargo: preceptor
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -73,9 +95,11 @@ entradas:
       ley: "Ley 13469"
     estado: verificado
     regla_id: null
-
-  - cargo: bibliotecario
+  # Bibliotecario del Instituto de Menores (nomenclador, sección c)
+  - cargo: bibliotecario_instituto_menores
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -83,9 +107,22 @@ entradas:
       ley: "Ley 13469"
     estado: verificado
     regla_id: null
-
+  # Bibliotecario de Enseñanza Superior (nomenclador, sección c)
+  - cargo: bibliotecario_ensenanza_superior
+    jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: true
+    naturaleza: docente
+    norma:
+      texto: "Ley 13469 (preceptores y bibliotecarios)"
+      ley: "Ley 13469"
+    estado: verificado
+    regla_id: null
   - cargo: tecnico_docente_psicologia
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -93,9 +130,10 @@ entradas:
       ley: "Ley 10745"
     estado: verificado
     regla_id: null
-
   - cargo: tecnico_docente_educacion_especial
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -103,9 +141,10 @@ entradas:
       ley: "Ley 10745"
     estado: verificado
     regla_id: null
-
   - cargo: visitadora_higiene_escolar
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -114,11 +153,11 @@ entradas:
     estado: verificado
     regla_id: null
 
-  # ---------------------------------------------------------------------------
-  # Cargos del art. 24 inc. b y cargos condicionados
-  # ---------------------------------------------------------------------------
+  # ---- Cargo de base del art. 24 inc. b ----
   - cargo: maestro_de_grado
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: true
     naturaleza: docente
     norma:
@@ -129,12 +168,53 @@ entradas:
     estado: verificado
     regla_id: null
 
-  # ---------------------------------------------------------------------------
-  # Condición por umbral: no es booleana. El art. 24 inc. b asimila a los
-  # profesores que reúnen veinte horas cátedra. El 20 sale de la regla.
-  # ---------------------------------------------------------------------------
-  - cargo: horas_catedra_secundario
+  # ---- Horas cátedra: el índice es POR HORA y por nivel ----
+  #
+  # El nomenclador da un índice distinto por nivel y expresado por hora, no por
+  # cargo (Decreto 1301/2005, Anexo I, sección XVI). Por eso van separadas y
+  # con `indice_es_por_hora: true`: comparar un índice por hora contra uno por
+  # cargo mezcla dos magnitudes y da un resultado que parece válido.
+  #
+  # La condición de al frente de alumnos no es booleana: el art. 24 inc. b
+  # asimila a los profesores que reúnen veinte horas cátedra, y el umbral sale
+  # de la regla, no del catálogo.
+  - cargo: hora_catedra_secundaria
     jerarquia: null
+    indice_escalafonario: null
+    indice_es_por_hora: true
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: null
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (profesores con veinte horas cátedra)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    condicion: por_horas_catedra
+    regla_umbral: requisitos.art24.inc_b
+    regla_id: horas_catedra.como_carrera
+  - cargo: hora_catedra_adultos
+    jerarquia: null
+    indice_escalafonario: null
+    indice_es_por_hora: true
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: null
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (profesores con veinte horas cátedra)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    condicion: por_horas_catedra
+    regla_umbral: requisitos.art24.inc_b
+    regla_id: horas_catedra.como_carrera
+  - cargo: hora_catedra_superior
+    jerarquia: null
+    indice_escalafonario: null
+    indice_es_por_hora: true
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: null
     naturaleza: docente
     norma:
@@ -147,12 +227,18 @@ entradas:
     regla_umbral: requisitos.art24.inc_b
     regla_id: horas_catedra.como_carrera
 
-  # ---------------------------------------------------------------------------
-  # Fuera de la enumeración del art. 24 inc. b, pero condicionados por la
-  # extensión discutida de la Ley 13469 (Cuestión abierta #8, impacto al alza).
-  # ---------------------------------------------------------------------------
-  - cargo: vicedirector
+  # ---- Directivos: fuera de la enumeración del inc. b ----
+  #
+  # No los nombra el art. 24 inc. b, así que por la letra no cuentan al frente
+  # de alumnos. Quedan condicionados por la extensión discutida de la Ley 13469
+  # (Cuestión abierta #8, impacto al alza).
+  #
+  # Van por categoría porque el nomenclador los distingue con índices distintos
+  # (Decreto 1301/2005, Anexo I, servicios educativos).
+  - cargo: vicedirector_segunda
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: false
     naturaleza: docente
     norma:
@@ -162,9 +248,49 @@ entradas:
       inciso: "b"
     estado: verificado
     regla_id: al_frente.ley_13469.extension
-
-  - cargo: director
+  - cargo: vicedirector_primera
     jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: false
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (no incluido en la enumeración)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: al_frente.ley_13469.extension
+  - cargo: director_tercera
+    jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: false
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (no incluido en la enumeración)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: al_frente.ley_13469.extension
+  - cargo: director_segunda
+    jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: false
+    naturaleza: docente
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b (no incluido en la enumeración)"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    regla_id: al_frente.ley_13469.extension
+  - cargo: director_primera
+    jerarquia: null
+    indice_escalafonario: null
+    regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: false
     naturaleza: docente
     norma:

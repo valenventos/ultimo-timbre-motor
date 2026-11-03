@@ -39,7 +39,7 @@ REGLA = "al_frente.ley_13469.extension"
 def informe() -> Informe:
     return calcular(
         caso(
-            periodo("director", desde="1995-01-01", hasta="2025-01-10"),
+            periodo("director_primera", desde="1995-01-01", hasta="2025-01-10"),
             nacimiento="1969-01-10",
             ceses=["2025-01-10"],
             fecha_de_calculo="2025-01-11",

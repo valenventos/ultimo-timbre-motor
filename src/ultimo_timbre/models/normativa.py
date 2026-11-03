@@ -11,6 +11,7 @@ impacto — sin eso FR-046b sería incumplible.
 from __future__ import annotations
 
 import datetime as dt
+from decimal import Decimal
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -36,7 +37,14 @@ MODELO = ConfigDict(strict=True, frozen=True, extra="forbid")
 # El valor de una regla: str para decimales, int para edades y años, y nunca
 # float (research R1). `None` cuando la regla existe pero su valor no está
 # verificado, que es preferible a un número plausible.
-ValorRegla = dict[str, str | int | bool | None] | None
+#
+# `list[str]` para enumeraciones de conceptos —los que el art. 40 excluye— y
+# `list[dict[str, str | int]]` para escalas por tramos, donde cada tramo lleva
+# sus años como `int` y su porcentaje como `str`. `float` queda fuera de la
+# unión a propósito: un decimal sin comillas en un YAML falla la validación en
+# lugar de convertirse en binario en silencio.
+TramoDeEscala = dict[str, str | int]
+ValorRegla = dict[str, str | int | bool | list[str] | list[TramoDeEscala] | None] | None
 
 
 class Norma(BaseModel):
@@ -125,6 +133,41 @@ class EntradaCatalogo(BaseModel):
 
     cargo: str = Field(min_length=1)
     jerarquia: int | None = None
+    """Orden abstracto del cargo. Mayor entero = mayor jerarquía, `None` = sin orden.
+
+    Se conserva separado de `indice_escalafonario` porque responden preguntas
+    distintas: este es un orden, aquel es el multiplicador del sueldo básico. El
+    art. 41 habla de «mayor jerarquía» y la Res. IPS 995/2021 de «mejor
+    remunerado»; mientras la Cuestión abierta #4 no se resuelva, el motor no
+    puede dar por sentado que los dos coincidan.
+    """
+    indice_escalafonario: Decimal | None = None
+    """Índice escalafonario del nomenclador. `None` = no verificado.
+
+    Es el multiplicador del sueldo básico del cargo testigo: el básico de un
+    cargo es el del Preceptor por este índice. Eso lo vuelve, a la vez, el
+    criterio de «mejor remunerado» de la Res. IPS 995/2021 —a igual grilla, más
+    índice es más remuneración— y el desempate verificable del art. 41.
+
+    Viaja como `str` numérico en el YAML y llega como `Decimal` (research R1):
+    los índices son decimales exactos (1,10 · 1,32 · 2,16) y un `float` binario
+    los arruinaría antes de que el modelo los vea.
+
+    Está en `None` para **todas** las entradas de la v1: el Anexo del art. 9º
+    del Decreto 2397/2005, que aprueba el texto ordenado del nomenclador, no
+    está publicado. El relevamiento de lo que sí se encontró y por qué no
+    alcanza está en `docs/datos-pendientes/relevamiento-2026-11.md`.
+    """
+    indice_es_por_hora: bool = False
+    """Si el índice se aplica por **hora cátedra** y no por cargo.
+
+    Un índice por hora no es comparable con uno por cargo: 1,15 por hora de
+    Enseñanza Media no es «menos jerarquía» que 1,70 de un Director. Sin esta
+    marca, el comparador de `cargo_base` mezclaría dos magnitudes distintas y
+    el resultado parecería válido.
+    """
+    regla_indice: str | None = None
+    """Regla que condiciona el índice, cuando no está verificado."""
     al_frente_de_alumnos: bool | None = None
     naturaleza: NaturalezaServicio | None = None
     norma: Norma
@@ -148,6 +191,14 @@ class EntradaCatalogo(BaseModel):
                 "una entrada de catálogo no_verificada debe apuntar a la `regla_id` que la "
                 "condiciona, para que el informe pueda explicar el impacto"
             )
+        if self.indice_escalafonario is None and not self.regla_indice:
+            raise ValueError(
+                "una entrada sin `indice_escalafonario` debe apuntar a la `regla_indice` "
+                "que lo discute, para que el informe pueda explicar por qué no puede "
+                "comparar jerarquías"
+            )
+        if self.indice_escalafonario is not None and self.indice_escalafonario <= 0:
+            raise ValueError("`indice_escalafonario` debe ser mayor que cero")
         if self.condicion is CondicionAlFrente.POR_HORAS_CATEDRA:
             if not self.regla_umbral:
                 raise ValueError(

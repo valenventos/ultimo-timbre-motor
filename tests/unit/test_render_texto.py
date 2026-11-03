@@ -17,7 +17,7 @@ import datetime as dt
 from decimal import Decimal
 
 from tests.casos import caso, periodo
-from tests.catalogos import con_jerarquia_ficticia
+from tests.catalogos import con_indices_ficticios
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import (
     ClaseCondicionante,
@@ -100,13 +100,13 @@ def test_el_descenso_al_cargo_inferior_se_muestra() -> None:
     informe = calcular(
         caso(
             periodo("maestro_de_grado", desde="1996-03-01", hasta="2016-12-31"),
-            periodo("vicedirector", desde="2017-01-01", hasta="2020-12-31"),
-            periodo("director", desde="2021-01-01", hasta="2022-08-31"),
+            periodo("vicedirector_primera", desde="2017-01-01", hasta="2020-12-31"),
+            periodo("director_primera", desde="2021-01-01", hasta="2022-08-31"),
             nacimiento="1970-01-10",
             ceses=["2022-08-31"],
             fecha_de_calculo="2022-09-01",
         ),
-        reglas=con_jerarquia_ficticia(REGLAS),
+        reglas=con_indices_ficticios(REGLAS),
     )
     texto = informe_a_texto(informe)
     assert "Descenso al cargo inferior" in texto

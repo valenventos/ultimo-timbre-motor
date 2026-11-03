@@ -32,6 +32,7 @@ from ultimo_timbre.engine import (
     calendario,
     condicionantes,
     elegibilidad,
+    haber,
 )
 from ultimo_timbre.engine import (
     cargo_base as cb,
@@ -50,6 +51,7 @@ from ultimo_timbre.models.grilla import GrillaSalarial
 from ultimo_timbre.models.informe import (
     Advertencia,
     CargoBase,
+    Condicionante,
     Elegibilidad,
     Escenario,
     Informe,
@@ -64,6 +66,7 @@ __all__ = [
     "cb",
     "condicionantes",
     "elegibilidad",
+    "haber",
     "pct",
 ]
 
@@ -119,6 +122,9 @@ def calcular(
         reglas=reglas,
         traza=traza,
         idx_en_alcance=deteccion.idx_en_alcance,
+        # Con grilla el cargo base se elige por el mejor remunerado
+        # (Res. IPS 995/2021); sin ella, por índice escalafonario o empate.
+        grilla=grilla,
     )
 
     # 4. Simultaneidad, que recién ahora puede evaluar las dos condiciones del
@@ -134,9 +140,29 @@ def calcular(
 
     # En cuanto hay grilla el motor entra al camino del monto, y las tres
     # Cuestiones abiertas que condicionan cualquier haber intervienen.
+    del_monto: tuple[Condicionante, ...] = ()
     if grilla is not None:
-        for condicionante in condicionantes.del_monto(reglas):
+        del_monto = condicionantes.del_monto(reglas)
+        for condicionante in del_monto:
             traza.agregar_condicionante(condicionante)
+
+        # Una escala puede estar publicada oficialmente sin que la publicación
+        # cite el acto que la aprobó. No invalida la grilla —dejaría al motor
+        # sin poder valuar nada con la única fuente disponible— pero tampoco se
+        # puede dar por firme: condiciona todo monto que salga de ella.
+        if not grilla.tiene_acto_aprobatorio:
+            traza.agregar_advertencia(
+                advertencias.construir(
+                    CodigoAdvertencia.GRILLA_SIN_ACTO_APROBATORIO,
+                    f"la grilla «{grilla.version}» proviene de una publicación oficial "
+                    "que no cita el decreto ni el acta paritaria que la aprueba: el "
+                    "monto se calcula con ella y queda marcado",
+                    reglas=reglas,
+                )
+            )
+            sin_acto = condicionantes.de_situacion(CodigoAdvertencia.GRILLA_SIN_ACTO_APROBATORIO)
+            traza.agregar_condicionante(sin_acto)
+            del_monto = (*del_monto, sin_acto)
 
     bloqueantes = tuple(a for a in traza.advertencias if a.bloquea_calculo)
 
@@ -151,6 +177,8 @@ def calcular(
             bloqueantes=bloqueantes,
             traza=traza if cese == cese_principal else None,
             cargo_base=cargo,
+            grilla=grilla,
+            condicionantes_del_monto=del_monto,
         )
         for cese in caso.fechas_cese
     )
@@ -187,6 +215,8 @@ def _escenario(
     bloqueantes: tuple[Advertencia, ...],
     traza: Trazador | None,
     cargo_base: CargoBase | None,
+    grilla: GrillaSalarial | None,
+    condicionantes_del_monto: tuple[Condicionante, ...],
 ) -> Escenario:
     """Un escenario: hay derecho o no, con qué inciso y con qué porcentaje.
 
@@ -267,14 +297,36 @@ def _escenario(
             )
         )
 
+    # El haber llega solo si hay grilla, cargo base y ninguna advertencia
+    # bloqueante: el invariante I7 impide que un monto coexista con una.
+    # FR-030b: la antigüedad es la que la persona **tendría a la fecha del
+    # escenario**, no la de hoy. Se mide sobre los períodos computables, igual
+    # que los años de servicio del art. 24.
+    antiguedad = calendario.servicio_total(caso.historia, cese, idx_incluidos=idx_en_alcance).anios
+
+    monto = None
+    if grilla is not None and cargo_base is not None and not bloqueantes and traza is not None:
+        monto = haber.valuar(
+            cargo_base.cargo,
+            cese,
+            valor,
+            antiguedad_anios=antiguedad,
+            grilla=grilla,
+            reglas=reglas,
+            traza=traza,
+            condicionantes_previos=condicionantes_del_monto,
+        )
+
     return Escenario(
         fecha_cese=cese,
         tipo=TipoEscenario.PROVISTA,
         hay_derecho=True,
         inciso=inciso,
         porcentaje=valor,
+        antiguedad_anios=antiguedad,
         advertencias=bloqueantes,
         lectura_literal=alternativa,
+        haber=monto,
     )
 
 
