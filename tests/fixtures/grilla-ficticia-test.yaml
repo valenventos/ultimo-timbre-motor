@@ -39,12 +39,32 @@ valores:
       importe: "100000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija no bonificable (ficticia)"
       importe: "50000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
+      regla_id: null
+    # Componente porcentual: el 43,50 % del básico, exacto. Es el que permite
+    # auditar `componentes.porcentuales_sobre_basico` contra la grilla.
+    - codigo_concepto: "667"
+      descripcion: "Bonificación no jerárquica (ficticia), 43,50 % del básico"
+      importe: "43500.00"
+      bonificable: false
+      remunerativo: true
+      aporte_ips: true
+      porcentaje_del_basico: "0.435"
+      regla_id: null
+    # Sin aporte: es lo que distingue el criterio aplicado de la lectura amplia.
+    - codigo_concepto: "900"
+      descripcion: "Compensación NO remunerativa sin aporte (ficticia)"
+      importe: "9000.00"
+      bonificable: false
+      remunerativo: false
+      aporte_ips: false
       regla_id: null
 
   preceptor:
@@ -53,6 +73,7 @@ valores:
       importe: "25000.00"
       bonificable: false
       remunerativo: false
+      aporte_ips: false
       excluido_art40: true
       regla_id: null
     - codigo_concepto: "001"
@@ -60,12 +81,14 @@ valores:
       importe: "90000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija no bonificable (ficticia)"
       importe: "40000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
       regla_id: null
 
   vicedirector_primera:
@@ -74,12 +97,14 @@ valores:
       importe: "200000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija no bonificable (ficticia)"
       importe: "60000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
       regla_id: null
 
   director_primera:
@@ -88,12 +113,14 @@ valores:
       importe: "300000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija no bonificable (ficticia)"
       importe: "70000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
       regla_id: null
 
   hora_catedra_secundaria:
@@ -102,12 +129,33 @@ valores:
       importe: "10000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija por hora, no bonificable (ficticia)"
       importe: "5000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
+      regla_id: null
+
+  # Valor de **un** módulo. El básico de un módulo es exactamente la mitad del
+  # de dos (`remuneracion.unidad_proporcional`, verificado), así que la grilla
+  # declara la unidad y la proporción se deriva.
+  modulos_secundaria:
+    - codigo_concepto: "001"
+      descripcion: "Valor módulo, básico (ficticio)"
+      importe: "15000.00"
+      bonificable: true
+      remunerativo: true
+      aporte_ips: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija por módulo, no bonificable (ficticia)"
+      importe: "7500.00"
+      bonificable: false
+      remunerativo: true
+      aporte_ips: true
       regla_id: null
 
   bibliotecario_ensenanza_superior:
@@ -116,16 +164,19 @@ valores:
       importe: "150000.00"
       bonificable: true
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "100"
       descripcion: "Suma fija no bonificable (ficticia)"
       importe: "55000.00"
       bonificable: false
       remunerativo: true
+      aporte_ips: true
       regla_id: null
     - codigo_concepto: "900"
       descripcion: "Compensación NO remunerativa (ficticia)"
       importe: "11000.00"
       bonificable: false
       remunerativo: false
+      aporte_ips: false
       regla_id: null

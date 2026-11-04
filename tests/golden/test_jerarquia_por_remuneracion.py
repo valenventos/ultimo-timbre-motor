@@ -172,7 +172,8 @@ def test_un_indice_por_hora_no_compite_con_uno_por_cargo() -> None:
     """Comparar 1,15 por hora contra 1,86 por cargo mezcla dos magnitudes.
 
     Se le carga a la hora cátedra un índice absurdamente alto: si el comparador
-    los mezclara, ganaría. No gana, porque está marcada `indice_es_por_hora`.
+    los mezclara, ganaría. No gana, porque su `unidad_de_carga` es
+    `hora_catedra` y no `cargo`.
     """
     reglas = _con_indices(hora_catedra_secundaria="9.99", maestro_de_grado="1.10")
     informe = calcular(

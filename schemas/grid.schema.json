@@ -140,9 +140,8 @@
           "minLength": 1
         },
         "importe": {
-          "type": "string",
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "description": "String numérico, nunca number (research R1)."
+          "$ref": "#/$defs/decimal_str",
+          "description": "Importe del componente."
         },
         "bonificable": {
           "type": "boolean",
@@ -161,8 +160,24 @@
           "type": "boolean",
           "default": false,
           "description": "Si el art. 40 del DL 9650/80 excluye este componente de la remuneración —horas extras, asignaciones familiares, viáticos, gastos de residencia, becas—. Lo declara la grilla y no el motor, porque es un dato del componente: qué código corresponde a cada concepto excluido depende de la escala, no de una regla general."
+        },
+        "aporte_ips": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Si sobre este componente se calcula el aporte personal al IPS. `null` = la grilla no lo declara, que no equivale a `false`: el motor informa la laguna en lugar de suponerla. Es el criterio que define la remuneración del cargo desde que se verificó la base del aporte en una liquidación (Cuestión #2)."
+        },
+        "porcentaje_del_basico": {
+          "$ref": "#/$defs/decimal_str",
+          "description": "Si el componente se liquida como porcentaje del básico, cuál. Metadato de procedencia: el motor no recalcula el importe, lo usa para auditar la grilla contra la escala publicada."
         }
       }
+    },
+    "decimal_str": {
+      "type": "string",
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "description": "String numérico, nunca number (research R1)."
     }
   }
 }

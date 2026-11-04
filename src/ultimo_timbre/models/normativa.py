@@ -22,6 +22,7 @@ from ultimo_timbre.models.enums import (
     NaturalezaServicio,
     SentidoImpacto,
     TipoFuente,
+    UnidadDeCarga,
 )
 
 __all__ = [
@@ -77,6 +78,21 @@ class Regla(BaseModel):
     impacto_si_no_verificada: SentidoImpacto | None = None
     que_falta_verificar: str | None = None
     magnitud_estimada: str | None = None
+    evidencia: str | None = None
+    """Contra qué documento concreto se comprobó la regla, además de la norma.
+
+    `norma` dice **qué dice el derecho**; `evidencia` dice **qué se miró para
+    convencerse de que es lo que efectivamente se aplica**. Son cosas distintas
+    y la diferencia importa: la escala de antigüedad del Decreto 818/13 estaba
+    transcripta de su Anexo Único desde el principio, y lo que faltaba no eran
+    los valores sino la certeza de que ninguna norma posterior los había
+    cambiado. Eso no lo resuelve otra lectura de la norma: lo resuelve una
+    liquidación real donde el porcentaje aparece aplicado.
+
+    Va en el informe para que un auditor pueda repetir la comprobación. Nunca
+    identifica a una persona: nombra el tipo de documento y su período, no su
+    titular (Principio III).
+    """
     """Cuánto puede mover el resultado, en los términos en que se discute.
 
     Es **dato**, no texto generado: el resguardo que el mantenedor pidió para
@@ -158,13 +174,17 @@ class EntradaCatalogo(BaseModel):
     está publicado. El relevamiento de lo que sí se encontró y por qué no
     alcanza está en `docs/datos-pendientes/relevamiento-2026-11.md`.
     """
-    indice_es_por_hora: bool = False
-    """Si el índice se aplica por **hora cátedra** y no por cargo.
+    unidad_de_carga: UnidadDeCarga = UnidadDeCarga.CARGO
+    """En qué unidad se mide el desempeño: cargo completo, hora cátedra o módulo.
 
-    Un índice por hora no es comparable con uno por cargo: 1,15 por hora de
-    Enseñanza Media no es «menos jerarquía» que 1,70 de un Director. Sin esta
-    marca, el comparador de `cargo_base` mezclaría dos magnitudes distintas y
-    el resultado parecería válido.
+    Decide si el `indice_escalafonario` es comparable con el de otra entrada.
+    Un índice por hora cátedra, uno por módulo y uno por cargo son tres
+    magnitudes distintas: 1,15 por hora de Enseñanza Media no es «menos
+    jerarquía» que 1,70 de un Director, y 1,15 por módulo tampoco equivale a
+    1,15 por hora, porque el módulo dura 60 minutos y la hora cátedra 40.
+
+    Sin esta distinción el comparador de `cargo_base` mezclaría unidades y el
+    resultado parecería válido, que es el modo de falla más peligroso.
     """
     regla_indice: str | None = None
     """Regla que condiciona el índice, cuando no está verificado."""
@@ -211,6 +231,15 @@ class EntradaCatalogo(BaseModel):
                     "`al_frente_de_alumnos` debe quedar en null"
                 )
         return self
+
+    @property
+    def indice_por_unidad(self) -> bool:
+        """Si el índice se aplica por unidad de carga y no por cargo completo.
+
+        Los índices por unidad se comparan entre sí **y solo dentro de la misma
+        unidad**; nunca contra uno por cargo.
+        """
+        return self.unidad_de_carga is not UnidadDeCarga.CARGO
 
     @property
     def condiciona_resultado(self) -> bool:

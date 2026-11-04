@@ -44,6 +44,10 @@ __all__ = ["Umbrales", "evaluar", "fecha_edad_requerida"]
 REGLA_MINIMO = "requisitos.art24.minimo_con_aportes"
 REGLA_REVISTA = "computo.licencias_suplencias_y_revista"
 REGLA_CARGO_SIN_NORMA = "al_frente.cargo_sin_norma_expresa"
+
+# La equivalencia módulo ↔ hora cátedra y su lectura conservadora (Cuestión #3).
+REGLA_MODULOS = "modulos.equivalencia_horas_catedra"
+REGLA_MODULOS_ALTERNATIVA = "modulos.equivalencia_uno_a_uno"
 REGLA_CONVENCION = "computo.convencion_de_conteo"
 HORIZONTE_ANIOS = 50
 """Tope de la proyección al estimar una habilitación futura (FR-016)."""
@@ -65,20 +69,171 @@ def _entero(regla: Regla, clave: str) -> int | None:
     return valor if isinstance(valor, int) and not isinstance(valor, bool) else None
 
 
+def _horas_por_modulo(regla: Regla | None) -> Decimal:
+    """Cuántas horas cátedra equivale un módulo, según esa regla.
+
+    Si la regla no declara el factor, se usa 1: es la lectura que **menos**
+    horas atribuye, y por lo tanto la que menos riesgo tiene de afirmar que
+    alguien alcanza un umbral que no alcanza.
+    """
+    crudo = (regla.valor or {}).get("horas_catedra_por_modulo") if regla else None
+    return Decimal(str(crudo)) if crudo is not None else Decimal(1)
+
+
+def _hay_modulos(caso: Caso, en_alcance: set[int]) -> bool:
+    """Si algún período en alcance declara carga en módulos.
+
+    Sin módulos las dos equivalencias dan lo mismo por construcción, y la
+    Cuestión #3 no tiene nada que decir sobre el caso.
+    """
+    return any(
+        p.modulos is not None and p.modulos > 0
+        for p in caso.historia.periodos
+        if p.idx in en_alcance
+    )
+
+
+class AlFrente(NamedTuple):
+    """Los períodos al frente de alumnos bajo las dos equivalencias de módulo.
+
+    `alternativo` es igual a `aplicado` cuando no hay módulos en juego, que es
+    la mayoría de los casos: ahí la Cuestión #3 no tiene nada que decir.
+    """
+
+    aplicado: set[int]
+    alternativo: set[int]
+    hay_modulos: bool
+
+
 def _al_frente(
     caso: Caso,
     cese: dt.date,
     reglas: ConjuntoDeReglas,
     traza: Trazador,
     en_alcance: set[int],
-) -> set[int]:
+) -> AlFrente:
     """Los `idx` de los períodos que cuentan como al frente de alumnos.
 
     La condición se deriva del cargo, nunca se carga (FR-002a). Para los cargos
     cuya condición es un umbral de horas cátedra, el umbral sale de la regla del
     art. 24 inc. b.
+
+    ## Los módulos y la doble lectura (Cuestión abierta #3)
+
+    Cuando algún período declara carga en **módulos**, el umbral se evalúa dos
+    veces: con la equivalencia aplicada —1 módulo = 1,5 horas cátedra— y con la
+    conservadora de 1 a 1. Las dos salen de acá; quién decide si la diferencia
+    condiciona el resultado es el requisito de años al frente, porque es ahí
+    donde la diferencia puede cambiar algo.
+
+    La segunda lectura se calcula con un `Trazador` descartable: lo que
+    interesa es el conjunto, no duplicar cada paso del desglose con una lectura
+    que el motor no aplicó.
     """
     umbral = _entero(_regla(reglas, "requisitos.art24.inc_b"), "horas_catedra")
+    regla = reglas.por_id(REGLA_MODULOS)
+    factor = _horas_por_modulo(regla)
+
+    aplicado = _al_frente_con_factor(
+        caso, cese, reglas, traza, en_alcance, umbral=umbral, factor=factor
+    )
+
+    hay_modulos = _hay_modulos(caso, en_alcance)
+    otro_factor = _horas_por_modulo(reglas.por_id(REGLA_MODULOS_ALTERNATIVA))
+    if not hay_modulos or otro_factor == factor:
+        return AlFrente(aplicado, aplicado, hay_modulos=False)
+
+    alternativo = _al_frente_con_factor(
+        caso, cese, reglas, Trazador(), en_alcance, umbral=umbral, factor=otro_factor
+    )
+    return AlFrente(aplicado, alternativo, hay_modulos=True)
+
+
+def _decide_el_frente(
+    letra: str,
+    reglas: ConjuntoDeReglas,
+    frente: calendario.Duracion,
+    alternativo: calendario.Duracion,
+) -> bool:
+    """Si las dos lecturas de módulo resuelven distinto el requisito del inciso.
+
+    Mide el **resultado**, no el conjunto de períodos: con 30 años al frente,
+    mover un período corto entre lecturas cambia el conjunto y no cambia si se
+    cumplen los 25 años. Solo lo segundo justifica marcar provisional.
+    """
+    requerido = _entero(_regla(reglas, f"requisitos.art24.inc_{letra}"), "anios_al_frente")
+    if requerido is None:
+        return False
+    return frente.cumple_anios(requerido) != alternativo.cumple_anios(requerido)
+
+
+def _informar_equivalencia_de_modulos(
+    reglas: ConjuntoDeReglas,
+    traza: Trazador,
+    *,
+    decide: bool,
+) -> None:
+    """Deja asentada la equivalencia, y la condiciona solo si decide algo.
+
+    `decide` es verdadero cuando el requisito de años al frente de algún inciso
+    se cumple bajo una lectura y no bajo la otra. Solo entonces la Cuestión #3
+    pasa de información a condicionante (FR-046b).
+
+    Condicionar todo caso con módulos haría que el motor dijera «no sé» donde
+    sabe —treinta módulos pasan el umbral con cualquier equivalencia— y eso
+    entrena al lector a ignorar la marca de provisional, que es peor que no
+    tenerla.
+    """
+    regla = reglas.por_id(REGLA_MODULOS)
+    if regla is None:  # pragma: no cover - lo cubre el test de carga de reglas
+        return
+    alternativa = reglas.por_id(REGLA_MODULOS_ALTERNATIVA)
+    factor = _horas_por_modulo(regla)
+    otro = _horas_por_modulo(alternativa)
+
+    if not decide:
+        traza.paso_suelto(
+            "Equivalencia módulo ↔ hora cátedra: no altera el resultado",
+            regla_id=regla.id,
+            norma=regla.norma,
+            tipo_fuente=regla.tipo,
+            entrada=f"1 módulo = {factor} h contra 1 módulo = {otro} h",
+            salida="el requisito de años al frente da lo mismo con las dos lecturas",
+        )
+        return
+
+    traza.condicionante_de_regla(regla)
+    traza.advertencia(
+        CodigoAdvertencia.REGLA_NO_VERIFICADA,
+        "la equivalencia entre módulos y horas cátedra decide si se alcanzan los "
+        "años al frente de alumnos que exige el art. 24: con la lectura aplicada "
+        f"({factor} horas cátedra por módulo) el requisito se resuelve distinto "
+        f"que con la lectura conservadora ({otro} por módulo)",
+        norma=regla.norma,
+        sentido_impacto=regla.impacto_si_no_verificada,
+    )
+    if alternativa is not None:
+        traza.paso_suelto(
+            "Equivalencia módulo ↔ hora cátedra: lectura alternativa",
+            regla_id=alternativa.id,
+            norma=alternativa.norma,
+            tipo_fuente=alternativa.tipo,
+            entrada=f"1 módulo = {otro} hora cátedra",
+            salida="cambia si se alcanza el umbral de veinte horas del art. 24 inc. b",
+        )
+
+
+def _al_frente_con_factor(
+    caso: Caso,
+    cese: dt.date,
+    reglas: ConjuntoDeReglas,
+    traza: Trazador,
+    en_alcance: set[int],
+    *,
+    umbral: int | None,
+    factor: Decimal,
+) -> set[int]:
+    """El conjunto al frente para una equivalencia de módulo dada."""
     al_frente: set[int] = set()
 
     for periodo in caso.historia.periodos:
@@ -88,7 +243,7 @@ def _al_frente(
             reglas.catalogo_cargos,
             periodo,
             horas_catedra_simultaneas=calendario.max_horas_catedra_simultaneas(
-                caso.historia, periodo.idx, cese
+                caso.historia, periodo.idx, cese, horas_por_modulo=factor
             ),
             umbral_horas_catedra=umbral,
         )
@@ -120,7 +275,11 @@ def _al_frente(
                 periodo_idx=periodo.idx,
             )
             traza.condicionante_de_regla(_regla(reglas, REGLA_CARGO_SIN_NORMA))
-        if derivada.regla_id is not None:
+        # La equivalencia de módulos queda afuera del camino genérico: su
+        # condicionante lo decide `_comparar_equivalencias` según si las dos
+        # lecturas cambian el resultado, no el solo hecho de estar sin
+        # verificar. Entrar acá la volvería bloqueante siempre.
+        if derivada.regla_id is not None and derivada.regla_id != REGLA_MODULOS:
             condicionante = reglas.por_id(derivada.regla_id)
             if condicionante is not None and condicionante.condiciona_resultado:
                 traza.condicionante_de_regla(condicionante)
@@ -391,6 +550,7 @@ def _evaluar_inciso(
     frente: calendario.Duracion,
     en_alcance: set[int],
     al_frente: set[int],
+    frente_alternativo: calendario.Duracion | None = None,
 ) -> ResultadoInciso:
     """Evalúa un inciso del art. 24.
 
@@ -428,12 +588,21 @@ def _evaluar_inciso(
     )
     if frente_req is not None:
         sensible_frente, margen_frente = _sensibilidad(caso, cese, frente_req, al_frente, reglas)
+        # La equivalencia de módulos (Cuestión #3) solo vuelve sensible este
+        # requisito si **cambia si se cumple**. Que cambie el conjunto de
+        # períodos al frente no alcanza: con 30 años al frente, mover un
+        # período corto no mueve el requisito de 25.
+        cumple_frente = frente.cumple_anios(frente_req)
+        if frente_alternativo is not None:
+            sensible_frente = sensible_frente or (
+                frente_alternativo.cumple_anios(frente_req) != cumple_frente
+            )
         requisitos.append(
             _requisito(
                 "años al frente de alumnos (o 20 horas cátedra)",
                 frente.anios,
                 frente_req,
-                frente.cumple_anios(frente_req),
+                cumple_frente,
                 regla.norma,
                 sensible=sensible_frente,
                 margen_dias=margen_frente,
@@ -544,12 +713,28 @@ def evaluar(
         if idx_en_alcance is not None
         else {p.idx for p in caso.historia.periodos if not p.fuera_de_alcance}
     )
-    al_frente = _al_frente(caso, cese, reglas, traza, en_alcance)
+    frentes = _al_frente(caso, cese, reglas, traza, en_alcance)
+    al_frente = frentes.aplicado
     _condicionantes_de_la_historia(caso, cese, reglas, traza)
 
     servicio = calendario.servicio_total(caso.historia, cese, idx_incluidos=en_alcance)
     frente = calendario.servicio_total(caso.historia, cese, idx_incluidos=al_frente)
+    # La duración al frente bajo la equivalencia conservadora de módulos, solo
+    # si hay módulos en juego y las dos lecturas difieren (Cuestión #3).
+    frente_alternativo = (
+        calendario.servicio_total(caso.historia, cese, idx_incluidos=frentes.alternativo)
+        if frentes.hay_modulos and frentes.alternativo != al_frente
+        else None
+    )
     edad = caso.edad_a(cese)
+
+    # Si la equivalencia decide algún requisito de años al frente. Se calcula de
+    # las dos duraciones y no del estado del requisito, porque ese estado puede
+    # venir de la convención de conteo y atribuirlo a la #3 sería mentir sobre
+    # la causa.
+    equivalencia_decide = frente_alternativo is not None and any(
+        _decide_el_frente(letra, reglas, frente, frente_alternativo) for letra in INCISOS
+    )
 
     regla_cierre = _regla(reglas, "requisitos.arts71_72.cierre_de_computos")
     traza.paso(
@@ -589,16 +774,24 @@ def evaluar(
             frente=frente,
             en_alcance=en_alcance,
             al_frente=al_frente,
+            frente_alternativo=frente_alternativo,
         )
         for letra in INCISOS
     )
+
+    if frentes.hay_modulos:
+        _informar_equivalencia_de_modulos(reglas, traza, decide=equivalencia_decide)
 
     # ------------------------------------------------- inciso más favorable
     mas_favorable = _elegir_mas_favorable(resultados, reglas, traza)
 
     # Recién ahora se sabe qué sensibilidades pueden mover el resultado. Las
     # que no pueden quedan informadas en su inciso y no condicionan el informe.
-    for letra in _sensibilidades_que_importan(resultados, reglas):
+    for letra in _sensibilidades_que_importan(
+        resultados,
+        reglas,
+        por_la_convencion=_sensibles_a_la_convencion(caso, cese, reglas, en_alcance, al_frente),
+    ):
         _advertir_convencion(letra, reglas, traza)
 
     return Elegibilidad(
@@ -664,9 +857,42 @@ def _candidatos(resultados: tuple[ResultadoInciso, ...]) -> tuple[_Candidato, ..
     )
 
 
+def _sensibles_a_la_convencion(
+    caso: Caso,
+    cese: dt.date,
+    reglas: ConjuntoDeReglas,
+    en_alcance: set[int],
+    al_frente: set[int],
+) -> set[str]:
+    """Los incisos cuyo resultado puede moverlo la convención de conteo.
+
+    Se mide aparte del estado del inciso a propósito. Un inciso puede estar
+    provisional por otra causa —la equivalencia de módulos, por ejemplo— y
+    entonces filtrar por «inciso provisional» le atribuiría a la convención un
+    condicionante que no es suyo. Una razón equivocada en el informe manda al
+    profesional a verificar la norma que no era.
+    """
+    sensibles: set[str] = set()
+    for letra in INCISOS:
+        regla = _regla(reglas, f"requisitos.art24.inc_{letra}")
+        requerido_serv = _entero(regla, "anios_servicio") or 0
+        if _sensibilidad(caso, cese, requerido_serv, en_alcance, reglas)[0]:
+            sensibles.add(letra)
+            continue
+        requerido_frente = _entero(regla, "anios_al_frente")
+        if (
+            requerido_frente is not None
+            and _sensibilidad(caso, cese, requerido_frente, al_frente, reglas)[0]
+        ):
+            sensibles.add(letra)
+    return sensibles
+
+
 def _sensibilidades_que_importan(
     resultados: tuple[ResultadoInciso, ...],
     reglas: ConjuntoDeReglas,
+    *,
+    por_la_convencion: set[str],
 ) -> tuple[str, ...]:
     """Qué incisos sensibles pueden mover el resultado (FR-046b).
 
@@ -686,6 +912,9 @@ def _sensibilidades_que_importan(
 
     for r in resultados:
         if r.estado is not EstadoResultado.PROVISIONAL:
+            continue
+        if r.inciso not in por_la_convencion:
+            # Provisional por otra causa: no es la convención la que lo mueve.
             continue
         hipotetica = r.habilitado_desde or r.estimado_para or dt.date.min
         volteados = tuple(

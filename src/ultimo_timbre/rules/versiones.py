@@ -24,6 +24,7 @@ from ultimo_timbre.models.enums import (
     NaturalezaServicio,
     SentidoImpacto,
     TipoFuente,
+    UnidadDeCarga,
 )
 from ultimo_timbre.models.grilla import ComponenteSalarial, GrillaSalarial, ValorCargo
 from ultimo_timbre.models.informe import Versiones
@@ -61,6 +62,16 @@ def _fecha(valor: Any) -> dt.date | None:
     return dt.date.fromisoformat(str(valor))
 
 
+def _booleano(valor: Any) -> bool | None:
+    """`True`, `False` o `None`, sin convertir lo que no es booleano.
+
+    `bool(None)` es `False`, y esa conversión silenciosa convertiría «no se
+    sabe si tributa» en «no tributa». Son cosas distintas y el motor informa la
+    primera en lugar de suponer la segunda.
+    """
+    return bool(valor) if valor is not None else None
+
+
 def _norma(datos: dict[str, Any]) -> Norma:
     return Norma(
         texto=str(datos["texto"]),
@@ -86,6 +97,7 @@ def _regla(datos: dict[str, Any]) -> Regla:
         impacto_si_no_verificada=SentidoImpacto(impacto) if impacto else None,
         que_falta_verificar=datos.get("que_falta_verificar"),
         magnitud_estimada=datos.get("magnitud_estimada"),
+        evidencia=datos.get("evidencia"),
         cuestion_abierta=datos.get("cuestion_abierta"),
         valor_por_defecto_aplicado=bool(datos.get("valor_por_defecto_aplicado", False)),
         valor=datos.get("valor"),
@@ -101,7 +113,7 @@ def _entrada_catalogo(datos: dict[str, Any]) -> EntradaCatalogo:
         # str -> Decimal en el borde: un `float` binario arruinaría un índice
         # como 1,32 antes de que el modelo lo vea (research R1).
         indice_escalafonario=a_decimal(indice) if indice is not None else None,
-        indice_es_por_hora=bool(datos.get("indice_es_por_hora", False)),
+        unidad_de_carga=UnidadDeCarga(str(datos.get("unidad_de_carga", "cargo"))),
         regla_indice=datos.get("regla_indice"),
         al_frente_de_alumnos=datos.get("al_frente_de_alumnos"),
         naturaleza=NaturalezaServicio(naturaleza) if naturaleza else None,
@@ -180,6 +192,16 @@ def _grilla(datos: dict[str, Any], *, permitir_ficticia: bool, ruta: Path) -> Gr
                         bonificable=bool(c["bonificable"]),
                         remunerativo=bool(c["remunerativo"]),
                         excluido_art40=bool(c.get("excluido_art40", False)),
+                        # `None` se conserva como `None`: «la grilla no lo
+                        # declara» no es lo mismo que «no tributa», y un
+                        # `bool()` acá borraría la diferencia justo donde
+                        # decide la base del haber (Cuestión #2).
+                        aporte_ips=_booleano(c.get("aporte_ips")),
+                        porcentaje_del_basico=(
+                            a_decimal(c["porcentaje_del_basico"])
+                            if c.get("porcentaje_del_basico") is not None
+                            else None
+                        ),
                         regla_id=c.get("regla_id"),
                     )
                     for c in componentes

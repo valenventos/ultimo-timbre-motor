@@ -206,18 +206,120 @@ reglas:
     valor:
       se_informa: "el haber es móvil; el motor no proyecta la movilidad"
 
+  # Cuestión abierta #1 — RESUELTA el 2026-11-04.
+  #
+  # La escala está transcripta literalmente del Anexo Único del Decreto 818/13
+  # (https://normas.gba.gob.ar/documentos/BgAzqgfp.html), que el propio decreto
+  # dicta en función del art. 33 de la Ley 10.579. Los once tramos se
+  # verificaron uno por uno contra esa fuente, incluido el salto irregular de
+  # 84 % a 105 % a los 20 años, que no es un error de transcripción.
+  #
+  # Lo que faltaba no eran los valores sino **su vigencia**: el decreto es de
+  # 2013 y no había modo de comprobar desde la norma que ninguna posterior lo
+  # hubiera cambiado. Lo cerró una liquidación real: con 26 años de antigüedad,
+  # el código 0220 es exactamente 1,25 veces el código 0110. El tramo más alto
+  # de la escala está aplicado, y es el del decreto y no el de la ley.
+  #
+  # El tope es 125 % y coincide con el último tramo, el de 24 años: más allá de
+  # esa antigüedad el porcentaje se mantiene. Se declara explícitamente en
+  # lugar de dejarlo implícito en «el tramo más alto alcanzado», porque ahora
+  # hay evidencia de que es un tope y no solo el final de la tabla.
+  - id: antiguedad.escala_y_tope
+    norma:
+      texto: >-
+        Decreto 818/13, Anexo Único (escala de bonificación por antigüedad,
+        dictado en función del art. 33 de la Ley 10.579)
+      ley: "Decreto 818/13"
+      articulo: "Anexo Único"
+      enlace: "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-11-04"
+    evidencia: >-
+      liquidación DGCyE 09/2026: con 26 años de antigüedad, el código 0220
+      (bonificación por antigüedad) es exactamente 1,25 veces el código 0110
+      (sueldo básico). Confirma el tramo más alto de la escala del Decreto
+      818/13 y descarta el 120 % de la Ley 10.579
+    valor:
+      tope: "1.25"
+      escala:
+        - anios: 0
+          porcentaje: "0.13"
+        - anios: 2
+          porcentaje: "0.23"
+        - anios: 4
+          porcentaje: "0.33"
+        - anios: 7
+          porcentaje: "0.43"
+        - anios: 10
+          porcentaje: "0.54"
+        - anios: 12
+          porcentaje: "0.64"
+        - anios: 15
+          porcentaje: "0.74"
+        - anios: 17
+          porcentaje: "0.84"
+        - anios: 20
+          porcentaje: "1.05"
+        - anios: 22
+          porcentaje: "1.15"
+        - anios: 24
+          porcentaje: "1.25"
+
+  # La base sobre la que se aplica la antigüedad, verificada.
+  #
+  # La liquidación lo muestra sin ambigüedad: el 1,25 multiplica **solo** el
+  # básico. La bonificación remunerativa docente (0455) y la bonificación no
+  # jerárquica (0667) están en el recibo y no entran en la base, aunque las dos
+  # sean remunerativas y lleven aporte.
+  #
+  # Es el error caro de FR-031b con signo concreto: aplicar el 125 % sobre el
+  # total en lugar de sobre el básico infla el haber sin que nada se vea raro.
+  - id: antiguedad.base_bonificable
+    norma:
+      texto: >-
+        Decreto 818/13, Anexo Único (la bonificación por antigüedad se calcula
+        sobre el sueldo básico del cargo)
+      ley: "Decreto 818/13"
+      articulo: "Anexo Único"
+      enlace: "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-11-04"
+    evidencia: >-
+      liquidación DGCyE 09/2026: el código 0220 es 1,25 × el código 0110
+      exacto. Los códigos 0455 (bonificación remunerativa docente) y 0667
+      (bonificación no jerárquica) no integran la base, pese a ser
+      remunerativos y llevar aporte al IPS
+    valor:
+      base: "sueldo_basico"
+      unico_componente_bonificable: true
+      no_bonificables_verificados:
+        - "0455"
+        - "0667"
+
   # Lecturas alternativas que el motor **no aplica** y sí informa, con el mismo
   # criterio que las del art. 43: el profesional ve el número aplicado y ve el
   # otro, en lugar de descubrirlo cuando el IPS resuelve (Principio IV).
 
   # La escala original del Estatuto, anterior al Decreto 818/13. Transcripta de
   # https://normas.gba.gob.ar/documentos/xkdoDUAB.html, art. 33, Capítulo VIII.
-  # Da menos en todos los tramos, y a diferencia del decreto declara tope.
+  #
+  # DEJÓ DE SER LECTURA ALTERNATIVA VIGENTE el 2026-11-04. La liquidación DGCyE
+  # 09/2026 muestra el 125 % del Decreto 818/13 aplicado, así que informar el
+  # 120 % de la ley como alternativa sembraría una duda que la evidencia ya
+  # despejó, y eso es ruido (Principio VIII).
+  #
+  # Se conserva como **referencia histórica**: sirve para reproducir un cálculo
+  # anterior a julio de 2013, y borrarla perdería la trazabilidad de por qué la
+  # Cuestión #1 existió. No lleva `alternativa_de` ni `sentido`, que es lo que
+  # el motor mira para decidir si informar una alternativa.
   - id: antiguedad.escala_ley_10579
     norma:
       texto: >-
         Ley 10.579, art. 33, Capítulo VIII «De las remuneraciones» (escala
-        original de bonificación por antigüedad, tope 120 %)
+        original de bonificación por antigüedad, tope 120 %, anterior al
+        Decreto 818/13)
       ley: "Ley 10579"
       articulo: "33"
       enlace: "https://normas.gba.gob.ar/documentos/xkdoDUAB.html"
@@ -225,9 +327,9 @@ reglas:
     estado: verificado
     verificada_en: "2026-11-03"
     valor:
-      sentido: "a_la_baja"
-      alternativa_de: "antiguedad.escala_y_tope"
-      se_informa_como: "advertencia"
+      vigente: false
+      se_informa_como: "referencia_historica"
+      reemplazada_por: "antiguedad.escala_y_tope"
       tope: "1.20"
       escala:
         - anios: 1
@@ -253,9 +355,39 @@ reglas:
         - anios: 24
           porcentaje: "1.20"
 
+  # La lectura amplia de la remuneración: también los no remunerativos **sin
+  # aporte**, como el FONID o la Conectividad. Da más que el criterio aplicado.
+  #
+  # Es la que sostiene que la «remuneración asignada al cargo» del art. 40 es
+  # todo lo que el cargo paga, con las solas exclusiones que el artículo
+  # enumera, sin importar si el concepto tributa. Tiene a su favor la letra del
+  # artículo; en contra, que los arts. 4 y 5 atan el sistema al aporte.
+  - id: remuneracion.incluye_no_remunerativos_sin_aporte
+    norma:
+      texto: >-
+        DL 9650/80, art. 40 (lectura amplia: integran la remuneración del cargo
+        todos los conceptos que el artículo no excluye, aun sin aporte), en
+        tensión con los arts. 4 y 5
+      ley: "DL 9650/80"
+      articulo: "4, 5 y 40"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-11-04"
+    valor:
+      criterio_aplicado: "todos_los_componentes_del_cargo"
+      sentido: "al_alza"
+      alternativa_de: "remuneracion.conceptos_del_cargo"
+      se_informa_como: "advertencia"
+
   # La lectura restrictiva de la remuneración: solo los componentes
-  # remunerativos. Da menos que la letra del art. 40 porque deja afuera los no
-  # remunerativos que el artículo no excluye.
+  # remunerativos.
+  #
+  # Desde que el criterio aplicado son los componentes **con aporte**, esta
+  # lectura suele dar lo mismo —en la liquidación relevada, todo lo que tributa
+  # es remunerativo— y entonces el motor no la informa: una alternativa que no
+  # cambia el número es ruido. Se conserva porque las dos preguntas son
+  # distintas y una grilla podría traer un concepto remunerativo sin aporte, y
+  # ahí sí la diferencia aparecería y habría que mostrarla.
   - id: remuneracion.solo_remunerativos
     norma:
       texto: >-
@@ -272,3 +404,102 @@ reglas:
       alternativa_de: "remuneracion.conceptos_del_cargo"
       se_informa_como: "advertencia"
 
+  # La lectura conservadora de la equivalencia: 1 módulo = 1 hora cátedra.
+  #
+  # Es la que sostiene que el art. 24 inc. b cuenta **unidades de dictado** y
+  # no minutos, y que un módulo es una unidad como lo es una hora cátedra.
+  # Da menos horas y por lo tanto deja a más docentes por debajo del umbral de
+  # veinte: por eso el sentido es a la baja.
+  #
+  # El motor no la aplica, y evalúa el umbral con las dos: el inciso sale
+  # provisional solo si el resultado cambia entre una y otra.
+  - id: modulos.equivalencia_uno_a_uno
+    norma:
+      texto: >-
+        DL 9650/80, art. 24 inc. b (lectura conservadora: el umbral cuenta
+        unidades de dictado y un módulo equivale a una hora cátedra)
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    tipo: interpretacion
+    estado: verificado
+    verificada_en: "2026-11-04"
+    valor:
+      horas_catedra_por_modulo: "1"
+      sentido: "a_la_baja"
+      alternativa_de: "modulos.equivalencia_horas_catedra"
+      se_informa_como: "advertencia"
+
+  # Base de cálculo de los componentes porcentuales de la escala.
+  #
+  # Verificado para un código: la bonificación no jerárquica (0667) es el
+  # 43,50 % exacto del básico en la liquidación DGCyE 09/2026, y ese 43,50 %
+  # coincide con el porcentaje publicado para el código 667 en la escala
+  # salarial del Ministerio de Economía de la Provincia. Dos fuentes
+  # independientes dando el mismo número sobre la misma base.
+  #
+  # No verificado para los demás códigos porcentuales —653/663, 451 y los que
+  # aparezcan—: que uno se calcule sobre el básico no prueba que todos lo
+  # hagan, y algunos podrían tomar el básico más la antigüedad. Por eso la
+  # regla queda `no_verificada` aunque tenga una parte confirmada.
+  #
+  # El motor **no recalcula** importes con esto: la grilla trae el importe ya
+  # resuelto. Sirve para auditar una grilla contra la escala publicada y
+  # detectar una transcripción equivocada antes de que produzca un haber.
+  - id: componentes.porcentuales_sobre_basico
+    norma:
+      texto: >-
+        Escala salarial docente del Ministerio de Economía de la Provincia de
+        Buenos Aires (porcentajes por código sobre el sueldo básico)
+      ley: "Escala salarial docente PBA"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      si algún código porcentual tomara el básico más la antigüedad, su importe
+      cambiaría en la proporción de la bonificación por antigüedad, hasta 125 %
+    evidencia: >-
+      liquidación DGCyE 09/2026: el código 0667 es el 43,50 % exacto del código
+      0110, coincidente con el porcentaje publicado para el código 667 en la
+      escala salarial del Ministerio de Economía PBA
+    que_falta_verificar: >-
+      si **todos** los componentes porcentuales de la escala se calculan sobre
+      el sueldo básico, o si alguno toma otra base (el básico más la
+      antigüedad, por ejemplo). Verificado solo para el código 0667; sin
+      verificar para 0653/0663, 0451 y los demás códigos porcentuales.
+    cuestion_abierta: 2
+    valor:
+      base: "sueldo_basico"
+      codigos_verificados:
+        - codigo: "0667"
+          porcentaje: "0.435"
+      codigos_sin_verificar:
+        - "0653"
+        - "0663"
+        - "0451"
+
+  # El valor de un cargo medido por unidad es proporcional a la cantidad.
+  #
+  # Verificado en la liquidación DGCyE 09/2026: el básico de un módulo es
+  # exactamente la mitad del de dos. No hay escalón, ni mínimo, ni redondeo por
+  # unidad; la proporción es lineal y exacta.
+  #
+  # Importa porque una grilla trae el valor de **una** unidad y el cargo base
+  # puede tener muchas. Lo que el motor todavía no hace es escalar el haber por
+  # la cantidad de unidades del cargo base: está anotado como T195.
+  - id: remuneracion.unidad_proporcional
+    norma:
+      texto: >-
+        Escala salarial docente del Ministerio de Economía de la Provincia de
+        Buenos Aires (el valor por módulo u hora cátedra es proporcional a la
+        cantidad)
+      ley: "Escala salarial docente PBA"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-11-04"
+    evidencia: >-
+      liquidación DGCyE 09/2026: el sueldo básico correspondiente a un módulo
+      es exactamente la mitad del correspondiente a dos módulos
+    valor:
+      proporcionalidad: "lineal"
+      redondeo_por_unidad: false

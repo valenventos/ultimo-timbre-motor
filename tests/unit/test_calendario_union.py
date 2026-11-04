@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from tests.casos import f, periodo
 from ultimo_timbre.engine import calendario
 from ultimo_timbre.models.caso import HistoriaDeServicios, PeriodoDeServicio
@@ -142,10 +144,19 @@ def test_horas_catedra_simultaneas_suma_los_periodos_superpuestos() -> None:
         ),
     )
     # en 2015 los dos períodos están activos; en 2019 ya solo el primero
-    assert calendario.horas_catedra_simultaneas(h, 0, f("2015-01-01")) == 22
-    assert calendario.horas_catedra_simultaneas(h, 0, f("2019-01-01")) == 12
+    assert (
+        calendario.horas_catedra_simultaneas(h, 0, f("2015-01-01"), horas_por_modulo=Decimal(1))
+        == 22
+    )
+    assert (
+        calendario.horas_catedra_simultaneas(h, 0, f("2019-01-01"), horas_por_modulo=Decimal(1))
+        == 12
+    )
     # lo que el motor usa es el máximo alcanzado durante el período
-    assert calendario.max_horas_catedra_simultaneas(h, 0, f("2026-02-28")) == 22
+    assert (
+        calendario.max_horas_catedra_simultaneas(h, 0, f("2026-02-28"), horas_por_modulo=Decimal(1))
+        == 22
+    )
 
 
 def test_horas_catedra_simultaneas_ignora_los_periodos_disjuntos() -> None:
@@ -163,7 +174,10 @@ def test_horas_catedra_simultaneas_ignora_los_periodos_disjuntos() -> None:
             horas_catedra=10,
         ),
     )
-    assert calendario.horas_catedra_simultaneas(h, 0, f("2011-01-01")) == 12
+    assert (
+        calendario.horas_catedra_simultaneas(h, 0, f("2011-01-01"), horas_por_modulo=Decimal(1))
+        == 12
+    )
 
 
 def test_la_fecha_al_alcanzar_un_umbral_de_servicio() -> None:

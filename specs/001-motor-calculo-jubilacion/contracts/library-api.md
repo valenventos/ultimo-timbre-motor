@@ -77,10 +77,65 @@ Decreto 2397/2005, que aprueba el texto ordenado del nomenclador, no está publi
 apunta con `regla_indice` a `jerarquia.indices_escalafonarios`, que lo declara como Cuestión
 abierta #4.
 
-`indice_es_por_hora` marca los índices de hora cátedra, que no son comparables con los de cargo.
 Las entradas del catálogo llevan la **categoría** del nomenclador —`director_primera`,
 `director_segunda`, `bibliotecario_ensenanza_superior`— y no un nombre genérico, porque el
 nomenclador les asigna índices distintos.
+
+### Unidad de carga
+
+`EntradaCatalogo.unidad_de_carga` es un `UnidadDeCarga`: `cargo`, `hora_catedra` o `modulo`.
+Reemplazó al booleano `indice_es_por_hora`, que no alcanzaba.
+
+Decide si el `indice_escalafonario` de una entrada es comparable con el de otra. Son tres
+magnitudes distintas y mezclarlas da un resultado que parece válido: 1,15 por hora cátedra no es
+«menos jerarquía» que 1,70 de un Director, y 1,15 por **módulo** tampoco equivale a 1,15 por hora,
+porque el módulo dura 60 minutos y la hora cátedra 40. Con un solo booleano las horas y los
+módulos quedaban marcados igual y el comparador podía enfrentarlos.
+
+La propiedad derivada `indice_por_unidad` es `True` para todo lo que no sea `cargo`.
+
+El período de servicio declara su carga en el campo que corresponda: `horas_catedra` o `modulos`,
+nunca convertida. Convertir en la entrada perdería el dato original del recibo y haría imposible
+mostrar el umbral del art. 24 inc. b bajo las dos lecturas de la equivalencia, que es lo que
+decide si el inciso sale definitivo o provisional (Cuestión abierta #3).
+
+### Componentes de la grilla: remunerativo y con aporte son dos cosas
+
+`ComponenteSalarial` declara `bonificable`, `remunerativo` y `aporte_ips`, y los tres responden
+preguntas distintas:
+
+| Campo | Pregunta | Para qué lo usa el motor |
+|---|---|---|
+| `bonificable` | ¿la antigüedad se aplica sobre él? | la base del adicional por antigüedad (FR-031b) |
+| `remunerativo` | ¿el concepto es remunerativo? | la lectura restrictiva de la remuneración |
+| `aporte_ips` | ¿tributa al IPS? | **el criterio aplicado** de la remuneración del cargo |
+
+`aporte_ips` es `bool | None`, y `None` **no** equivale a `False`: significa que la grilla no lo
+declara. El motor deja el componente afuera e informa la laguna, en lugar de suponer que no
+tributa. Un `bool()` en el borde habría borrado esa diferencia justo donde decide la base del
+haber.
+
+Cuál de las tres preguntas define la remuneración del cargo es la Cuestión abierta #2. El criterio
+aplicado desde el 2026-11-04 es el aporte, por la evidencia de una liquidación donde el aporte
+personal es el 16 % exacto de la suma de los conceptos que tributan.
+
+`porcentaje_del_basico` es metadato de procedencia, no de cálculo: el motor **no** recalcula el
+importe, que la grilla trae resuelto. Sirve para auditar una grilla contra la escala publicada.
+
+### Evidencia de una regla
+
+`Regla.evidencia` es un `str | None` y es distinto de `norma`:
+
+* `norma` dice **qué dice el derecho**;
+* `evidencia` dice **qué se miró para convencerse de que es lo que efectivamente se aplica**.
+
+La distinción no es académica. La escala de antigüedad del Decreto 818/13 estaba transcripta de su
+Anexo Único desde el principio, y lo que faltaba no eran los valores sino la certeza de que
+ninguna norma posterior los había cambiado. Eso no lo resuelve otra lectura de la norma: lo
+resolvió una liquidación real con el porcentaje aplicado.
+
+La evidencia **nunca** identifica a una persona: nombra el tipo de documento y su período, no su
+titular (Principio III).
 
 ### Serialización
 

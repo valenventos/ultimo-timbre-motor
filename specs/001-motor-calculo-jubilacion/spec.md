@@ -428,6 +428,28 @@ desconectada de la red.
 - **FR-023**: El tratamiento de horas cátedra y módulos como carrera a los efectos del cargo base
   DEBE marcarse como no definitivo hasta verificar la norma
   `[Res. HD IPS 8/14 — NO_VERIFICADA, Cuestión abierta #3]`.
+- **FR-023a**: Los **módulos** DEBEN modelarse como una unidad de carga **distinta** de las horas
+  cátedra, tanto en el período de servicio como en el catálogo de cargos. El módulo dura 60
+  minutos y la hora cátedra 40, así que ni las cargas ni los índices escalafonarios de una
+  unidad son comparables con los de la otra `[liquidación DGCyE 09/2026]`.
+- **FR-023b**: Para evaluar el umbral de **veinte horas cátedra** del art. 24 inc. b sobre una
+  carga expresada en módulos, el motor DEBE convertir los módulos con una equivalencia que
+  provenga del conjunto de reglas. El valor por defecto es **1 módulo = 1,5 horas cátedra**,
+  derivado de las duraciones, y DEBE marcarse como no definitivo
+  `[práctica administrativa DGCyE — NO_VERIFICADA, Cuestión abierta #3]`.
+- **FR-023c**: El umbral DEBE evaluarse sobre la carga de **cada período a lo largo de toda la
+  historia de servicios**, y no sobre la carga del período más reciente proyectada hacia atrás.
+- **FR-023d**: El motor DEBE evaluar el umbral bajo **las dos** lecturas de la equivalencia —la
+  aplicada y la conservadora de 1 módulo = 1 hora cátedra, que es a la baja— y comparar el
+  resultado:
+  - si el requisito de años al frente de alumnos se resuelve **igual** con las dos, el inciso
+    DEBE salir **definitivo** y la Cuestión #3 queda informada sin condicionar;
+  - si se resuelve **distinto**, el inciso DEBE salir **provisional**, con el condicionante que
+    nombra la regla y las dos lecturas en el desglose.
+
+  Condicionar todo caso con módulos, por el solo hecho de que la equivalencia esté discutida,
+  haría que el motor marcara como dudoso un resultado que no lo es —treinta módulos superan el
+  umbral con cualquier equivalencia— y entrenaría al lector a ignorar la marca.
 - **FR-024**: El cómputo de licencias, suplencias e interinatos dentro de los 36/60 meses DEBE
   marcarse como no definitivo hasta verificar el criterio
   `[NO_VERIFICADA, Cuestión abierta #5]`.
@@ -468,7 +490,7 @@ desconectada de la red.
   tendría a la fecha del escenario**, no la de la fecha de cálculo, y DEBE dejar esa antigüedad
   como paso del desglose. Si a esa fecha aún no alcanzó el tramo máximo de la escala, la
   bonificación DEBE crecer en consecuencia
-  `[Decreto 818/13, Anexo Único — NO_VERIFICADA: vigencia, Cuestión abierta #1]`.
+  `[Decreto 818/13, Anexo Único — VERIFICADO 2026-11-04]`.
 
   En la práctica **ningún caso que califique recorre tramos**: el mínimo de 25 años de servicio
   del art. 24 supera el último tramo de la escala, que está a los 24. La proyección se implementa
@@ -482,14 +504,31 @@ desconectada de la red.
   `[DL 9650/80, art. 40 — NO_VERIFICADA, Cuestión abierta #2]`.
 - **FR-031a**: El valor de un cargo en la grilla DEBE expresarse como un conjunto de
   **componentes**, cada uno con su código de concepto, su importe, si es **bonificable** (si
-  sobre él se aplica la antigüedad) y si es **remunerativo**. El haber no se calcula sobre un
-  importe único e indiviso.
+  sobre él se aplica la antigüedad), si es **remunerativo** y si lleva **aporte al IPS**. El
+  haber no se calcula sobre un importe único e indiviso.
+
+  «Remunerativo» y «con aporte» son dos preguntas distintas y el componente DEBE poder
+  responderlas por separado: cuál de las dos define la remuneración del cargo es la Cuestión
+  abierta #2, y colapsarlas en un campo la decidiría por omisión. El campo de aporte admite
+  **no declarado**, que NO equivale a «sin aporte»: el motor informa la laguna en lugar de
+  suponerla `[liquidación DGCyE 09/2026]`.
 - **FR-031b**: La bonificación por antigüedad DEBE aplicarse **únicamente sobre los componentes
   bonificables**, nunca sobre el total del cargo
-  `[Ley 10579 art. 33 — NO_VERIFICADA: tope, Cuestión abierta #1]`.
-- **FR-032**: La escala de bonificación por antigüedad DEBE marcarse como no definitiva hasta
-  confirmar el tope vigente `[Ley 10579 art. 33; Decreto 818/13 — NO_VERIFICADA: tope 120 % vs
-  125 %, Cuestión abierta #1]`.
+  `[Decreto 818/13, Anexo Único — VERIFICADO 2026-11-04]`.
+
+  Verificado además **qué** es bonificable: solo el **sueldo básico**. En la liquidación
+  relevada, la bonificación por antigüedad es 1,25 × el básico exacto, y las bonificaciones
+  remunerativa docente y no jerárquica no integran la base aunque sean remunerativas y lleven
+  aporte `[regla antiguedad.base_bonificable]`.
+- **FR-032**: La escala de bonificación por antigüedad es la del **Decreto 818/13, Anexo
+  Único**, con **tope 125 %** en el tramo de 24 años
+  `[Decreto 818/13, Anexo Único — VERIFICADO 2026-11-04; evidencia: liquidación DGCyE 09/2026,
+  código 0220 = 1,25 × código 0110]`.
+
+  La escala original de la **Ley 10579, art. 33** (tope 120 %) DEBE conservarse como
+  **referencia histórica** —sirve para reproducir un cálculo anterior a julio de 2013— y NO
+  DEBE informarse como lectura alternativa: la evidencia despejó la duda, y seguir ofreciéndola
+  sería ruido.
 - **FR-033**: Todo cálculo monetario y porcentual DEBE usar aritmética decimal exacta, y el
   redondeo DEBE aplicarse en un único punto con una política explícita; esa política DEBE
   marcarse como no definitiva hasta verificar la que aplica el IPS
@@ -606,6 +645,10 @@ desconectada de la red.
 | FR-020b | DL 9650/80, art. 41, tercer párrafo (promedio de 36 meses) | Letra de la ley | Fuera de alcance v1 | 2026-10-30 |
 | FR-022 | Res. IPS 14/10 (acreditación de mayor jerarquía) | Interpretación | NO_VERIFICADA | — |
 | FR-023 | Res. HD IPS 8/14 (horas cátedra y módulos como carrera) | Interpretación | NO_VERIFICADA | — |
+| FR-023a | Liquidación DGCyE 09/2026 (la carga de nivel secundario se expresa en módulos, unidad distinta de la hora cátedra) | Observación sobre documento oficial | Verificado — módulo de 60 minutos contra hora cátedra de 40 | 2026-11-04 |
+| FR-023b, FR-023c, FR-023d | Práctica administrativa DGCyE (1 módulo = 1,5 horas cátedra) | Interpretación | NO_VERIFICADA (Cuestión #3) — se aplica 1,5 y se evalúa también 1:1 a la baja; el inciso sale provisional solo si las dos lecturas difieren | — |
+| FR-031a | Escala salarial docente PBA (los componentes porcentuales se calculan sobre el sueldo básico) | Interpretación | NO_VERIFICADA — verificado para el código 0667 (43,50 % del básico, coincidente entre la liquidación DGCyE 09/2026 y la escala publicada); sin verificar para 0653/0663, 0451 y los demás | 2026-11-04 |
+| FR-031a | Escala salarial docente PBA (el valor por unidad de carga es proporcional a la cantidad) | Letra de la ley | Verificado — el básico de un módulo es la mitad del de dos; evidencia: liquidación DGCyE 09/2026 | 2026-11-04 |
 | FR-024 | Criterio de cómputo de licencias, suplencias e interinatos | Interpretación | NO_VERIFICADA | — |
 | FR-024a | DL 9650/80, art. 41 (cargo "de que era titular" vs situación de revista) | Interpretación | NO_VERIFICADA | — |
 | FR-025 | DL 9650/80, art. 41 (70 % del cargo) | Letra de la ley | Verificado | 2026-10-30 |
@@ -613,8 +656,8 @@ desconectada de la red.
 | FR-027 | DL 9650/80, art. 43 (75 / 80 / 85 % docente inc. b) | Letra de la ley | Verificado | 2026-10-30 |
 | FR-027a | Res. IPS 995/2021, Anexo, punto 2.1.a (excedente contado desde que se cumplen todas las condiciones) | Interpretación | Verificado — criterio aplicado por defecto | 2026-10-30 |
 | FR-027b | DL 9650/80, arts. 42 y 43 — lectura literal (excedente medido solo por edad) | Letra de la ley (lectura alternativa) | Se informa como advertencia, impacto al alza | 2026-10-30 |
-| FR-031 | DL 9650/80, art. 40 (concepto de remuneración) | Letra de la ley + interpretación de conceptos | NO_VERIFICADA | — |
-| FR-030b, FR-031b, FR-032 | Decreto 818/13, Anexo Único (escala de bonificación por antigüedad, dictada en función de la Ley 10579 art. 33), sobre componentes bonificables | Letra de la ley | NO_VERIFICADA (vigencia; la escala original de la Ley 10579 art. 33, con tope 120 %, se informa como lectura alternativa a la baja) | 2026-11-03 |
+| FR-031, FR-031a | DL 9650/80, arts. 4 y 5 (conceptos sujetos a aporte) y art. 40 (remuneración asignada al cargo) | Letra de la ley + interpretación de conceptos | NO_VERIFICADA — criterio aplicado: componentes **con aporte al IPS**; evidencia: liquidación DGCyE 09/2026, código 1060 = 16 % exacto de 0110+0220+0455+0667, y el 2575 fuera de esa base. Falta confirmar que la base del haber coincide con la del aporte. La lectura amplia (incluir los no remunerativos sin aporte) se informa al alza | 2026-11-04 |
+| FR-030b, FR-031b, FR-032 | Decreto 818/13, Anexo Único (escala de bonificación por antigüedad, dictada en función de la Ley 10579 art. 33), sobre el sueldo básico | Letra de la ley | **Verificado** — tope 125 %; evidencia: liquidación DGCyE 09/2026, código 0220 = 1,25 × código 0110 exacto. La escala de la Ley 10579 art. 33 (tope 120 %) queda como referencia histórica y no se informa | 2026-11-04 |
 | FR-030c | DL 9650/80, art. 50 (movilidad por correlación de cargos) | Letra de la ley | Verificado — solo se informa, no se calcula | 2026-10-30 |
 | FR-033 | Política de redondeo aplicada por el IPS | Práctica administrativa | NO_VERIFICADA | — |
 | FR-043 | DL 9650/80, art. 47; Res. IPS 995/2021 | Letra de la ley + interpretación | Verificado (fórmula a detallar) — fuera de alcance v1 | 2026-10-30 |
@@ -628,10 +671,16 @@ antigüedad (FR-032) y política de redondeo (FR-033). En todos los casos el mot
 como no definitivo, nombra la regla afectada y explica qué falta verificar, en lugar de emitir un
 número cerrado (FR-046, FR-047).
 
-**Cuestiones abiertas del dominio que afectan a esta especificación**: #1 (escala de antigüedad),
-#2 (remuneración del cargo), #3 (horas cátedra y módulos), #4 (criterio de mayor jerarquía),
+**Cuestiones abiertas del dominio que afectan a esta especificación**: #2 (remuneración del
+cargo), #3 (horas cátedra, módulos y su equivalencia), #4 (criterio de mayor jerarquía),
 #5 (conteo de períodos con licencias) y #6 (redondeo). La #7 (formatos de recibo) no aplica: esta
 funcionalidad no lee recibos.
+
+**La #1 (escala de antigüedad) se resolvió el 2026-11-04** con la evidencia de una liquidación
+DGCyE 09/2026, donde el código 0220 es exactamente 1,25 veces el código 0110. Lo que faltaba no
+eran los valores de la escala del Decreto 818/13 —estaban transcriptos del Anexo Único desde el
+principio— sino la certeza de que ninguna norma posterior los había modificado, y eso no lo podía
+dar otra lectura de la norma: lo dio un recibo con el tramo más alto aplicado.
 
 **Ampliación de la Cuestión abierta #5**: además del tratamiento de licencias, suplencias e
 interinatos, la #5 DEBE resolver si la **situación de revista** (titular, provisional, suplente)
@@ -768,8 +817,9 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
   proyección salarial de ningún tipo: la comparación entre escenarios es válida en términos
   relativos (cuánto más cobra esperando), no como pronóstico del monto nominal futuro.
 - La antigüedad sí se proyecta a la fecha de cada escenario, porque su progresión depende del
-  tiempo transcurrido y no de una variable económica; esa progresión queda condicionada por la
-  vigencia de la escala, que es una regla `NO_VERIFICADA` (Cuestión abierta #1).
+  tiempo transcurrido y no de una variable económica. Desde el 2026-11-04 esa progresión **ya no
+  está condicionada**: la escala del `Decreto 818/13, Anexo Único` quedó verificada contra una
+  liquidación real y la Cuestión abierta #1 se cerró.
 - **La antigüedad está saturada en todo caso que califica**, y eso no es un supuesto del motor
   sino una consecuencia de las dos normas: el art. 24 pide 25 años de servicio como mínimo y el
   último tramo de la escala del `Decreto 818/13` está a los 24. La comparación entre escenarios

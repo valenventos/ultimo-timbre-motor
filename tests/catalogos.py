@@ -44,8 +44,9 @@ INDICES_FICTICIOS: dict[str, Decimal] = {
     "tecnico_docente_psicologia": Decimal("0.50"),
     "tecnico_docente_educacion_especial": Decimal("0.50"),
     "visitadora_higiene_escolar": Decimal("0.50"),
-    # Las horas cátedra quedan afuera a propósito: su índice es por hora y no
-    # compite con uno por cargo (`indice_es_por_hora`).
+    # Las horas cátedra y los módulos quedan afuera a propósito: su índice es
+    # por unidad de carga y no compite con uno por cargo completo
+    # (`unidad_de_carga`).
 }
 
 

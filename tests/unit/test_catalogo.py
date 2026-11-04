@@ -11,6 +11,7 @@ Dos reglas que el motor no puede romper:
 from __future__ import annotations
 
 import datetime as dt
+from decimal import Decimal
 
 from ultimo_timbre.models.caso import Establecimiento, PeriodoDeServicio
 from ultimo_timbre.models.enums import (
@@ -218,7 +219,7 @@ def test_horas_catedra_alcanza_el_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
         construir_periodo("hora_catedra_secundaria"),
-        horas_catedra_simultaneas=20,
+        horas_catedra_simultaneas=Decimal(20),
         umbral_horas_catedra=20,
     )
     assert d.al_frente_de_alumnos is True
@@ -231,7 +232,7 @@ def test_horas_catedra_no_alcanza_el_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
         construir_periodo("hora_catedra_secundaria"),
-        horas_catedra_simultaneas=19,
+        horas_catedra_simultaneas=Decimal(19),
         umbral_horas_catedra=20,
     )
     assert d.al_frente_de_alumnos is False
@@ -240,7 +241,9 @@ def test_horas_catedra_no_alcanza_el_umbral() -> None:
 def test_horas_catedra_sin_umbral_queda_indeterminado() -> None:
     """El motor no completa un umbral normativo por su cuenta (Principio I)."""
     d = cat.derivar(
-        CATALOGO, construir_periodo("hora_catedra_secundaria"), horas_catedra_simultaneas=20
+        CATALOGO,
+        construir_periodo("hora_catedra_secundaria"),
+        horas_catedra_simultaneas=Decimal(20),
     )
     assert d.al_frente_de_alumnos is None
     assert d.requiere_umbral_horas_catedra is True
@@ -268,7 +271,7 @@ def test_el_umbral_se_evalua_sobre_las_horas_simultaneas_no_las_del_periodo() ->
     d = cat.derivar(
         CATALOGO,
         construir_periodo("hora_catedra_secundaria", horas_catedra=12),
-        horas_catedra_simultaneas=22,
+        horas_catedra_simultaneas=Decimal(22),
         umbral_horas_catedra=20,
     )
     assert d.horas_catedra_evaluadas == 22
@@ -279,7 +282,7 @@ def test_el_override_tambien_pisa_la_condicion_por_umbral() -> None:
     d = cat.derivar(
         CATALOGO,
         construir_periodo("hora_catedra_secundaria", al_frente_override=True),
-        horas_catedra_simultaneas=10,
+        horas_catedra_simultaneas=Decimal(10),
         umbral_horas_catedra=20,
     )
     assert d.al_frente_de_alumnos is True

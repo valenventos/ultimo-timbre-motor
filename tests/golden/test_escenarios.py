@@ -119,15 +119,19 @@ def test_el_monto_crece_con_el_porcentaje(informe: Informe) -> None:
 
 
 def test_los_montos_son_los_esperados(informe: Informe) -> None:
-    """Grilla ficticia: remuneración 150.000 más 125.000 de antigüedad.
+    """Grilla ficticia: remuneración 193.500 más 125.000 de antigüedad.
 
-    275.000 por cada porcentaje: 206.250, 220.000 y 233.750.
+    La remuneración son los componentes con aporte al IPS (Cuestión #2,
+    criterio aplicado): básico 100.000 + suma fija 50.000 + bonificación no
+    jerárquica 43.500. La compensación de 9.000 no tributa y queda afuera.
+
+    318.500 por cada porcentaje: 238875.0000, 254800.0000 y 270725.0000.
     """
     assert _por_tipo(informe, TipoEscenario.HABILITACION).haber is not None
     montos = {e.tipo: e.haber.valor for e in informe.escenarios if e.haber is not None}
-    assert montos[TipoEscenario.HABILITACION] == Decimal("206250.00")
-    assert montos[TipoEscenario.EXCEDENTE_3] == Decimal("220000.00")
-    assert montos[TipoEscenario.EXCEDENTE_5] == Decimal("233750.00")
+    assert montos[TipoEscenario.HABILITACION] == Decimal("238875.0000")
+    assert montos[TipoEscenario.EXCEDENTE_3] == Decimal("254800.0000")
+    assert montos[TipoEscenario.EXCEDENTE_5] == Decimal("270725.0000")
 
 
 def test_cada_monto_trae_su_marca_y_sus_condicionantes(informe: Informe) -> None:

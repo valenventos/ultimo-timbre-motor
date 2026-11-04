@@ -168,6 +168,19 @@ class PeriodoDeServicio(BaseModel):
     hasta: dt.date | None = None
     """`None` = período en curso: se proyecta hasta cada fecha de cese (FR-002e)."""
     horas_catedra: int | None = Field(default=None, ge=0)
+    modulos: int | None = Field(default=None, ge=0)
+    """Carga horaria en **módulos**, que no son horas cátedra.
+
+    El nivel secundario liquida por módulos: un módulo dura 60 minutos y una
+    hora cátedra 40. El umbral de veinte horas cátedra del art. 24 inc. b se
+    evalúa sobre la carga convertida, y la equivalencia es la Cuestión abierta
+    #3 (`modulos.equivalencia_horas_catedra`).
+
+    Se declara aparte de `horas_catedra` a propósito: convertir en la entrada
+    perdería el dato original del recibo y haría imposible mostrar el umbral
+    bajo las dos lecturas, que es lo que decide si el inciso sale definitivo o
+    provisional.
+    """
     licencias: tuple[Licencia, ...] = ()
     al_frente_override: bool | None = None
     naturaleza_override: NaturalezaServicio | None = None

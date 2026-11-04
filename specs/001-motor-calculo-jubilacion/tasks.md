@@ -458,6 +458,56 @@ y el código de salida correcto, con la máquina desconectada de la red.
 
 ---
 
+## Fase 10 — Hallazgos de la liquidación DGCyE 09/2026 (2026-11-04)
+
+Una liquidación real usada **solo como muestra para calibrar reglas generales**: no es un caso,
+no representa ninguna historia de servicios, no está en el repositorio y no se persiste. Lo que
+produjo son reglas y evidencias, no datos.
+
+**Hecho en este turno**:
+
+- [X] T195 [US4] Resolver la Cuestión abierta #1: pasar `antiguedad.escala_y_tope` a `verificado`
+  con `evidencia`, declarar el tope 125 %, mudarla de `no_verificadas.yaml` a `haber.yaml`,
+  sacarla de `REGLAS_DEL_MONTO` y dejar la escala de la Ley 10579 como referencia histórica no
+  vigente
+- [X] T196 [US4] Agregar la regla verificada `antiguedad.base_bonificable`: la antigüedad se
+  calcula solo sobre el sueldo básico, y los códigos 0455 y 0667 no integran la base
+- [X] T197 [US4] Cambiar el criterio aplicado de `remuneracion.conceptos_del_cargo` a
+  `componentes_con_aporte_ips` citando los arts. 4, 5 y 40, agregar `aporte_ips` al componente
+  salarial y registrar la lectura amplia como alternativa al alza
+- [X] T198 [US4] Registrar `componentes.porcentuales_sobre_basico`, verificada para el código
+  0667 (43,50 %) y sin verificar para los demás, con `porcentaje_del_basico` en el componente
+- [X] T199 [US1] Modelar la equivalencia módulo ↔ hora cátedra como regla
+  (`modulos.equivalencia_horas_catedra`, 1,5 por defecto) con su alternativa 1:1 a la baja, y
+  evaluar el umbral del art. 24 inc. b bajo las dos lecturas en toda la historia de servicios
+  (FR-023b a FR-023d)
+- [X] T200 [US1] Agregar `modulos` al período de servicio y `unidad_de_carga` al catálogo,
+  reemplazando `indice_es_por_hora`, con la entrada `modulos_secundaria`
+- [X] T201 [P] Documentar la estructura del recibo en
+  `docs/datos-pendientes/estructura-recibo-dgcye.md`, sin ningún dato personal ni importe, para
+  la funcionalidad 002
+
+**Pendiente**:
+
+- [ ] T202 [US4] Escalar el haber por la **cantidad de unidades** del cargo base cuando la unidad
+  de carga no es el cargo completo. Hoy `haber.valuar` recibe el nombre del cargo y la grilla trae
+  el valor de **una** unidad, así que un cargo base de 20 módulos se valúa como uno de un módulo.
+  La proporcionalidad ya está verificada y registrada (`remuneracion.unidad_proporcional`); lo que
+  falta es pasarle la cantidad al valuador y decidir qué cantidad corresponde cuando varía entre
+  los meses que sustentan el cargo base. **No bloquea nada hoy**: `grids/` está vacío y el motor
+  no emite montos reales
+- [ ] T203 [MANUAL] Confirmar el desarrollo de la sigla del cargo de nivel secundario que aparece
+  en la liquidación («PM»). El catálogo lo nombra `modulos_secundaria` por lo que hace y no por la
+  sigla, justamente para no fijar una interpretación sin fuente. Si resultara algo más específico,
+  la entrada se divide
+- [ ] T204 [MANUAL] Verificar la equivalencia módulo ↔ hora cátedra a efectos previsionales
+  (Cuestión #3). Con 14 módulos el resultado del umbral cambia entre las dos lecturas, así que es
+  la que más casos deja provisionales
+- [ ] T205 [MANUAL] Conseguir una resolución del IPS que confirme si la base del **haber**
+  coincide con la base del **aporte** (Cuestión #2). El recibo prueba la base del aporte; que por
+  eso integre la remuneración del art. 40 es una inferencia
+---
+
 ## Gate de release
 
 **Decisión del mantenedor (2026-10-30)**: el **MVP técnico (US1 a US3)** puede completarse y

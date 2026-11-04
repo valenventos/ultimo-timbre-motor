@@ -56,13 +56,27 @@ def test_toda_regla_declara_su_norma(reglas: ConjuntoDeReglas) -> None:
 def test_ninguna_regla_no_verificada_lleva_valor(reglas: ConjuntoDeReglas) -> None:
     """La regla de datos: nada se completa con un valor plausible.
 
-    La excepción son las reglas que declaran `valor_por_defecto_aplicado`: el
-    motor no puede *no* elegir una convención de conteo, así que la elección se
-    declara en lugar de esconderse en el código.
+    Dos excepciones, y las dos son lo contrario de inventar:
+
+    * `valor_por_defecto_aplicado`: el motor no puede *no* elegir una
+      convención de conteo ni una política de redondeo, así que la elección se
+      **declara** en lugar de esconderse en el código;
+    * `evidencia`: una regla parcialmente verificada, cuyo valor registra lo
+      que se observó. `componentes.porcentuales_sobre_basico` tiene el 43,50 %
+      del código 0667 confirmado contra dos fuentes independientes, y lo que
+      falta es la generalización a los demás códigos. Borrar ese valor para
+      satisfacer el invariante perdería un dato verificado.
+
+    Lo que el invariante sigue prohibiendo es el tercer caso: una regla sin
+    verificar, sin default declarado y sin evidencia, con un número puesto
+    porque parecía razonable.
     """
     for regla in reglas.no_verificadas:
         if regla.valor_por_defecto_aplicado:
             assert regla.valor is not None, f"{regla.id} declara un default sin valor"
+            continue
+        if regla.evidencia:
+            assert regla.valor is not None, f"{regla.id} declara evidencia sin valor"
             continue
         assert regla.valor is None, f"{regla.id} tiene un valor tentativo"
 
@@ -76,11 +90,29 @@ def test_toda_regla_no_verificada_declara_impacto_y_que_falta(
         assert regla.que_falta_verificar
 
 
-def test_estan_las_seis_cuestiones_abiertas_del_dominio(
+def test_estan_las_cuestiones_abiertas_que_siguen_abiertas(
     reglas: ConjuntoDeReglas,
 ) -> None:
+    """Las #2 a #6 siguen abiertas. La #1 se resolvió el 2026-11-04."""
     abiertas = {r.cuestion_abierta for r in reglas.no_verificadas if r.cuestion_abierta}
-    assert {1, 2, 3, 4, 5, 6} <= abiertas
+    assert {2, 3, 4, 5, 6} <= abiertas
+
+
+def test_la_cuestion_uno_quedo_resuelta(reglas: ConjuntoDeReglas) -> None:
+    """La escala de antigüedad, verificada contra una liquidación real.
+
+    Se afirma por dos lados para que no se pueda «resolver» una cuestión
+    simplemente sacándole la etiqueta: ninguna regla sin verificar puede
+    reclamar la #1, **y** la regla que la tenía tiene que estar verificada con
+    su evidencia. Sin la segunda mitad, borrar la regla pasaría el test.
+    """
+    abiertas = {r.cuestion_abierta for r in reglas.no_verificadas if r.cuestion_abierta}
+    assert 1 not in abiertas
+
+    escala = reglas.por_id("antiguedad.escala_y_tope")
+    assert escala is not None
+    assert escala.estado is EstadoRegla.VERIFICADO
+    assert escala.evidencia
 
 
 def test_los_umbrales_del_art_24_son_los_documentados(reglas: ConjuntoDeReglas) -> None:

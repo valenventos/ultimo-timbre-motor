@@ -21,6 +21,8 @@ Tres reglas que el motor no rompe:
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from pydantic import BaseModel, ConfigDict
 
 from ultimo_timbre.models.caso import PeriodoDeServicio
@@ -53,15 +55,33 @@ class CondicionDerivada(BaseModel):
     requiere_umbral_horas_catedra: bool = False
     """El motor debe resolverlo con el total de horas simultáneas y el umbral."""
     umbral_horas_catedra: int | None = None
-    horas_catedra_evaluadas: int | None = None
+    horas_catedra_evaluadas: Decimal | None = None
+    """La carga del período en horas cátedra, con los módulos ya convertidos.
+
+    `Decimal` y no `int`: trece módulos son 19,5 horas cátedra, y redondear
+    acá decidiría el umbral en lugar de evaluarlo.
+    """
     advertencias: tuple[CodigoAdvertencia, ...] = ()
+
+
+def _carga_declarada(periodo: PeriodoDeServicio) -> Decimal | None:
+    """La carga del propio período, sin convertir módulos.
+
+    Es el camino de repliegue para cuando el llamador no calculó las horas
+    simultáneas. Si el período declara **módulos**, devuelve `None`: convertir
+    acá exigiría un factor que solo está en la regla, y suponer uno sería poner
+    un valor normativo en el código (Principio I).
+    """
+    if periodo.modulos is not None:
+        return None
+    return Decimal(periodo.horas_catedra) if periodo.horas_catedra is not None else None
 
 
 def derivar(
     catalogo: CatalogoDeCargos,
     periodo: PeriodoDeServicio,
     *,
-    horas_catedra_simultaneas: int | None = None,
+    horas_catedra_simultaneas: Decimal | None = None,
     umbral_horas_catedra: int | None = None,
 ) -> CondicionDerivada:
     """Resuelve la condición y la naturaleza de un período.
@@ -96,12 +116,12 @@ def derivar(
 
     # --- condición del catálogo, antes de aplicar el override ---
     requiere_umbral = False
-    horas_evaluadas: int | None = None
+    horas_evaluadas: Decimal | None = None
     if entrada.condicion is CondicionAlFrente.POR_HORAS_CATEDRA:
         horas_evaluadas = (
             horas_catedra_simultaneas
             if horas_catedra_simultaneas is not None
-            else periodo.horas_catedra
+            else _carga_declarada(periodo)
         )
         if umbral_horas_catedra is None or horas_evaluadas is None:
             del_catalogo: bool | None = None

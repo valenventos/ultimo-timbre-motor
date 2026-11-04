@@ -140,16 +140,27 @@ def historia() -> HistoriaDeServicios:
 
 
 def test_un_indice_inexistente_no_suma_horas(historia: HistoriaDeServicios) -> None:
-    assert cal.horas_catedra_simultaneas(historia, 99, f("2012-06-01")) == 0
+    assert (
+        cal.horas_catedra_simultaneas(historia, 99, f("2012-06-01"), horas_por_modulo=Decimal(1))
+        == 0
+    )
 
 
 def test_un_indice_inexistente_tampoco_tiene_maximo(historia: HistoriaDeServicios) -> None:
-    assert cal.max_horas_catedra_simultaneas(historia, 99, f("2015-02-28")) == 0
+    assert (
+        cal.max_horas_catedra_simultaneas(
+            historia, 99, f("2015-02-28"), horas_por_modulo=Decimal(1)
+        )
+        == 0
+    )
 
 
 def test_el_indice_que_si_existe_suma_sus_horas(historia: HistoriaDeServicios) -> None:
     """El contraste que vuelve significativos los dos tests anteriores."""
-    assert cal.horas_catedra_simultaneas(historia, 0, f("2012-06-01")) == 12
+    assert (
+        cal.horas_catedra_simultaneas(historia, 0, f("2012-06-01"), horas_por_modulo=Decimal(1))
+        == 12
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -77,9 +77,13 @@ def test_el_umbral_de_arrastre_sale_de_la_regla(reglas: ConjuntoDeReglas) -> Non
 def test_las_demas_reglas_no_verificadas_siguen_sin_valor(
     reglas: ConjuntoDeReglas,
 ) -> None:
-    """La excepción es solo para las reglas que obligan a elegir algo."""
+    """Las excepciones son las que obligan a elegir, y las ya verificadas en parte.
+
+    El criterio completo está en
+    `test_cargar_reglas.test_ninguna_regla_no_verificada_lleva_valor`.
+    """
     for r in reglas.no_verificadas:
-        if r.valor_por_defecto_aplicado:
+        if r.valor_por_defecto_aplicado or r.evidencia:
             continue
         assert r.valor is None, r.id
 

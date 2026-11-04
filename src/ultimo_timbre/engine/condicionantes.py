@@ -60,10 +60,15 @@ __all__ = ["de_regla", "de_situacion", "del_monto"]
 # relevancia dando vuelta un inciso a la vez y volviendo a rankear.
 
 # Las Cuestiones abiertas que condicionan **cualquier** haber, sin importar el
-# caso: la escala de antigüedad (#1), qué conceptos integran la remuneración del
-# cargo (#2) y la política de redondeo (#6).
+# caso: qué conceptos integran la remuneración del cargo (#2) y la política de
+# redondeo (#6).
+#
+# La escala de antigüedad (#1) estuvo en esta lista hasta el 2026-11-04, cuando
+# una liquidación real mostró el 125 % del Decreto 818/13 aplicado sobre el
+# básico. Ya no condiciona nada y se saca de acá: dejarla haría que
+# `de_regla` la descartara en silencio por estar verificada, y esta lista
+# dejaría de decir la verdad sobre qué condiciona un haber.
 REGLAS_DEL_MONTO = (
-    "antiguedad.escala_y_tope",
     "remuneracion.conceptos_del_cargo",
     "redondeo.politica_ips",
 )

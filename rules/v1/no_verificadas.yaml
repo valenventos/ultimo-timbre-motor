@@ -1,110 +1,140 @@
 # SPDX-FileCopyrightText: Último Timbre
 # SPDX-License-Identifier: AGPL-3.0-or-later
 #
-# T042 — Las Cuestiones abiertas #1 a #6 de la constitución, como reglas.
+# T042 — Las Cuestiones abiertas de la constitución todavía sin resolver,
+# como reglas.
+#
+# La #1 (escala de antigüedad) se resolvió el 2026-11-04 con la evidencia de
+# una liquidación real y se mudó a `haber.yaml` como regla verificada. Las
+# que quedan son la #2, #3, #4, #5, #6 y #9.
 #
 # Todas llevan `valor: null`. Ninguna lleva un valor tentativo: el motor emite
 # el resultado marcado como provisional y explica qué falta verificar
 # (FR-046 a FR-046c), que es preferible a un número que parece correcto.
 
 reglas:
-  # Cuestión abierta #1
-  # La escala del Decreto 818/13 está transcripta literalmente de su Anexo
-  # Único (https://normas.gba.gob.ar/documentos/BgAzqgfp.html), que el propio
-  # decreto dicta en función del art. 33 de la Ley 10.579. Los once tramos se
-  # verificaron uno por uno contra esa fuente, incluido el salto irregular de
-  # 84 % a 105 % a los 20 años, que no es un error de transcripción.
+  # Cuestión abierta #2 — sigue abierta, con mejor default desde 2026-11-04.
   #
-  # Lo que queda `no_verificada` **no son los valores sino su vigencia**: el
-  # decreto es de 2013 y no se pudo comprobar que ninguna norma posterior lo
-  # haya modificado. Por eso el porcentaje se aplica y el haber sale
-  # provisional, con la escala original de la Ley 10.579 informada como
-  # lectura alternativa a la baja (`antiguedad.escala_ley_10579`).
+  # El criterio pasó de «todos los componentes del cargo» a **los componentes
+  # con aporte al IPS**, y el cambio no es una reinterpretación de la norma sino
+  # una observación: la liquidación DGCyE 09/2026 muestra el aporte personal
+  # (código 1060) como el 16 % exacto de la suma de básico + antigüedad +
+  # bonificación remunerativa docente + bonificación no jerárquica, y la
+  # bonificación no remunerativa compensatoria (2575) queda afuera de esa base.
   #
-  # El decreto no declara tope: el último tramo es el de 24 años. Más allá de
-  # esa antigüedad el porcentaje se mantiene en 125 %.
-  - id: antiguedad.escala_y_tope
+  # Por qué es un default mejor y no solo distinto: los arts. 4 y 5 atan el
+  # sistema al aporte, y el Estado ya decidió mes a mes sobre qué conceptos se
+  # aporta. Es un criterio **verificable contra el recibo**, que la letra del
+  # art. 40 no es.
+  #
+  # Por qué **sigue sin verificarse**: que un concepto tribute no prueba que
+  # integre el haber. La correspondencia entre base de aporte y base de haber es
+  # exactamente lo que falta, y lo tiene que decir una resolución del IPS, no un
+  # recibo de actividad. Todo haber sigue saliendo provisional.
+  - id: remuneracion.conceptos_del_cargo
     norma:
       texto: >-
-        Decreto 818/13, Anexo Único (escala de bonificación por antigüedad,
-        dictado en función del art. 33 de la Ley 10.579)
-      ley: "Decreto 818/13"
-      articulo: "Anexo Único"
-      enlace: "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
+        DL 9650/80, arts. 4 y 5 (obligatoriedad del aporte y conceptos sujetos
+        a aporte) y art. 40 (remuneración asignada al cargo)
+      ley: "DL 9650/80"
+      articulo: "4, 5 y 40"
     tipo: letra_ley
     estado: no_verificada
     impacto_si_no_verificada: indeterminado
     magnitud_estimada: >-
-      125 % contra 120 % en el tramo más alto, y 13 puntos de diferencia en el
-      primer tramo; sobre la parte bonificable del cargo
+      la diferencia es el conjunto de componentes no remunerativos sin aporte;
+      en la liquidación relevada, un concepto compensatorio de suma fija
+    evidencia: >-
+      liquidación DGCyE 09/2026: el código 1060 (aporte personal al IPS) es el
+      16 % exacto de la suma de los códigos 0110, 0220, 0455 y 0667. El código
+      2575 (bonificación no remunerativa compensatoria) no integra esa base
     que_falta_verificar: >-
-      si la escala del Decreto 818/13, vigente desde el 1º de julio de 2013,
-      sigue siendo la aplicable, y si existe un tope distinto del último tramo.
-      Los once tramos están transcriptos de su Anexo Único; lo que no se pudo
-      verificar es que ninguna norma posterior los haya modificado. La escala
-      original de la Ley 10.579, art. 33, con tope 120 %, queda informada como
-      lectura alternativa a la baja.
-    cuestion_abierta: 1
-    valor_por_defecto_aplicado: true
-    valor:
-      escala:
-        - anios: 0
-          porcentaje: "0.13"
-        - anios: 2
-          porcentaje: "0.23"
-        - anios: 4
-          porcentaje: "0.33"
-        - anios: 7
-          porcentaje: "0.43"
-        - anios: 10
-          porcentaje: "0.54"
-        - anios: 12
-          porcentaje: "0.64"
-        - anios: 15
-          porcentaje: "0.74"
-        - anios: 17
-          porcentaje: "0.84"
-        - anios: 20
-          porcentaje: "1.05"
-        - anios: 22
-          porcentaje: "1.15"
-        - anios: 24
-          porcentaje: "1.25"
+      si la base de cálculo del **haber** coincide con la base del **aporte**.
+      Que un concepto tribute al IPS es observable en el recibo; que por eso
+      integre la remuneración del cargo del art. 40 es una inferencia, y la
+      tiene que confirmar una resolución del IPS sobre un haber liquidado.
 
-  # Cuestión abierta #2
-  - id: remuneracion.conceptos_del_cargo
-    norma:
-      texto: "DL 9650/80, art. 40 (concepto de remuneración)"
-      ley: "DL 9650/80"
-      articulo: "40"
-    tipo: letra_ley
-    estado: no_verificada
-    impacto_si_no_verificada: indeterminado
-    que_falta_verificar: >-
-      qué conceptos del recibo integran la «remuneración asignada al cargo» que
-      toma el IPS: básico, antigüedad, sumas fijas remunerativas no
-      bonificables, códigos específicos, y cuáles quedan afuera. Mientras siga
-      abierta, todo haber sale provisional.
+      El motor aplica por defecto los **componentes con aporte al IPS**, que es
+      el criterio verificable contra el recibo. La lectura más amplia —incluir
+      también los no remunerativos sin aporte, como el FONID o la Conectividad—
+      queda informada como alternativa al alza
+      (`remuneracion.incluye_no_remunerativos_sin_aporte`).
 
-      El motor aplica por defecto **la letra del art. 40**: todos los
-      componentes del cargo, incluidos los no remunerativos, salvo los que el
-      artículo excluye expresamente —horas extras, asignaciones familiares,
-      viáticos, gastos de residencia y becas—. Qué componente concreto de la
-      grilla corresponde a cada concepto excluido lo declara la grilla con
-      `excluido_art40`, no el motor.
-
-      La lectura más restrictiva —solo los componentes remunerativos— queda
-      informada como alternativa a la baja (`remuneracion.solo_remunerativos`).
+      Las exclusiones expresas del art. 40 —horas extras, asignaciones
+      familiares, viáticos, gastos de residencia y becas— siguen aplicándose en
+      cualquiera de las dos lecturas, y las declara la grilla con
+      `excluido_art40`.
     cuestion_abierta: 2
     valor_por_defecto_aplicado: true
     valor:
-      criterio_aplicado: "todos_los_componentes_del_cargo"
+      criterio_aplicado: "componentes_con_aporte_ips"
+      alicuota_aporte_personal: "0.16"
+      componentes_con_aporte_verificados:
+        - "0110"
+        - "0220"
+        - "0455"
+        - "0667"
+      componentes_sin_aporte_verificados:
+        - "2575"
       excluidos:
         - "horas extras"
         - "asignaciones familiares"
         - "viáticos"
         - "gastos de residencia"
         - "becas"
+
+  # Cuestión abierta #3, segunda parte: la equivalencia módulo ↔ hora cátedra.
+  #
+  # El nivel secundario liquida por **módulos** y el art. 24 inc. b habla de
+  # **horas cátedra**. Sin una equivalencia el umbral de veinte no se puede
+  # evaluar para una docente por módulos, que es la mitad del nivel.
+  #
+  # El valor por defecto —1 módulo = 1,5 horas cátedra— sale de la duración: el
+  # módulo es de 60 minutos y la hora cátedra de 40, así que dos módulos son
+  # tres horas cátedra. Es la práctica administrativa de la DGCyE y es
+  # aritméticamente coherente, pero **no se encontró la norma que la fije** a
+  # los efectos previsionales, y de eso depende si una docente con 14 módulos
+  # (21 horas) alcanza el umbral o no lo alcanza (14 horas).
+  #
+  # Cómo lo trata el motor: evalúa el umbral bajo **las dos** lecturas. Si el
+  # resultado coincide, el inciso sale definitivo y la cuestión no lo
+  # condiciona; si cambia, sale provisional y el informe muestra las dos. Una
+  # regla sin verificar que no mueve el resultado es informativa, no bloqueante.
+  - id: modulos.equivalencia_horas_catedra
+    norma:
+      texto: >-
+        Práctica administrativa DGCyE (módulo de 60 minutos, hora cátedra de 40
+        minutos) a los efectos del umbral del art. 24 inc. b del DL 9650/80
+      ley: "Práctica administrativa DGCyE"
+      articulo: "24"
+      inciso: "b"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      1,5 contra 1,0 hora cátedra por módulo: con 14 módulos la diferencia es
+      21 horas contra 14, a los dos lados del umbral de 20
+    evidencia: >-
+      liquidación DGCyE 09/2026: la carga horaria de un cargo de nivel
+      secundario se expresa en módulos y no en horas cátedra, lo que hace
+      necesaria la equivalencia. La liquidación no la documenta
+    que_falta_verificar: >-
+      la norma que fija la equivalencia entre módulo y hora cátedra **a los
+      efectos previsionales**. La relación 1 módulo = 1,5 horas cátedra se
+      desprende de las duraciones (60 y 40 minutos) y es la práctica
+      administrativa de la DGCyE, pero no se encontró el acto que la establezca
+      para el cómputo del art. 24 inc. b.
+
+      El motor aplica 1,5 por defecto y evalúa el umbral también con la lectura
+      conservadora de 1 módulo = 1 hora cátedra
+      (`modulos.equivalencia_uno_a_uno`). El inciso sale provisional solo si las
+      dos lecturas difieren en el resultado.
+    cuestion_abierta: 3
+    valor_por_defecto_aplicado: true
+    valor:
+      horas_catedra_por_modulo: "1.5"
+      minutos_modulo: 60
+      minutos_hora_catedra: 40
 
   # Cuestión abierta #3
   - id: horas_catedra.como_carrera

@@ -109,6 +109,25 @@ class EstadoResultado(StrEnum):
     PROVISIONAL = "provisional"
 
 
+class UnidadDeCarga(StrEnum):
+    """En qué unidad se mide el desempeño de un cargo.
+
+    Existe porque el índice escalafonario **no es comparable entre unidades**.
+    Un índice por hora cátedra, uno por módulo y uno por cargo completo son tres
+    magnitudes distintas, y el comparador del cargo base las mezclaría sin que
+    nada se viera raro: 1,15 por hora no es «menos jerarquía» que 1,70 de un
+    Director.
+
+    El nivel secundario liquida por **módulos**, que no son horas cátedra: un
+    módulo dura 60 minutos y una hora cátedra 40. La equivalencia entre los dos
+    es la Cuestión abierta #3 (`modulos.equivalencia_horas_catedra`).
+    """
+
+    CARGO = "cargo"
+    HORA_CATEDRA = "hora_catedra"
+    MODULO = "modulo"
+
+
 class SentidoImpacto(StrEnum):
     AL_ALZA = "al_alza"
     A_LA_BAJA = "a_la_baja"

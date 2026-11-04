@@ -172,7 +172,7 @@ entradas:
   #
   # El nomenclador da un índice distinto por nivel y expresado por hora, no por
   # cargo (Decreto 1301/2005, Anexo I, sección XVI). Por eso van separadas y
-  # con `indice_es_por_hora: true`: comparar un índice por hora contra uno por
+  # con `unidad_de_carga: hora_catedra`: comparar un índice por hora contra uno
   # cargo mezcla dos magnitudes y da un resultado que parece válido.
   #
   # La condición de al frente de alumnos no es booleana: el art. 24 inc. b
@@ -181,7 +181,7 @@ entradas:
   - cargo: hora_catedra_secundaria
     jerarquia: null
     indice_escalafonario: null
-    indice_es_por_hora: true
+    unidad_de_carga: hora_catedra
     regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: null
     naturaleza: docente
@@ -197,7 +197,7 @@ entradas:
   - cargo: hora_catedra_adultos
     jerarquia: null
     indice_escalafonario: null
-    indice_es_por_hora: true
+    unidad_de_carga: hora_catedra
     regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: null
     naturaleza: docente
@@ -213,7 +213,7 @@ entradas:
   - cargo: hora_catedra_superior
     jerarquia: null
     indice_escalafonario: null
-    indice_es_por_hora: true
+    unidad_de_carga: hora_catedra
     regla_indice: jerarquia.indices_escalafonarios
     al_frente_de_alumnos: null
     naturaleza: docente
@@ -226,6 +226,41 @@ entradas:
     condicion: por_horas_catedra
     regla_umbral: requisitos.art24.inc_b
     regla_id: horas_catedra.como_carrera
+
+  # ---- Carga horaria por módulos: el nivel secundario ----
+  #
+  # Unidad **distinta** de la hora cátedra, no un sinónimo. El módulo dura 60
+  # minutos y la hora cátedra 40, así que ni los índices ni las cargas son
+  # comparables directamente: la equivalencia es la Cuestión abierta #3
+  # (`modulos.equivalencia_horas_catedra`).
+  #
+  # En la liquidación relevada el cargo aparece con la sigla «PM» y la carga
+  # expresada en módulos. **El significado exacto de PM queda a confirmar**: se
+  # lo nombra acá como `modulos_secundaria` por lo que hace —medir la carga en
+  # módulos de nivel secundario— y no por una sigla cuyo desarrollo no se pudo
+  # verificar. Si PM resultara ser algo más específico, esta entrada se divide.
+  #
+  # La condición de al frente de alumnos se resuelve por umbral, igual que las
+  # horas cátedra: el art. 24 inc. b asimila a los profesores que **reúnen**
+  # veinte horas cátedra, y con módulos eso se evalúa sobre la carga convertida.
+  - cargo: modulos_secundaria
+    jerarquia: null
+    indice_escalafonario: null
+    unidad_de_carga: modulo
+    regla_indice: jerarquia.indices_escalafonarios
+    al_frente_de_alumnos: null
+    naturaleza: docente
+    norma:
+      texto: >-
+        DL 9650/80, art. 24 inc. b (profesores que reúnen veinte horas cátedra),
+        sobre carga horaria expresada en módulos de nivel secundario
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    estado: verificado
+    condicion: por_horas_catedra
+    regla_umbral: requisitos.art24.inc_b
+    regla_id: modulos.equivalencia_horas_catedra
 
   # ---- Directivos: fuera de la enumeración del inc. b ----
   #

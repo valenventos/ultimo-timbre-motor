@@ -39,12 +39,14 @@ def _informe(cargo: str = "maestro_de_grado", **kw: object) -> Informe:
 
 
 def test_el_constructor_de_condicionante_de_regla() -> None:
-    regla = REGLAS.por_id("antiguedad.escala_y_tope")
+    # Era `antiguedad.escala_y_tope` hasta que la Cuestión #1 se resolvió y la
+    # regla pasó a verificada. Se usa la #2, que sigue abierta.
+    regla = REGLAS.por_id("remuneracion.conceptos_del_cargo")
     assert regla is not None
     c = cond.de_regla(regla)
     assert c is not None
     assert c.clase is ClaseCondicionante.REGLA_NO_VERIFICADA
-    assert c.referencia == "antiguedad.escala_y_tope"
+    assert c.referencia == "remuneracion.conceptos_del_cargo"
     assert c.norma is not None
     assert c.sentido_impacto is regla.impacto_si_no_verificada
     assert c.que_falta_verificar == regla.que_falta_verificar
@@ -114,18 +116,20 @@ def test_los_condicionantes_salen_en_orden_estable() -> None:
 
 
 def test_las_reglas_que_condicionan_todo_monto_se_listan() -> None:
-    """Las Cuestiones #1, #2 y #6 condicionan cualquier haber (listo para la US4)."""
+    """Las Cuestiones #2 y #6 condicionan cualquier haber.
+
+    Eran tres. La #1 —la escala de antigüedad— salió el 2026-11-04, cuando una
+    liquidación real mostró aplicado el 125 % del Decreto 818/13.
+    """
     refs = {c.referencia for c in cond.del_monto(REGLAS)}
-    assert "antiguedad.escala_y_tope" in refs
-    assert "remuneracion.conceptos_del_cargo" in refs
-    assert "redondeo.politica_ips" in refs
+    assert refs == {"remuneracion.conceptos_del_cargo", "redondeo.politica_ips"}
 
 
 @pytest.mark.parametrize(
     "regla_id",
     [
-        "antiguedad.escala_y_tope",
         "remuneracion.conceptos_del_cargo",
+        "modulos.equivalencia_horas_catedra",
         "horas_catedra.como_carrera",
         "jerarquia.criterio_comparacion",
         "computo.licencias_suplencias_y_revista",

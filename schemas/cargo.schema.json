@@ -140,17 +140,21 @@
           "pattern": "^[0-9]+(\\.[0-9]+)?$",
           "description": "Índice escalafonario del nomenclador, como string numérico y nunca number (research R1): los índices son decimales exactos y un float binario arruinaría un 1.32. Es el multiplicador del sueldo básico del cargo testigo, y por eso sirve a la vez como criterio de «mejor remunerado» (Res. IPS 995/2021) y como desempate verificable del art. 41. null = no verificado, que no equivale a 1: en la v1 está null en todas las entradas porque el Anexo del art. 9 del Decreto 2397/2005 no está publicado."
         },
-        "indice_es_por_hora": {
-          "type": "boolean",
-          "default": false,
-          "description": "Si el índice se aplica por hora cátedra en lugar de por cargo. Un índice por hora no es comparable con uno por cargo: sin esta marca el comparador mezclaría dos magnitudes distintas y el resultado parecería válido."
-        },
         "regla_indice": {
           "type": [
             "string",
             "null"
           ],
           "description": "Regla que condiciona el índice cuando no está verificado. Obligatoria si indice_escalafonario es null."
+        },
+        "unidad_de_carga": {
+          "enum": [
+            "cargo",
+            "hora_catedra",
+            "modulo"
+          ],
+          "default": "cargo",
+          "description": "En qué unidad se mide el desempeño. Decide si el `indice_escalafonario` es comparable con el de otra entrada: un índice por hora cátedra, uno por módulo y uno por cargo son tres magnitudes distintas, y el módulo dura 60 minutos contra los 40 de la hora cátedra."
         }
       },
       "allOf": [

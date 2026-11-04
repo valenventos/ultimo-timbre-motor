@@ -96,6 +96,11 @@
       "type": "boolean",
       "default": false,
       "description": "true cuando la regla no está verificada pero el motor igual tuvo que elegir algo (por ejemplo la convención de conteo de tiempo): `valor` trae entonces la convención aplicada, declarada provisional. Sin este campo no se distingue de una regla que deja su valor en null porque el motor puede negarse a calcular."
+    },
+    "evidencia": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Contra qué documento concreto se comprobó la regla, además de la norma. `norma` dice qué dice el derecho; `evidencia` dice qué se miró para convencerse de que es lo que se aplica. Nunca identifica a una persona: nombra el tipo de documento y su período, no su titular (Principio III)."
     }
   },
   "allOf": [
@@ -317,8 +322,108 @@
             "se_informa_como": {
               "enum": [
                 "advertencia",
-                "condicionante"
+                "condicionante",
+                "referencia_historica"
               ]
+            },
+            "base": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Sobre qué se calcula: por ejemplo `sueldo_basico`."
+            },
+            "unico_componente_bonificable": {
+              "type": "boolean",
+              "description": "Si la base bonificable es un solo componente del cargo."
+            },
+            "no_bonificables_verificados": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Códigos de concepto que se verificó que NO integran la base bonificable."
+            },
+            "alicuota_aporte_personal": {
+              "$ref": "#/$defs/decimal_str",
+              "description": "Alícuota del aporte personal verificada en una liquidación."
+            },
+            "componentes_con_aporte_verificados": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Códigos de concepto que se verificó que tributan al IPS."
+            },
+            "componentes_sin_aporte_verificados": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Códigos de concepto que se verificó que NO tributan al IPS."
+            },
+            "horas_catedra_por_modulo": {
+              "$ref": "#/$defs/decimal_str",
+              "description": "Cuántas horas cátedra equivale un módulo. Va como decimal_str porque 1,5 como float binario no es 1,5 (Cuestión abierta #3)."
+            },
+            "minutos_modulo": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minutos_hora_catedra": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "codigos_verificados": {
+              "type": "array",
+              "minItems": 1,
+              "description": "Códigos con su porcentaje verificado. Se declara con forma explícita, igual que `escala`: `additionalProperties` solo alcanza al primer nivel, y sin esto un porcentaje anidado entraría como number.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "codigo",
+                  "porcentaje"
+                ],
+                "properties": {
+                  "codigo": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "porcentaje": {
+                    "$ref": "#/$defs/decimal_str"
+                  }
+                }
+              }
+            },
+            "codigos_sin_verificar": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": "Códigos del mismo tipo cuyo criterio todavía no se verificó."
+            },
+            "proporcionalidad": {
+              "enum": [
+                "lineal"
+              ],
+              "description": "Cómo escala el valor con la cantidad de unidades de carga."
+            },
+            "redondeo_por_unidad": {
+              "type": "boolean"
+            },
+            "vigente": {
+              "type": "boolean",
+              "description": "`false` marca una regla que se conserva por trazabilidad y ya no se aplica ni se informa como alternativa."
+            },
+            "reemplazada_por": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Regla que dejó a esta sin vigencia."
             }
           },
           "additionalProperties": {

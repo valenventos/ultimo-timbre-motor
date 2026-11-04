@@ -42,6 +42,35 @@ class ComponenteSalarial(BaseModel):
     aplicar a ciegas.
     """
     remunerativo: bool
+    aporte_ips: bool | None = None
+    """Si sobre este componente se calcula el aporte personal al IPS.
+
+    `None` = la grilla no lo declara, que **no** equivale a `False`: significa
+    que no se sabe, y el motor lo informa en lugar de suponerlo.
+
+    Es el atributo que define la remuneración del cargo desde que se verificó,
+    en la liquidación DGCyE 09/2026, que el aporte personal (código 1060) es el
+    16 % exacto de la suma de los componentes con aporte, y que la bonificación
+    no remunerativa compensatoria queda afuera.
+
+    No coincide necesariamente con `remunerativo`. Son dos preguntas distintas
+    —si el concepto es remunerativo y si tributa al IPS— y la Cuestión abierta
+    #2 es justamente cuál de las dos define el haber. Confundirlas sería
+    decidir la cuestión por omisión.
+    """
+    porcentaje_del_basico: Decimal | None = None
+    """Si el componente se liquida como porcentaje del básico, cuál.
+
+    Metadato de procedencia, no de cálculo: la grilla trae el importe ya
+    resuelto y el motor no lo recalcula. Sirve para auditar la grilla contra la
+    escala publicada —0667 es el 43,50 % del básico— y para detectar una
+    transcripción equivocada antes de que produzca un haber.
+
+    Verificado solo para el código 0667. Que **todos** los componentes
+    porcentuales se calculen sobre el básico es la regla
+    `componentes.porcentuales_sobre_basico`, todavía sin verificar para los
+    demás códigos.
+    """
     regla_id: str | None = None
 
 
@@ -63,6 +92,37 @@ class ValorCargo(BaseModel):
     @property
     def total_remunerativo(self) -> Decimal:
         return sum((c.importe for c in self.componentes if c.remunerativo), Decimal("0"))
+
+    @property
+    def basico(self) -> Decimal | None:
+        """El componente básico, que es la base de todo lo demás.
+
+        Es el único bonificable (`antiguedad.base_bonificable`, verificado) y la
+        base de los componentes porcentuales. `None` si la grilla no declara
+        ninguno bonificable, caso en que el motor no puede auditar los
+        porcentajes ni aplicar la antigüedad.
+        """
+        bonificables = [c for c in self.componentes if c.bonificable]
+        if len(bonificables) != 1:
+            return None
+        return bonificables[0].importe
+
+    @property
+    def total_con_aporte_ips(self) -> Decimal:
+        """La base del aporte personal al IPS (liquidación DGCyE 09/2026)."""
+        return sum(
+            (c.importe for c in self.componentes if c.aporte_ips),
+            Decimal("0"),
+        )
+
+    @property
+    def declara_aporte_ips(self) -> bool:
+        """Si **todos** los componentes dicen si tributan al IPS.
+
+        Alcanza con que uno no lo diga para que el criterio no se pueda aplicar
+        con certeza: el motor suma lo que sabe y declara la laguna.
+        """
+        return all(c.aporte_ips is not None for c in self.componentes)
 
 
 class GrillaSalarial(BaseModel):

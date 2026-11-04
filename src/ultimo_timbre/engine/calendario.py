@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections.abc import Iterable, Set
+from decimal import Decimal
 from typing import Self
 
 from dateutil.relativedelta import relativedelta
@@ -272,21 +273,34 @@ def horas_catedra_simultaneas(
     historia: HistoriaDeServicios,
     idx: int,
     fecha: dt.date,
-) -> int:
+    *,
+    horas_por_modulo: Decimal,
+) -> Decimal:
     """Horas cátedra activas en una fecha, sumando los períodos que la cubren.
 
     El art. 24 inc. b habla de **reunir** veinte horas cátedra, y eso se reúne
     sumando cargos simultáneos: es una propiedad de la historia en un momento
     dado, no de un período suelto.
+
+    Los **módulos** se convierten a horas cátedra con `horas_por_modulo`, que
+    el llamador trae de la regla `modulos.equivalencia_horas_catedra` y nunca
+    está escrito acá (Principio I). Las dos cargas se suman en la misma unidad
+    porque el artículo habla de *reunir*: diez horas cátedra más ocho módulos
+    son veintidós horas, no «ocho o diez».
+
+    Devuelve `Decimal` y no `int` porque la conversión puede dar fracción —
+    trece módulos son 19,5 horas— y redondear ahí decidiría el umbral por
+    nosotros, que es exactamente lo que el Principio II prohíbe.
     """
     objetivo = next((p for p in historia.periodos if p.idx == idx), None)
     if objetivo is None:
-        return 0
-    total = 0
+        return Decimal(0)
+    total = Decimal(0)
     for p in historia.periodos:
         fin = p.hasta or dt.date.max
         if p.desde <= fecha <= fin:
-            total += p.horas_catedra or 0
+            total += Decimal(p.horas_catedra or 0)
+            total += Decimal(p.modulos or 0) * horas_por_modulo
     return total
 
 
@@ -294,7 +308,9 @@ def max_horas_catedra_simultaneas(
     historia: HistoriaDeServicios,
     idx: int,
     hasta: dt.date,
-) -> int:
+    *,
+    horas_por_modulo: Decimal,
+) -> Decimal:
     """El máximo de horas simultáneas alcanzado mientras el período está activo.
 
     El máximo solo puede cambiar en los bordes de los períodos, así que se
@@ -303,14 +319,17 @@ def max_horas_catedra_simultaneas(
     """
     objetivo = next((p for p in historia.periodos if p.idx == idx), None)
     if objetivo is None:
-        return 0
+        return Decimal(0)
     tramo = objetivo.tramo_a(hasta)
     if tramo is None:
-        return 0
+        return Decimal(0)
 
     candidatas = {tramo.desde, tramo.hasta}
     for p in historia.periodos:
         for borde in (p.desde, p.hasta):
             if borde is not None and tramo.desde <= borde <= tramo.hasta:
                 candidatas.add(borde)
-    return max(horas_catedra_simultaneas(historia, idx, f) for f in sorted(candidatas))
+    return max(
+        horas_catedra_simultaneas(historia, idx, f, horas_por_modulo=horas_por_modulo)
+        for f in sorted(candidatas)
+    )

@@ -172,11 +172,14 @@ def _candidatos(
             if len(meses) >= alternados
             else None
         )
-        # Un índice por hora no se compara con uno por cargo: mezclar las dos
-        # magnitudes da un resultado que parece válido y no lo es.
+        # Un índice por unidad de carga —hora cátedra o módulo— no se compara
+        # con uno por cargo completo: mezclar magnitudes distintas da un
+        # resultado que parece válido y no lo es. Y un índice por módulo
+        # tampoco es comparable con uno por hora, porque el módulo dura 60
+        # minutos y la hora cátedra 40.
         indice = (
             entrada.indice_escalafonario
-            if entrada is not None and not entrada.indice_es_por_hora
+            if entrada is not None and not entrada.indice_por_unidad
             else None
         )
         salida.append(

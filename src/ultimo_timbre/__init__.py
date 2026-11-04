@@ -52,6 +52,7 @@ from ultimo_timbre.models.enums import (
     TipoEstablecimiento,
     TipoFuente,
     TipoLicencia,
+    UnidadDeCarga,
     ViaCargoBase,
 )
 from ultimo_timbre.models.grilla import (
@@ -151,6 +152,7 @@ __all__ = [
     "TipoLicencia",
     "Tramo",
     "UltimoTimbreError",
+    "UnidadDeCarga",
     "ValorCargo",
     "Versiones",
     "ViaCargoBase",

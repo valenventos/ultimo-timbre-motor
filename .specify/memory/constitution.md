@@ -1,6 +1,32 @@
 <!--
 Sync Impact Report
 ==================
+Versión: 1.1.1 → 1.1.2
+Tipo de cambio: Enmienda PATCH. Se marca la Cuestión abierta #1 como resuelta, con su evidencia y
+su fecha, y se documenta el criterio con que una cuestión se da por resuelta. No se agregan ni
+amplían secciones. **Los diez principios no se modificaron** (ni su texto, ni su numeración, ni
+su orden), y se verificó por hash del bloque completo.
+
+Secciones modificadas:
+  • Cuestiones abiertas del dominio — #1 resuelta el 2026-11-04 con la evidencia de una
+    liquidación DGCyE 09/2026; se agrega el criterio de resolución (evidencia verificable, no
+    plausibilidad) y la convención de tachar en lugar de borrar.
+
+Propagación a los artefactos del proyecto:
+  • rules/v1/haber.yaml → `antiguedad.escala_y_tope` verificada, con `evidencia` y tope 125 %;
+    nueva `antiguedad.base_bonificable`; `antiguedad.escala_ley_10579` marcada no vigente.
+  • rules/v1/no_verificadas.yaml → la #1 sale del archivo; su encabezado ya no dice "#1 a #6".
+  • src/ultimo_timbre/engine/condicionantes.py → la escala sale de `REGLAS_DEL_MONTO`.
+  • specs/001-motor-calculo-jubilacion/spec.md → FR-030b, FR-031b y FR-032 pasan a verificado;
+    tabla de fundamento normativo y lista de cuestiones que afectan a la spec.
+  • tests/golden/test_provisional_antiguedad.py → reescrito con la afirmación invertida.
+
+Nota de gobernanza: esta enmienda **no cierra** las Cuestiones #2 a #6 ni la #9. La #2 mejoró su
+criterio por defecto —pasó a los componentes con aporte al IPS, con evidencia— y sigue abierta,
+porque que un concepto tribute no prueba que integre el haber: eso lo tiene que decir una
+resolución del IPS.
+
+--- Sync Impact Report de la enmienda anterior (v1.1.0 → v1.1.1) ---
 Versión: 1.1.0 → 1.1.1
 Tipo de cambio: Enmienda PATCH. Se agrega la Cuestión abierta #9 a la lista existente. No se
 agregan ni amplían secciones: la lista de Cuestiones abiertas ya existía y ya preveía su propio
@@ -303,8 +329,24 @@ de verdad operativa.
 Estas cuestiones DEBEN resolverse con fuente verificable antes de implementar las reglas que
 dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICADA`.
 
-1. **Escala de antigüedad vigente:** el Decreto 818/13 fija un tope de 125 % a los 24 años; otras
-   fuentes recientes mencionan 120 %. Confirmar con norma vigente y recibos reales.
+Una cuestión se da por resuelta cuando hay **evidencia verificable**, no cuando parece razonable.
+La regla correspondiente pasa a `verificado` declarando en `evidencia` contra qué documento se
+comprobó, y la cuestión queda acá tachada con su fecha en lugar de borrarse: el registro de por
+qué estuvo abierta es parte de la auditoría.
+
+1. ~~**Escala de antigüedad vigente**~~ — **RESUELTA el 2026-11-04.** Rige la escala del
+   `Decreto 818/13, Anexo Único`, con **tope 125 %** en el tramo de 24 años.
+
+   Los once tramos estaban transcriptos del Anexo Único desde el principio; lo que faltaba era la
+   certeza de que ninguna norma posterior los había modificado, y eso ninguna relectura de la
+   norma podía darla. La dio una **liquidación DGCyE 09/2026**: con 26 años de antigüedad, el
+   código 0220 es exactamente 1,25 veces el código 0110. El 120 % que mencionaban otras fuentes
+   es la escala original de la `Ley 10579, art. 33`, anterior al decreto, que queda como
+   referencia histórica y no se informa como lectura alternativa.
+
+   Verificado además **sobre qué** se aplica: solo el sueldo básico. Las bonificaciones
+   remunerativa docente (0455) y no jerárquica (0667) no integran la base aunque sean
+   remunerativas y lleven aporte.
 2. **Remuneración del cargo:** qué conceptos del recibo integran la "remuneración asignada al
    cargo" que toma el IPS (básico, antigüedad, sumas fijas remunerativas no bonificables, códigos
    específicos) y cuáles no.
@@ -397,4 +439,4 @@ dependen de ellas. Hasta entonces, las reglas afectadas quedan como `NO_VERIFICA
   se justifica contra el Principio X.
 - Las cuestiones abiertas del dominio se revisan antes de cada release del motor.
 
-**Versión**: 1.1.1 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-11-02
+**Versión**: 1.1.2 | **Ratificada**: 2026-10-30 | **Última enmienda**: 2026-11-04

@@ -73,7 +73,7 @@
         "horas_catedra": {
           "type": "integer",
           "minimum": 0,
-          "description": "Cantidad de horas cátedra o módulos, cuando el desempeño es por horas y no por cargo. Su tratamiento como carrera es NO_VERIFICADA (Res. HD IPS 8/14, Cuestión abierta #3)."
+          "description": "Cantidad de horas cátedra, cuando el desempeño es por horas y no por cargo. Los módulos van en `modulos`, que es otra unidad. Su tratamiento como carrera es NO_VERIFICADA (Res. HD IPS 8/14, Cuestión abierta #3)."
         },
         "establecimiento": {
           "$ref": "#/$defs/establecimiento"
@@ -134,6 +134,11 @@
           ],
           "default": null,
           "description": "Corrección manual de la naturaleza derivada del catálogo (FR-002d). Su uso marca el dato como manual y condiciona el monto (override_manual)."
+        },
+        "modulos": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Carga horaria en módulos, la unidad del nivel secundario. No son horas cátedra: el módulo dura 60 minutos y la hora cátedra 40. Se declara aparte para no perder el dato original del recibo, y la equivalencia con las horas cátedra a los efectos del umbral del art. 24 inc. b es la Cuestión abierta #3 (`modulos.equivalencia_horas_catedra`)."
         }
       }
     },
