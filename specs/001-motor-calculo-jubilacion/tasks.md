@@ -444,7 +444,7 @@ y el código de salida correcto, con la máquina desconectada de la red.
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T183 [P] Crear los casos de ejemplo en `examples/` que usa `quickstart.md`: `caso-inc-b.yaml`, `caso-escenarios.yaml`, `caso-54-anios.yaml`, `caso-otra-caja.yaml`, `caso-privado.yaml`, `caso-simultaneo.yaml`, `caso-provisional.yaml`
+- [X] T183 [P] Crear los casos de ejemplo en `examples/` que usa `quickstart.md`: `caso-inc-b.yaml`, `caso-escenarios.yaml`, `caso-54-anios.yaml`, `caso-otra-caja.yaml`, `caso-privado.yaml`, `caso-simultaneo.yaml`, `caso-provisional.yaml`
 - [ ] T184 [P] Documentar la interfaz pública de librería en `docs/api.md` con ejemplos de uso sin I/O
 - [ ] T185 [P] Escribir `README.md` con instalación por uv, uso de CLI y de librería, y el aviso de estimación orientativa
 - [ ] T186 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)

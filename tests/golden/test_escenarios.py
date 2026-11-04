@@ -22,11 +22,12 @@ from pathlib import Path
 
 import pytest
 
-from tests.casos import caso_escenarios, f
+from tests.casos import caso, caso_escenarios, f, periodo
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import TipoEscenario
 from ultimo_timbre.models.grilla import GrillaSalarial
 from ultimo_timbre.models.informe import Escenario, Informe
+from ultimo_timbre.render.texto import informe_a_texto
 from ultimo_timbre.rules import versiones
 
 pytestmark = pytest.mark.golden
@@ -134,3 +135,53 @@ def test_cada_monto_trae_su_marca_y_sus_condicionantes(informe: Informe) -> None
     for escenario in informe.escenarios:
         assert escenario.haber is not None
         assert escenario.haber.condicionantes
+
+
+# ---------------------------------------------------------------------------
+# La aclaración en lenguaje claro (US5 esc. 5)
+# ---------------------------------------------------------------------------
+
+
+def test_el_texto_aclara_que_esperar_no_aumenta_la_antiguedad(informe: Informe) -> None:
+    """Sin esta línea la comparación se lee al revés.
+
+    Los años de antigüedad crecen entre escenarios —26, 29, 31— y el monto
+    también. Es natural deducir que una cosa causa la otra, y es falso: la
+    antigüedad ya está en el tramo máximo en todos los escenarios porque el
+    art. 24 pide 25 años de servicio y la escala topa a los 24. Lo que aumenta
+    es el porcentaje de los arts. 42 y 43.
+    """
+    texto = informe_a_texto(informe)
+    assert (
+        "Esperar no aumenta la bonificación por antigüedad (ya está en el máximo); "
+        "lo que aumenta es el porcentaje del haber." in texto
+    )
+
+
+def test_la_aclaracion_aparece_una_sola_vez(informe: Informe) -> None:
+    """Es una nota de la comparación, no de cada escenario."""
+    texto = informe_a_texto(informe)
+    assert texto.count("Esperar no aumenta la bonificación") == 1
+
+
+def test_la_aclaracion_esta_en_la_seccion_de_escenarios(informe: Informe) -> None:
+    """Donde se lee la comparación, no perdida entre las advertencias."""
+    texto = informe_a_texto(informe)
+    inicio = texto.index("Escenarios de cese")
+    fin = texto.index("Desglose paso a paso")
+    assert "Esperar no aumenta la bonificación" in texto[inicio:fin]
+
+
+def test_sin_comparacion_no_hace_falta_la_aclaracion() -> None:
+    """Con un solo escenario no hay nada que comparar, y la nota sería ruido."""
+    informe = calcular(
+        caso(
+            periodo("maestro_de_grado", desde="2020-03-01", hasta="2026-02-28"),
+            nacimiento="1990-05-10",
+            ceses=["2026-02-28"],
+            fecha_de_calculo="2026-03-01",
+        ),
+        reglas=REGLAS,
+    )
+    assert len(informe.escenarios) == 1
+    assert "Esperar no aumenta la bonificación" not in informe_a_texto(informe)

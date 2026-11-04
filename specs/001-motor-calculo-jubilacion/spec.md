@@ -196,9 +196,21 @@ conocidos, verificando las tres fechas, sus porcentajes y el orden de la compara
 4. **Given** escenarios de cese futuros, **When** se valúa el cargo base, **Then** el motor usa la
    última grilla aprobada, aplica la antigüedad que la docente tendría a esa fecha y aclara que
    los montos están expresados a valores de hoy.
-5. **Given** una docente que a la fecha del escenario todavía no alcanzó el tope de la escala de
-   antigüedad, **When** se valúa el cargo, **Then** la bonificación por antigüedad crece respecto
-   del escenario de habilitación, y el motor lo muestra como un paso del desglose.
+5. **Given** cualquier docente que califique, **When** se comparan los escenarios, **Then** su
+   bonificación por antigüedad **ya está en el tramo máximo de la escala** en todos ellos, y la
+   diferencia de monto entre escenarios se explica por el **porcentaje** de los arts. 42 y 43 y
+   no por la antigüedad. El motor muestra la antigüedad proyectada a cada fecha como paso del
+   desglose, y el informe lo dice en lenguaje claro para que nadie lea la comparación como «si
+   espero, me sube la antigüedad».
+
+   **Por qué es estructural y no una limitación del motor**: el art. 24 exige como mínimo 25 años
+   de servicio (incs. b y c) o 30 (inc. d), y la escala del `Decreto 818/13, Anexo Único` tiene su
+   último tramo a los **24 años**. Quien se habilita ya lo superó. Los años de antigüedad siguen
+   creciendo entre escenarios —26, 29, 31— pero el porcentaje no se mueve.
+
+   Verificado en `tests/unit/test_antiguedad_proyectada.py`, que afirma la razón sobre las reglas
+   cargadas y no sobre este texto: si algún día un inciso pidiera menos años de servicio o la
+   escala ganara tramos más altos, el test falla y esta suposición hay que revisarla.
 6. **Given** cualquier escenario con monto, **When** se lee el informe, **Then** incluye la
    aclaración de que el haber es móvil `[DL 9650/80, art. 50]` y que el motor no proyecta esa
    movilidad.
@@ -453,9 +465,15 @@ desconectada de la red.
   grilla aprobada** disponible, sin proyectar aumentos salariales, y DEBE declarar que los montos
   están expresados a valores de la fecha de esa grilla.
 - **FR-030b**: En los escenarios futuros, el motor DEBE aplicar la **antigüedad que la persona
-  tendría a la fecha del escenario**; si a esa fecha aún no alcanzó el tope de la escala, la
-  bonificación DEBE crecer en consecuencia, y el crecimiento DEBE aparecer como un paso del
-  desglose `[Ley 10579 art. 33; Decreto 818/13 — NO_VERIFICADA: tope, Cuestión abierta #1]`.
+  tendría a la fecha del escenario**, no la de la fecha de cálculo, y DEBE dejar esa antigüedad
+  como paso del desglose. Si a esa fecha aún no alcanzó el tramo máximo de la escala, la
+  bonificación DEBE crecer en consecuencia
+  `[Decreto 818/13, Anexo Único — NO_VERIFICADA: vigencia, Cuestión abierta #1]`.
+
+  En la práctica **ningún caso que califique recorre tramos**: el mínimo de 25 años de servicio
+  del art. 24 supera el último tramo de la escala, que está a los 24. La proyección se implementa
+  igual, por robustez ante un cambio de la escala o de los requisitos, y el informe DEBE aclarar
+  que esperar no aumenta la bonificación por antigüedad sino el porcentaje del haber (US5 esc. 5).
 - **FR-030c**: Todo informe que emita montos DEBE aclarar que el haber es **móvil** y se actualiza
   por correlación con el cargo en actividad, y que el motor NO proyecta esa movilidad
   `[DL 9650/80, art. 50]`.
@@ -596,7 +614,7 @@ desconectada de la red.
 | FR-027a | Res. IPS 995/2021, Anexo, punto 2.1.a (excedente contado desde que se cumplen todas las condiciones) | Interpretación | Verificado — criterio aplicado por defecto | 2026-10-30 |
 | FR-027b | DL 9650/80, arts. 42 y 43 — lectura literal (excedente medido solo por edad) | Letra de la ley (lectura alternativa) | Se informa como advertencia, impacto al alza | 2026-10-30 |
 | FR-031 | DL 9650/80, art. 40 (concepto de remuneración) | Letra de la ley + interpretación de conceptos | NO_VERIFICADA | — |
-| FR-030b, FR-031b, FR-032 | Ley 10579 art. 33; Decreto 818/13 y posteriores (bonificación por antigüedad sobre componentes bonificables) | Letra de la ley | NO_VERIFICADA (tope 120 % vs 125 %) | — |
+| FR-030b, FR-031b, FR-032 | Decreto 818/13, Anexo Único (escala de bonificación por antigüedad, dictada en función de la Ley 10579 art. 33), sobre componentes bonificables | Letra de la ley | NO_VERIFICADA (vigencia; la escala original de la Ley 10579 art. 33, con tope 120 %, se informa como lectura alternativa a la baja) | 2026-11-03 |
 | FR-030c | DL 9650/80, art. 50 (movilidad por correlación de cargos) | Letra de la ley | Verificado — solo se informa, no se calcula | 2026-10-30 |
 | FR-033 | Política de redondeo aplicada por el IPS | Práctica administrativa | NO_VERIFICADA | — |
 | FR-043 | DL 9650/80, art. 47; Res. IPS 995/2021 | Letra de la ley + interpretación | Verificado (fórmula a detallar) — fuera de alcance v1 | 2026-10-30 |
@@ -750,8 +768,15 @@ inciso b (art. 43) o por los incisos c/d (art. 41). Afecta FR-002a, FR-002c, FR-
   proyección salarial de ningún tipo: la comparación entre escenarios es válida en términos
   relativos (cuánto más cobra esperando), no como pronóstico del monto nominal futuro.
 - La antigüedad sí se proyecta a la fecha de cada escenario, porque su progresión depende del
-  tiempo transcurrido y no de una variable económica; esa progresión queda condicionada por el
-  tope de la escala, que es una regla `NO_VERIFICADA`.
+  tiempo transcurrido y no de una variable económica; esa progresión queda condicionada por la
+  vigencia de la escala, que es una regla `NO_VERIFICADA` (Cuestión abierta #1).
+- **La antigüedad está saturada en todo caso que califica**, y eso no es un supuesto del motor
+  sino una consecuencia de las dos normas: el art. 24 pide 25 años de servicio como mínimo y el
+  último tramo de la escala del `Decreto 818/13` está a los 24. La comparación entre escenarios
+  mide, entonces, el efecto del **porcentaje** de los arts. 42 y 43, no el de la antigüedad. El
+  motor proyecta la antigüedad de todos modos —por robustez ante un cambio de la escala o de los
+  requisitos— y el informe lo explica en lenguaje claro para que la comparación no se lea como
+  «si espero, me sube la antigüedad».
 - El archivo de caso es un formato propio del proyecto, legible y versionable, apto para
   adjuntarse a un expediente.
 - No hay requisitos de concurrencia: el motor procesa un caso por corrida.

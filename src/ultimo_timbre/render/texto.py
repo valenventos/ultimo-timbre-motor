@@ -153,8 +153,26 @@ def _cargo_base(cargo: CargoBase | None) -> list[str]:
     return lineas
 
 
+# La nota que evita la lectura al revés de la comparación. Los años de
+# antigüedad crecen entre escenarios y el monto también, así que es natural
+# deducir que una cosa causa la otra. Es falso: en todo caso que califica la
+# antigüedad ya está en el tramo máximo —el art. 24 pide 25 años de servicio y
+# la escala del Decreto 818/13 topa a los 24— y lo que crece es el porcentaje
+# de los arts. 42 y 43.
+NOTA_ANTIGUEDAD_SATURADA = (
+    "Esperar no aumenta la bonificación por antigüedad (ya está en el máximo); "
+    "lo que aumenta es el porcentaje del haber."
+)
+
+
 def _escenarios(escenarios: tuple[Escenario, ...]) -> list[str]:
     lineas = _titulo("Escenarios de cese")
+
+    # Solo cuando hay algo que comparar: con un escenario único la nota sería
+    # ruido, y el Principio VIII pide lo contrario.
+    if len(escenarios) > 1:
+        lineas.append(NOTA_ANTIGUEDAD_SATURADA)
+
     for escenario in escenarios:
         titulo = f"Cese {escenario.fecha_cese.isoformat()} ({escenario.tipo.value})"
         lineas.extend(_subtitulo(titulo))
