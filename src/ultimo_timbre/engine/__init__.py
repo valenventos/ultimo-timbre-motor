@@ -38,6 +38,9 @@ from ultimo_timbre.engine import (
     cargo_base as cb,
 )
 from ultimo_timbre.engine import (
+    escenarios as esc,
+)
+from ultimo_timbre.engine import (
     porcentaje as pct,
 )
 from ultimo_timbre.engine.desglose import Trazador
@@ -66,6 +69,7 @@ __all__ = [
     "cb",
     "condicionantes",
     "elegibilidad",
+    "esc",
     "haber",
     "pct",
 ]
@@ -166,10 +170,13 @@ def calcular(
 
     bloqueantes = tuple(a for a in traza.advertencias if a.bloquea_calculo)
 
-    # 5. Escenarios, con el porcentaje de cada fecha de cese.
+    # 5. Escenarios: las fechas provistas más las derivadas —habilitación y
+    #    excedentes de 3 y 5 años—, deduplicadas y en orden cronológico (US5).
+    a_evaluar = esc.derivar(caso, resultado, reglas=reglas)
     escenarios = tuple(
         _escenario(
             cese,
+            tipo,
             resultado if cese == cese_principal else None,
             caso=caso,
             reglas=reglas,
@@ -180,8 +187,12 @@ def calcular(
             grilla=grilla,
             condicionantes_del_monto=del_monto,
         )
-        for cese in caso.fechas_cese
+        for cese, tipo in a_evaluar
     )
+
+    # 6. Los dos avisos que acotan un monto (FR-030a, FR-030c). Van después de
+    #    los escenarios porque dependen de que alguno haya emitido haber.
+    _avisar_sobre_los_montos(caso, escenarios, grilla=grilla, reglas=reglas, traza=traza)
 
     # El estado de la elegibilidad se cierra recién acá: las detecciones de
     # alcance, el cargo base y el aviso de prorrateo pueden haber agregado
@@ -205,8 +216,57 @@ def calcular(
     )
 
 
+def _avisar_sobre_los_montos(
+    caso: Caso,
+    escenarios: tuple[Escenario, ...],
+    *,
+    grilla: GrillaSalarial | None,
+    reglas: ConjuntoDeReglas,
+    traza: Trazador,
+) -> None:
+    """Las dos aclaraciones sin las que un monto futuro engaña.
+
+    Un escenario de 2035 valuado con la grilla de 2026 da un número correcto y
+    profundamente engañoso si no se dice qué es:
+
+    * **FR-030a**: el motor usa la última grilla aprobada y no proyecta
+      aumentos salariales. El número está en pesos de esa grilla;
+    * **FR-030c**: el haber es móvil y se actualiza por correlación con el cargo
+      en actividad, y este motor no proyecta esa movilidad.
+
+    Las dos citan el art. 50, que es la razón por la que son verdaderas a la
+    vez. El aviso de movilidad va en **todo** informe con montos; el de valores
+    solo si algún escenario cae después de la fecha de cálculo.
+    """
+    con_monto = [e for e in escenarios if e.haber is not None]
+    if not con_monto or grilla is None:
+        return
+
+    traza.agregar_advertencia(
+        advertencias.construir(
+            CodigoAdvertencia.HABER_MOVIL_ART_50,
+            "el haber es móvil: se actualiza por correlación con el cargo en "
+            "actividad y este motor no proyecta esa movilidad",
+            reglas=reglas,
+        )
+    )
+
+    if any(e.fecha_cese > caso.fecha_de_calculo for e in con_monto):
+        traza.agregar_advertencia(
+            advertencias.construir(
+                CodigoAdvertencia.MONTOS_A_VALORES_DE_HOY,
+                f"hay escenarios posteriores a la fecha de cálculo: sus montos "
+                f"están expresados a valores del {grilla.vigencia_desde.isoformat()}, "
+                f"la vigencia de la grilla «{grilla.version}». El motor no proyecta "
+                "aumentos salariales",
+                reglas=reglas,
+            )
+        )
+
+
 def _escenario(
     cese: dt.date,
+    tipo: TipoEscenario,
     ya_evaluada: Elegibilidad | None,
     *,
     caso: Caso,
@@ -220,10 +280,9 @@ def _escenario(
 ) -> Escenario:
     """Un escenario: hay derecho o no, con qué inciso y con qué porcentaje.
 
-    El haber llega con la US4; los escenarios **derivados** —habilitación y
-    excedentes de 3 y 5 años como fechas propias— con la US5. Mientras tanto,
-    quien quiera evaluar el excedente pasa esa fecha como fecha de cese, que es
-    lo que el motor ya acepta.
+    `tipo` lo decide `escenarios.derivar`: una fecha puede ser la que el
+    usuario preguntó, la de habilitación del derecho o la de un excedente, y
+    cuando coinciden gana la etiqueta más específica.
 
     `traza` es `None` para los ceses secundarios: sus pasos no van al desglose,
     que documenta el cese principal. Si fueran todos, el desglose dejaría de
@@ -250,7 +309,7 @@ def _escenario(
     if not hay_derecho or inciso is None:
         return Escenario(
             fecha_cese=cese,
-            tipo=TipoEscenario.PROVISTA,
+            tipo=tipo,
             hay_derecho=False,
             advertencias=bloqueantes,
         )
@@ -305,7 +364,15 @@ def _escenario(
     antiguedad = calendario.servicio_total(caso.historia, cese, idx_incluidos=idx_en_alcance).anios
 
     monto = None
-    if grilla is not None and cargo_base is not None and not bloqueantes and traza is not None:
+    if grilla is not None and cargo_base is not None and not bloqueantes:
+        # Los escenarios secundarios valúan contra un trazador descartable: el
+        # monto se calcula igual, pero sus pasos no van al desglose, que
+        # documenta el cese principal. Si fueran todos, el desglose repetiría la
+        # misma cadena por cada escenario y dejaría de ser legible.
+        #
+        # Lo que **no** se pierde es la marca: los condicionantes del monto
+        # viajan dentro del `Monto` (invariante I5), así que un escenario
+        # secundario provisional se reconoce como tal aunque su paso no esté.
         monto = haber.valuar(
             cargo_base.cargo,
             cese,
@@ -313,13 +380,13 @@ def _escenario(
             antiguedad_anios=antiguedad,
             grilla=grilla,
             reglas=reglas,
-            traza=traza,
+            traza=traza if traza is not None else Trazador(),
             condicionantes_previos=condicionantes_del_monto,
         )
 
     return Escenario(
         fecha_cese=cese,
-        tipo=TipoEscenario.PROVISTA,
+        tipo=tipo,
         hay_derecho=True,
         inciso=inciso,
         porcentaje=valor,

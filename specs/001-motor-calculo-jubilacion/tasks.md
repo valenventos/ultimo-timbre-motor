@@ -381,22 +381,22 @@ sus porcentajes y el orden cronológico de la comparación.
 
 > **Escribí estos tests PRIMERO y verificá que FALLAN antes de implementar (Principio VI).**
 
-- [ ] T156 [P] [US5] Caso dorado: habilitación 75 %, excedente de 3 años 80 % y de 5 años 85 %, cada uno con su monto, en `tests/golden/test_escenarios.py` (US5 esc. 1, FR-036)
-- [ ] T157 [P] [US5] Test: todos los escenarios usan la **misma** `grilla_version` y el mismo `a_valores_de`, de modo que la diferencia de monto se explique solo por porcentaje y antigüedad, en `tests/properties/test_escenarios_comparables.py` (FR-036a)
-- [ ] T158 [P] [US5] Unitario: la antigüedad se proyecta a la fecha de cada escenario y crece mientras no se alcance el tope, apareciendo como paso del desglose, en `tests/unit/test_antiguedad_proyectada.py` (FR-030b, US5 esc. 5)
-- [ ] T159 [P] [US5] Unitario: una fecha de cese anterior a la habilitación informa que no hay derecho y cuánto falta, sin emitir monto, en `tests/unit/test_cese_temprano.py` (US5 esc. 3, FR-035)
-- [ ] T160 [P] [US5] Test: los escenarios futuros declaran `montos_a_valores_de_hoy` y `haber_movil_art_50`, en `tests/unit/test_avisos_escenarios.py` (FR-030a, FR-030c, US5 esc. 4 y 6)
-- [ ] T161 [P] [US5] Unitario: ordenamiento cronológico estable de escenarios provistos y derivados, en `tests/unit/test_orden_escenarios.py` (FR-037)
+- [X] T156 [P] [US5] Caso dorado: habilitación 75 %, excedente de 3 años 80 % y de 5 años 85 %, cada uno con su monto, en `tests/golden/test_escenarios.py` (US5 esc. 1, FR-036)
+- [X] T157 [P] [US5] Test: todos los escenarios usan la **misma** `grilla_version` y el mismo `a_valores_de`, de modo que la diferencia de monto se explique solo por porcentaje y antigüedad, en `tests/properties/test_escenarios_comparables.py` (FR-036a)
+- [X] T158 [P] [US5] Unitario: la antigüedad se proyecta a la fecha de cada escenario y crece mientras no se alcance el tope, apareciendo como paso del desglose, en `tests/unit/test_antiguedad_proyectada.py` (FR-030b, US5 esc. 5)
+- [X] T159 [P] [US5] Unitario: una fecha de cese anterior a la habilitación informa que no hay derecho y cuánto falta, sin emitir monto, en `tests/unit/test_cese_temprano.py` (US5 esc. 3, FR-035)
+- [X] T160 [P] [US5] Test: los escenarios futuros declaran `montos_a_valores_de_hoy` y `haber_movil_art_50`, en `tests/unit/test_avisos_escenarios.py` (FR-030a, FR-030c, US5 esc. 4 y 6)
+- [X] T161 [P] [US5] Unitario: ordenamiento cronológico estable de escenarios provistos y derivados, en `tests/unit/test_orden_escenarios.py` (FR-037)
 
 ### Implementation for User Story 5
 
 > Requiere T156–T161 escritas y fallando.
 
-- [ ] T162 [US5] Implementar `src/ultimo_timbre/engine/escenarios.py`: derivación de los escenarios de habilitación y de excedentes de 3 y 5 años, además de las fechas provistas (FR-036)
-- [ ] T163 [US5] Implementar la valuación de escenarios futuros con la **última grilla aprobada**, sin proyección salarial, declarando `a_valores_de` (FR-030a)
-- [ ] T164 [US5] Implementar la proyección de la antigüedad a la fecha de cada escenario, con su paso en el desglose y el condicionante por el tope `NO_VERIFICADA` (FR-030b, FR-032, Cuestión abierta #1)
-- [ ] T165 [US5] Implementar la garantía de comparabilidad: todos los escenarios con la misma grilla (FR-036a)
-- [ ] T166 [US5] Implementar el ordenamiento cronológico de escenarios y el caso sin derecho a la fecha evaluada (FR-035, FR-037)
+- [X] T162 [US5] Implementar `src/ultimo_timbre/engine/escenarios.py`: derivación de los escenarios de habilitación y de excedentes de 3 y 5 años, además de las fechas provistas (FR-036)
+- [X] T163 [US5] Implementar la valuación de escenarios futuros con la **última grilla aprobada**, sin proyección salarial, declarando `a_valores_de` (FR-030a)
+- [X] T164 [US5] Implementar la proyección de la antigüedad a la fecha de cada escenario, con su paso en el desglose y el condicionante por el tope `NO_VERIFICADA` (FR-030b, FR-032, Cuestión abierta #1)
+- [X] T165 [US5] Implementar la garantía de comparabilidad: todos los escenarios con la misma grilla (FR-036a)
+- [X] T166 [US5] Implementar el ordenamiento cronológico de escenarios y el caso sin derecho a la fecha evaluada (FR-035, FR-037)
 
 **Checkpoint**: All user stories should now be independently functional
 

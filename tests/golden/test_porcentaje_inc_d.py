@@ -21,7 +21,7 @@ from decimal import Decimal
 
 import pytest
 
-from tests.casos import caso, f, periodo
+from tests.casos import caso, escenario_de, f, periodo
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.informe import Escenario, Informe
 from ultimo_timbre.rules import versiones
@@ -51,7 +51,7 @@ def informe() -> Informe:
 
 @pytest.fixture(scope="module")
 def escenario(informe: Informe) -> Escenario:
-    return informe.escenarios[0]
+    return escenario_de(informe, "2025-01-10")
 
 
 def test_no_cumple_los_incisos_que_piden_frente_de_alumnos(informe: Informe) -> None:

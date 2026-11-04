@@ -19,6 +19,7 @@ from ultimo_timbre.models.enums import (
     SituacionRevista,
     TipoEstablecimiento,
 )
+from ultimo_timbre.models.informe import Escenario, Informe
 
 ESTATAL = Establecimiento(tipo=TipoEstablecimiento.ESTATAL_DGCYE)
 PRIVADO = Establecimiento(tipo=TipoEstablecimiento.PRIVADO)
@@ -28,6 +29,18 @@ FECHA_DE_CALCULO = dt.date(2026, 11, 2)
 
 def f(iso: str) -> dt.date:
     return dt.date.fromisoformat(iso)
+
+
+def escenario_de(informe: Informe, fecha: str) -> Escenario:
+    """El escenario de una fecha de cese concreta.
+
+    Existe para no acceder por posición. Desde la US5 el informe trae también
+    los escenarios derivados —habilitación y excedentes— en orden cronológico,
+    así que `escenarios[0]` dejó de ser «el cese que pregunté» y pasó a ser «el
+    más temprano», que suele ser otro. Un test que afirme sobre el escenario
+    equivocado puede seguir pasando por casualidad, y eso es peor que fallar.
+    """
+    return next(e for e in informe.escenarios if e.fecha_cese == f(fecha))
 
 
 def periodo(
@@ -185,4 +198,23 @@ def caso_prorrateo_posible() -> Caso:
         nacimiento="1974-05-01",
         ceses=["2026-05-31"],
         fecha_de_calculo="2026-06-01",
+    )
+
+
+def caso_escenarios() -> Caso:
+    """US5 — una docente en actividad que se habilita por el inc. b en 2030.
+
+    El período queda **en curso** (`hasta=None`) a propósito: los escenarios de
+    excedente caen en 2033 y 2035, y sin continuidad el servicio dejaría de
+    crecer antes de llegar. Es el caso real de «¿me conviene esperar?».
+
+    Nacida el 1980-03-15 y maestra desde el 2004-03-01, cumple los 25 años al
+    frente en 2029 y los 50 de edad el 2030-03-15: esa última fecha es la
+    habilitación, y de ahí salen los excedentes de 3 y 5 años.
+    """
+    return caso(
+        periodo("maestro_de_grado", desde="2004-03-01", hasta=None),
+        nacimiento="1980-03-15",
+        ceses=["2030-03-31"],
+        fecha_de_calculo="2030-04-01",
     )

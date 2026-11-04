@@ -54,13 +54,17 @@ def _subtitulo(texto: str) -> list[str]:
 def _porcentaje(valor: Decimal) -> str:
     """Un porcentaje como lo lee una persona, sin tocar la exactitud.
 
-    El `Decimal` del informe se multiplica por cien y se normaliza para no
-    mostrar `70.00 %` ni `0.7 %`. La aritmética sigue siendo exacta: esto es
-    presentación, no cálculo.
+    El `Decimal` del informe se multiplica por cien y se muestra sin ceros de
+    relleno: `75 %` y no `75.00 %`, `78.75 %` y no `78.7500 %`. La aritmética
+    sigue siendo exacta; esto es presentación, no cálculo.
+
+    **No se normaliza antes de comparar con el entero**: `normalize()` convierte
+    `80.00` en `8E+1`, y de ahí salía un «Porcentaje: 8E+1 %» en el informe. El
+    orden de las dos operaciones importa.
     """
-    escalado = (valor * _CIEN).normalize()
+    escalado = valor * _CIEN
     entero = escalado.to_integral_value()
-    return f"{entero if escalado == entero else escalado} %"
+    return f"{entero if escalado == entero else escalado.normalize()} %"
 
 
 def _estado(estado: EstadoResultado) -> str:

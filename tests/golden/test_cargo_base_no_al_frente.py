@@ -29,7 +29,7 @@ from decimal import Decimal
 
 import pytest
 
-from tests.casos import caso, f, periodo
+from tests.casos import caso, escenario_de, f, periodo
 from tests.catalogos import con_indices_ficticios
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.caso import Caso
@@ -90,7 +90,7 @@ def test_cumple_el_inciso_b_por_sus_anios_al_frente(informe: Informe) -> None:
 
 def test_accede_por_el_inciso_b(informe: Informe) -> None:
     assert informe.elegibilidad.inciso_mas_favorable == "b"
-    assert informe.escenarios[0].inciso == "b"
+    assert escenario_de(informe, "2023-12-31").inciso == "b"
 
 
 def test_el_cargo_base_es_la_vicedireccion(informe: Informe) -> None:
@@ -109,7 +109,7 @@ def test_el_excedente_es_cero(informe: Informe) -> None:
     """Para que la comparación sea 70 % contra 75 % y no 80 % contra 85 %."""
     inc_b = next(i for i in informe.elegibilidad.incisos if i.inciso == "b")
     assert inc_b.habilitado_desde == f("2023-12-31")
-    assert informe.escenarios[0].fecha_cese == f("2023-12-31")
+    assert escenario_de(informe, "2023-12-31") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ def test_el_excedente_es_cero(informe: Informe) -> None:
 
 def test_se_aplica_el_criterio_conservador_del_70_por_ciento(informe: Informe) -> None:
     """El 75 % del art. 43 queda sin aplicar hasta que se verifique."""
-    assert informe.escenarios[0].porcentaje == Decimal("0.70")
+    assert escenario_de(informe, "2023-12-31").porcentaje == Decimal("0.70")
 
 
 def test_la_regla_esta_cargada_como_no_verificada() -> None:
@@ -191,7 +191,7 @@ def test_si_el_cargo_base_cuenta_al_frente_se_aplica_el_75_por_ciento() -> None:
     informe = calcular(_caso(), reglas=REGLAS)
     assert informe.cargo_base is not None
     assert informe.cargo_base.cargo == "maestro_de_grado"
-    assert informe.escenarios[0].porcentaje == Decimal("0.75")
+    assert escenario_de(informe, "2023-12-31").porcentaje == Decimal("0.75")
     assert REGLA not in {c.referencia for c in informe.condicionantes}
 
 

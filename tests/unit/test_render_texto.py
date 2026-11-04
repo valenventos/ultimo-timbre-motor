@@ -15,8 +15,11 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal
+from pathlib import Path
 
-from tests.casos import caso, periodo
+import pytest
+
+from tests.casos import caso, caso_escenarios, escenario_de, periodo
 from tests.catalogos import con_indices_ficticios
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import (
@@ -25,8 +28,9 @@ from ultimo_timbre.models.enums import (
     SentidoImpacto,
     TipoEscenario,
 )
+from ultimo_timbre.models.grilla import GrillaSalarial
 from ultimo_timbre.models.informe import Condicionante, Escenario, Informe, Monto
-from ultimo_timbre.render.texto import informe_a_texto
+from ultimo_timbre.render.texto import _porcentaje, informe_a_texto
 from ultimo_timbre.rules import versiones
 
 REGLAS = versiones.cargar_reglas("v1")
@@ -60,7 +64,7 @@ def test_el_monto_nunca_se_muestra_sin_su_estado() -> None:
         a_valores_de=dt.date(2025, 1, 1),
     )
     base = _informe_base()
-    escenario = base.escenarios[0].model_copy(update={"haber": monto})
+    escenario = escenario_de(base, "2025-01-10").model_copy(update={"haber": monto})
     informe = base.model_copy(update={"escenarios": (escenario,)})
 
     texto = informe_a_texto(informe)
@@ -127,3 +131,37 @@ def test_las_procedencias_se_listan() -> None:
     texto = informe_a_texto(_informe_base())
     assert "Procedencia de los datos" in texto
     assert "al_frente[0]" in texto
+
+
+# ---------------------------------------------------------------------------
+# El porcentaje se muestra legible, sin notación científica
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("valor", "esperado"),
+    [
+        ("0.70", "70 %"),
+        ("0.75", "75 %"),
+        # El que falló: `normalize()` convierte 80.00 en 8E+1.
+        ("0.80", "80 %"),
+        ("0.85", "85 %"),
+        ("1.25", "125 %"),
+        ("0.7875", "78.75 %"),
+        ("0.825", "82.5 %"),
+        ("1", "100 %"),
+    ],
+)
+def test_el_porcentaje_se_muestra_sin_notacion_cientifica(valor: str, esperado: str) -> None:
+    """Un «8E+1 %» en un informe para un abogado es un error de presentación."""
+    assert _porcentaje(Decimal(valor)) == esperado
+
+
+def test_ningun_porcentaje_del_informe_sale_en_notacion_cientifica() -> None:
+    """Resguardo de extremo a extremo, sobre un informe con los tres excedentes."""
+    grilla: GrillaSalarial = versiones.cargar_grilla_de_prueba(
+        Path("tests/fixtures/grilla-ficticia-test.yaml")
+    )
+    texto = informe_a_texto(calcular(caso_escenarios(), reglas=REGLAS, grilla=grilla))
+    assert "E+" not in texto
+    assert "80 %" in texto

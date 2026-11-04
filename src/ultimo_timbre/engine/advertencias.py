@@ -71,6 +71,9 @@ REGLA_DE: dict[CodigoAdvertencia, str] = {
     CodigoAdvertencia.PRORRATEO_PODRIA_COMPLETAR_REQUISITOS: "requisitos.art27.prorrateo",
     CodigoAdvertencia.SERVICIOS_NO_DOCENTES_SIN_COMPUTAR: "requisitos.art27.prorrateo",
     CodigoAdvertencia.HABER_MOVIL_ART_50: "movilidad.art50",
+    # El art. 50 es la razón por la que las dos cosas son verdaderas a la
+    # vez: el haber se mueve, y este motor no lo mueve.
+    CodigoAdvertencia.MONTOS_A_VALORES_DE_HOY: "movilidad.art50",
     CodigoAdvertencia.LECTURA_LITERAL_EXCEDENTE: "excedente.lectura_literal",
 }
 

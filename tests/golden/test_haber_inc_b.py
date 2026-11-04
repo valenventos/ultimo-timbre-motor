@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.casos import caso_inc_b
+from tests.casos import caso_inc_b, escenario_de
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import EstadoResultado
 from ultimo_timbre.models.grilla import GrillaSalarial
@@ -44,7 +44,7 @@ def informe(grilla: GrillaSalarial) -> Informe:
 
 @pytest.fixture(scope="module")
 def monto(informe: Informe) -> Monto:
-    haber = informe.escenarios[0].haber
+    haber = escenario_de(informe, "2030-03-31").haber
     assert haber is not None, "el escenario tiene que traer haber"
     return haber
 
@@ -60,7 +60,7 @@ def test_el_cargo_base_es_el_maestro(informe: Informe) -> None:
 
 
 def test_el_porcentaje_es_el_del_art_43(informe: Informe) -> None:
-    assert informe.escenarios[0].porcentaje == Decimal("0.75")
+    assert escenario_de(informe, "2030-03-31").porcentaje == Decimal("0.75")
 
 
 def test_el_haber_es_el_porcentaje_sobre_la_remuneracion_mas_antiguedad(
@@ -77,7 +77,7 @@ def test_el_haber_es_el_porcentaje_sobre_la_remuneracion_mas_antiguedad(
     Si la antigüedad se aplicara sobre el total daría 262.500 de adicional y un
     haber de 309.375: la diferencia de 103.125 es lo que FR-031b evita.
     """
-    assert informe.escenarios[0].antiguedad_anios == 26
+    assert escenario_de(informe, "2030-03-31").antiguedad_anios == 26
     assert monto.valor == Decimal("206250.00")
 
 

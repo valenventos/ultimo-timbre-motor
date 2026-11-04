@@ -23,7 +23,7 @@ from decimal import Decimal
 
 import pytest
 
-from tests.casos import caso, f, periodo
+from tests.casos import caso, escenario_de, f, periodo
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import CodigoAdvertencia, SentidoImpacto, TipoFuente
 from ultimo_timbre.models.informe import Informe
@@ -61,15 +61,13 @@ def test_la_habilitacion_es_la_fecha_del_servicio_no_la_de_la_edad(
 
 def test_al_habilitarse_aplica_el_75_por_ciento(informe: Informe) -> None:
     """Excedente 0: recién ese día se cumplen todas las condiciones."""
-    primero = informe.escenarios[0]
-    assert primero.fecha_cese == f("2023-12-31")
+    primero = escenario_de(informe, "2023-12-31")
     assert primero.inciso == "b"
     assert primero.porcentaje == Decimal("0.75")
 
 
 def test_tres_anios_despues_aplica_el_80_por_ciento(informe: Informe) -> None:
-    segundo = informe.escenarios[1]
-    assert segundo.fecha_cese == f("2026-12-31")
+    segundo = escenario_de(informe, "2026-12-31")
     assert segundo.porcentaje == Decimal("0.80")
 
 
@@ -92,7 +90,7 @@ def test_el_escenario_lleva_el_porcentaje_de_la_lectura_alternativa(
     informe: Informe,
 ) -> None:
     """FR-027b: el número alternativo, no solo la mención de que existe."""
-    primero = informe.escenarios[0]
+    primero = escenario_de(informe, "2023-12-31")
     assert primero.lectura_literal is not None
     assert primero.lectura_literal.porcentaje == Decimal("0.80")
     assert primero.lectura_literal.sentido_impacto is SentidoImpacto.AL_ALZA

@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.casos import caso_inc_b
+from tests.casos import caso_inc_b, escenario_de
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import CodigoAdvertencia, EstadoResultado
 from ultimo_timbre.models.grilla import GrillaSalarial
@@ -63,11 +63,11 @@ def test_la_advertencia_no_bloquea_el_calculo(informe: Informe) -> None:
 
 
 def test_el_monto_igual_se_emite(informe: Informe) -> None:
-    assert informe.escenarios[0].haber is not None
+    assert escenario_de(informe, "2030-03-31").haber is not None
 
 
 def test_el_monto_queda_provisional(informe: Informe) -> None:
-    haber = informe.escenarios[0].haber
+    haber = escenario_de(informe, "2030-03-31").haber
     assert haber is not None
     assert haber.estado is EstadoResultado.PROVISIONAL
     assert CODIGO.value in {c.referencia for c in haber.condicionantes}
@@ -79,6 +79,6 @@ def test_el_informe_queda_provisional(informe: Informe) -> None:
 
 def test_el_monto_declara_a_valores_de_que_fecha(informe: Informe) -> None:
     """FR-030a: sin esto, el número no se puede interpretar."""
-    haber = informe.escenarios[0].haber
-    assert haber is not None
-    assert haber.a_valores_de < informe.escenarios[0].fecha_cese
+    escenario = escenario_de(informe, "2030-03-31")
+    assert escenario.haber is not None
+    assert escenario.haber.a_valores_de < escenario.fecha_cese

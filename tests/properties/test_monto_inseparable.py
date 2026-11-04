@@ -24,7 +24,7 @@ import pytest
 from pydantic import ValidationError
 from typer.testing import CliRunner
 
-from tests.casos import caso_inc_b
+from tests.casos import caso_inc_b, escenario_de
 from tests.cli.conftest import CASO_INC_B
 from ultimo_timbre.cli.main import app
 from ultimo_timbre.engine import calcular
@@ -65,7 +65,7 @@ def test_el_json_nunca_trae_el_valor_sin_estado(informe: Informe) -> None:
 
 def test_el_texto_nunca_muestra_el_valor_sin_estado(informe: Informe) -> None:
     texto = informe_a_texto(informe)
-    haber = informe.escenarios[0].haber
+    haber = escenario_de(informe, "2030-03-31").haber
     assert haber is not None
     assert str(haber.valor) in texto
     # En la misma línea en que aparece el valor tiene que estar el estado.

@@ -23,7 +23,7 @@ from decimal import Decimal
 
 import pytest
 
-from tests.casos import caso, periodo
+from tests.casos import caso, escenario_de, periodo
 from ultimo_timbre.engine import calcular
 from ultimo_timbre.models.enums import CodigoAdvertencia, EstadoResultado, SentidoImpacto
 from ultimo_timbre.models.informe import Condicionante, Informe
@@ -78,8 +78,9 @@ def test_se_advierte_la_regla_sin_verificar(informe: Informe) -> None:
 
 def test_el_porcentaje_aplicado_es_el_de_la_letra_del_art_24(informe: Informe) -> None:
     """70 % por el inc. d: el motor no adelanta el resultado del pleito."""
-    assert informe.escenarios[0].porcentaje == Decimal("0.70")
-    assert informe.escenarios[0].inciso == "d"
+    escenario = escenario_de(informe, "2025-01-10")
+    assert escenario.porcentaje == Decimal("0.70")
+    assert escenario.inciso == "d"
 
 
 def test_el_impacto_posible_es_de_70_a_75(informe: Informe) -> None:
