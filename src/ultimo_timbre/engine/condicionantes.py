@@ -23,10 +23,10 @@ from ultimo_timbre.models.enums import (
     EstadoRegla,
     SentidoImpacto,
 )
-from ultimo_timbre.models.informe import Condicionante, Monto
+from ultimo_timbre.models.informe import Condicionante
 from ultimo_timbre.models.normativa import ConjuntoDeReglas, Regla
 
-__all__ = ["de_regla", "de_situacion", "del_monto", "propagar_a_monto"]
+__all__ = ["de_regla", "de_situacion", "del_monto"]
 
 # --------------------------------------------------------------------------
 # Condicionantes informativos
@@ -195,21 +195,3 @@ def del_monto(reglas: ConjuntoDeReglas) -> tuple[Condicionante, ...]:
         if cond is not None:
             salida.append(cond)
     return tuple(salida)
-
-
-def propagar_a_monto(monto: Monto, condicionantes: tuple[Condicionante, ...]) -> Monto:
-    """Devuelve el monto con sus condicionantes incorporados (FR-046a).
-
-    Preparado para la US4: la marca de provisional es inseparable del monto, así
-    que la propagación pasa por un único lugar en lugar de repetirse en cada
-    camino que construya un `Monto`.
-    """
-    if not condicionantes:
-        return monto
-    return monto.model_copy(
-        update={
-            "condicionantes": tuple(
-                {c.referencia: c for c in (*monto.condicionantes, *condicionantes)}.values()
-            ),
-        }
-    )

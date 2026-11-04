@@ -253,7 +253,11 @@ def _emitir(informe: Informe, formato: Formato, salida: Path | None) -> None:
         typer.echo(texto)
         return
     try:
-        salida.write_text(texto + "\n", encoding="utf-8")
+        # `newline=""` desactiva la traducción de fin de línea. Sin esto,
+        # Windows escribiría CRLF y el mismo informe tendría distinta huella
+        # según el sistema operativo, que es justo lo que SC-003 prohíbe.
+        with salida.open("w", encoding="utf-8", newline="") as destino:
+            destino.write(texto + "\n")
     except OSError:
         _error(
             "el archivo de salida no se puede escribir. Revisá la ruta y los permisos.",

@@ -445,13 +445,13 @@ y el código de salida correcto, con la máquina desconectada de la red.
 **Purpose**: Improvements that affect multiple user stories
 
 - [X] T183 [P] Crear los casos de ejemplo en `examples/` que usa `quickstart.md`: `caso-inc-b.yaml`, `caso-escenarios.yaml`, `caso-54-anios.yaml`, `caso-otra-caja.yaml`, `caso-privado.yaml`, `caso-simultaneo.yaml`, `caso-provisional.yaml`
-- [ ] T184 [P] Documentar la interfaz pública de librería en `docs/api.md` con ejemplos de uso sin I/O
-- [ ] T185 [P] Escribir `README.md` con instalación por uv, uso de CLI y de librería, y el aviso de estimación orientativa
-- [ ] T186 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)
-- [ ] T187 [P] Completar los ADR faltantes en `docs/adr/` para R2, R5, R7, R12 y R13
-- [ ] T188 Agregar al CI el test de determinismo multiplataforma que compara el informe del mismo caso producido en Linux, macOS y Windows (SC-003, SC-007)
-- [ ] T189 Test de rendimiento en `tests/test_rendimiento.py`: un caso sintético de **30 años de historia de servicios con 5 escenarios de cese** produce su informe completo en **menos de 5 segundos**, y el test falla si lo supera (SC-006). Usa la grilla ficticia de T038 y mide solo `calcular()`, sin el tiempo de carga de reglas
-- [ ] T190 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
+- [X] T184 [P] Documentar la interfaz pública de librería en `docs/api.md` con ejemplos de uso sin I/O
+- [X] T185 [P] Escribir `README.md` con instalación por uv, uso de CLI y de librería, y el aviso de estimación orientativa
+- [X] T186 [P] Publicar `SECURITY.md` con la política de divulgación responsable (Principio VII)
+- [X] T187 [P] Completar los ADR faltantes en `docs/adr/` para R2, R5, R7, R12 y R13
+- [X] T188 Agregar al CI el test de determinismo multiplataforma que compara el informe del mismo caso producido en Linux, macOS y Windows (SC-003, SC-007)
+- [X] T189 Test de rendimiento en `tests/test_rendimiento.py`: un caso sintético de **30 años de historia de servicios con 5 escenarios de cese** produce su informe completo en **menos de 5 segundos**, y el test falla si lo supera (SC-006). Usa la grilla ficticia de T038 y mide solo `calcular()`, sin el tiempo de carga de reglas
+- [X] T190 [P] Unit tests adicionales en `tests/unit/` hasta alcanzar la cobertura exigida
 - [ ] T191 Verificar cobertura de ramas: ≥95 % en `ultimo_timbre/engine` y `ultimo_timbre/rules`, ≥80 % resto (Principio VI)
 - [ ] T192 Security hardening: confirmar bandit, pip-audit, gitleaks y SBOM sin hallazgos altos/críticos (Principio VII)
 - [ ] T193 Ejecutar la validación completa de `quickstart.md` (verificaciones 1 a 8) y corregir desvíos

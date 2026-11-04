@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T135 — revisión humana obligatoria sobre los datos normativos (Principio IX).
+#
+# Las grillas salariales y las reglas del régimen son los dos lugares donde un
+# valor equivocado produce un número convincente y falso. Fusionar un PR que
+# los toca es el acto de aprobación, y CODEOWNERS es lo que lo vuelve exigible
+# desde la plataforma en lugar de depender de que alguien se acuerde.
+#
+# Hoy hay un solo mantenedor, así que GitHub no puede exigir la revisión de un
+# tercero: el check `validate-grid-approval` cubre ese hueco verificando que
+# `aprobada_por` coincida con quien fusiona. El escalón a dos personas está
+# documentado en docs/adr/0002-aprobacion-de-grillas.md.
+
+# Datos normativos: grillas salariales y reglas del régimen.
+/grids/            @valenventos
+/rules/            @valenventos
+
+# Los esquemas que validan esos datos: relajarlos equivale a relajar los datos.
+/schemas/          @valenventos
+
+# La constitución y los contratos: cambiarlos cambia qué es correcto.
+/.specify/memory/  @valenventos
+/specs/001-motor-calculo-jubilacion/contracts/ @valenventos
