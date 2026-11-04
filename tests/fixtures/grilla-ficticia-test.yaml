@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T038 — GRILLA FICTICIA PARA TESTS. NO SON VALORES REALES.
+#
+# Los importes son redondos y evidentemente inventados, a propósito: si alguna
+# vez aparecen en un informe, se reconocen de inmediato. El loader de `grids/`
+# rechaza todo archivo con `ficticia: true`, así que esta grilla no puede
+# valuar un informe real aunque alguien la copie allí (Principio IX).
+#
+# Cada cargo tiene al menos un componente bonificable y uno no bonificable,
+# para que los tests de antigüedad (FR-031b) puedan distinguir la base.
+
+version: "ficticia-test"
+ficticia: true
+
+norma:
+  texto: "Grilla ficticia de prueba — no corresponde a ninguna norma salarial"
+  ley: "N/A — datos inventados para tests"
+enlace: null
+
+# Acto aprobatorio ficticio. Está presente para que los tests que NO prueban la
+# Cuestión del acto corran por el camino limpio; el camino sin acto se prueba
+# quitándolo con `model_copy`, sin necesidad de un segundo archivo.
+acto_aprobatorio:
+  texto: "Acto aprobatorio ficticio — no corresponde a ningún decreto real"
+  ley: "N/A — datos inventados para tests"
+
+vigencia_desde: "2026-01-01"
+vigencia_hasta: null
+extraida_en: "2026-01-01"
+aprobada_por: "nadie — grilla ficticia"
+aprobada_en: "2026-01-01"
+
+valores:
+  maestro_de_grado:
+    - codigo_concepto: "001"
+      descripcion: "Básico (ficticio)"
+      importe: "100000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija no bonificable (ficticia)"
+      importe: "50000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+
+  preceptor:
+    - codigo_concepto: "700"
+      descripcion: "Viático por traslado (ficticio) — el art. 40 lo excluye"
+      importe: "25000.00"
+      bonificable: false
+      remunerativo: false
+      excluido_art40: true
+      regla_id: null
+    - codigo_concepto: "001"
+      descripcion: "Básico (ficticio)"
+      importe: "90000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija no bonificable (ficticia)"
+      importe: "40000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+
+  vicedirector_primera:
+    - codigo_concepto: "001"
+      descripcion: "Básico (ficticio)"
+      importe: "200000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija no bonificable (ficticia)"
+      importe: "60000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+
+  director_primera:
+    - codigo_concepto: "001"
+      descripcion: "Básico (ficticio)"
+      importe: "300000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija no bonificable (ficticia)"
+      importe: "70000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+
+  hora_catedra_secundaria:
+    - codigo_concepto: "001"
+      descripcion: "Valor hora cátedra, básico (ficticio)"
+      importe: "10000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija por hora, no bonificable (ficticia)"
+      importe: "5000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+
+  bibliotecario_ensenanza_superior:
+    - codigo_concepto: "001"
+      descripcion: "Básico (ficticio)"
+      importe: "150000.00"
+      bonificable: true
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "100"
+      descripcion: "Suma fija no bonificable (ficticia)"
+      importe: "55000.00"
+      bonificable: false
+      remunerativo: true
+      regla_id: null
+    - codigo_concepto: "900"
+      descripcion: "Compensación NO remunerativa (ficticia)"
+      importe: "11000.00"
+      bonificable: false
+      remunerativo: false
+      regla_id: null

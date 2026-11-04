@@ -1,0 +1,704 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimotimbre.ar/schemas/informe/v1.json",
+  "title": "Informe — salida del motor de cálculo",
+  "description": "Informe estructurado. Todo importe y porcentaje viaja como string numérico, nunca como number de JSON, para que ningún consumidor lo parsee a float binario (Principio II). El estado_general de la raíz permite bloquear automáticamente el uso de un resultado provisional sin interpretar texto (FR-046c, SC-012).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fecha_de_calculo",
+    "estado_general",
+    "elegibilidad",
+    "escenarios",
+    "desglose",
+    "procedencias",
+    "advertencias",
+    "version_reglas",
+    "aviso_estimacion",
+    "aviso_movilidad",
+    "condicionantes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "estado_general": {
+      "enum": [
+        "definitivo",
+        "provisional"
+      ],
+      "description": "Derivado: provisional si cualquier monto, la elegibilidad o el cargo base lo son (FR-046c)."
+    },
+    "version_reglas": {
+      "type": "string"
+    },
+    "version_grilla": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "aviso_estimacion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Aviso visible de estimación orientativa que no reemplaza el cálculo oficial del IPS (FR-042)."
+    },
+    "aviso_movilidad": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Aclaración de que el haber es móvil por correlación de cargos y que el motor no proyecta esa movilidad (FR-030c, DL 9650/80 art. 50)."
+    },
+    "elegibilidad": {
+      "$ref": "#/$defs/elegibilidad"
+    },
+    "cargo_base": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/cargo_base"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "escenarios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/escenario"
+      }
+    },
+    "desglose": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/paso"
+      }
+    },
+    "procedencias": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/procedencia"
+      }
+    },
+    "advertencias": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/advertencia"
+      }
+    },
+    "fecha_de_calculo": {
+      "type": "string",
+      "format": "date",
+      "description": "La fecha de cálculo con la que se produjo el informe (FR-001a). Permite reproducir el resultado exacto más adelante."
+    },
+    "condicionantes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/condicionante"
+      },
+      "description": "Lo que impide que el informe sea definitivo (FR-046b). Vive también en la raíz y no solo dentro de cada monto, porque un informe sin montos igual tiene que poder explicar por qué es provisional."
+    }
+  },
+  "$defs": {
+    "decimal": {
+      "type": "string",
+      "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+      "description": "Número exacto como string. Nunca number de JSON."
+    },
+    "norma": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "texto",
+        "ley"
+      ],
+      "properties": {
+        "texto": {
+          "type": "string"
+        },
+        "ley": {
+          "type": "string"
+        },
+        "articulo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inciso": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enlace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "sentido_impacto": {
+      "enum": [
+        "al_alza",
+        "a_la_baja",
+        "indeterminado"
+      ]
+    },
+    "monto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valor",
+        "moneda",
+        "estado",
+        "condicionantes",
+        "grilla_version",
+        "a_valores_de"
+      ],
+      "description": "El estado y los condicionantes son parte del monto, no metadatos aparte: ninguna vía de salida puede entregar el valor sin ellos (FR-046a).",
+      "properties": {
+        "valor": {
+          "$ref": "#/$defs/decimal"
+        },
+        "moneda": {
+          "const": "ARS"
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ]
+        },
+        "grilla_version": {
+          "type": "string"
+        },
+        "a_valores_de": {
+          "type": "string",
+          "format": "date",
+          "description": "Fecha de la grilla usada. En escenarios futuros es la de la última grilla aprobada, no la del cese (FR-030a)."
+        },
+        "condicionantes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condicionante"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "estado": {
+                "const": "provisional"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "condicionantes": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "elegibilidad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incisos",
+        "minimo_22_anios",
+        "estado"
+      ],
+      "properties": {
+        "incisos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resultado_inciso"
+          }
+        },
+        "minimo_22_anios": {
+          "$ref": "#/$defs/resultado_requisito"
+        },
+        "inciso_mas_favorable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ]
+        }
+      }
+    },
+    "resultado_inciso": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inciso",
+        "cumple",
+        "requisitos",
+        "norma"
+      ],
+      "properties": {
+        "inciso": {
+          "enum": [
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        "cumple": {
+          "type": "boolean"
+        },
+        "habilitado_desde": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "norma": {
+          "$ref": "#/$defs/norma"
+        },
+        "requisitos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/resultado_requisito"
+          }
+        },
+        "falta": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "anios_edad": {
+              "$ref": "#/$defs/decimal"
+            },
+            "anios_servicio": {
+              "$ref": "#/$defs/decimal"
+            }
+          }
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ],
+          "default": "definitivo"
+        },
+        "estimado_para": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "Fecha en que se cumpliría el inciso, proyectando los períodos en curso bajo supuesto de continuidad (FR-016). Excluyente con motivo_sin_estimacion."
+        },
+        "motivo_sin_estimacion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Por qué no se pudo estimar la fecha. Excluyente con estimado_para."
+        }
+      }
+    },
+    "resultado_requisito": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nombre",
+        "cumple",
+        "norma"
+      ],
+      "properties": {
+        "nombre": {
+          "type": "string"
+        },
+        "cumple": {
+          "type": "boolean"
+        },
+        "valor_alcanzado": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valor_requerido": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "norma": {
+          "$ref": "#/$defs/norma"
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ],
+          "default": "definitivo",
+          "description": "Provisional cuando la convención de conteo de tiempo decide el resultado: el margen al umbral es menor o igual que el desplazamiento que el cambio de convención puede producir (Cuestión abierta #5)."
+        },
+        "margen_dias": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Días entre el valor alcanzado y el umbral. null cuando no aplica (edad)."
+        }
+      }
+    },
+    "cargo_base": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cargo",
+        "via",
+        "meses_que_lo_sustentan",
+        "descartados",
+        "estado",
+        "norma"
+      ],
+      "properties": {
+        "cargo": {
+          "type": "string"
+        },
+        "via": {
+          "enum": [
+            "36_consecutivos",
+            "60_alternados",
+            "cargo_inferior"
+          ],
+          "description": "cargo_inferior cuando el de mayor jerarquía no alcanzó los 36/60 y se regula por el inferior (FR-020a)."
+        },
+        "descenso_desde": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "meses_que_lo_sustentan": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$"
+          }
+        },
+        "descartados": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cargo",
+              "razon"
+            ],
+            "properties": {
+              "cargo": {
+                "type": "string"
+              },
+              "razon": {
+                "type": "string"
+              },
+              "meses_alcanzados": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "estado": {
+          "enum": [
+            "definitivo",
+            "provisional"
+          ]
+        },
+        "norma": {
+          "$ref": "#/$defs/norma"
+        }
+      }
+    },
+    "escenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fecha_cese",
+        "tipo",
+        "hay_derecho",
+        "advertencias"
+      ],
+      "properties": {
+        "fecha_cese": {
+          "type": "string",
+          "format": "date"
+        },
+        "tipo": {
+          "enum": [
+            "provista",
+            "habilitacion",
+            "excedente_3",
+            "excedente_5"
+          ]
+        },
+        "hay_derecho": {
+          "type": "boolean"
+        },
+        "inciso": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "porcentaje": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "antiguedad_anios": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Antigüedad proyectada a la fecha del escenario (FR-030b)."
+        },
+        "haber": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/monto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lectura_literal": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "porcentaje",
+            "sentido_impacto",
+            "norma"
+          ],
+          "description": "Lectura literal de los arts. 42 y 43, que mide el excedente solo por edad (FR-027b). El criterio aplicado por defecto es el de Res. IPS 995/2021 Anexo 2.1.a.",
+          "properties": {
+            "porcentaje": {
+              "$ref": "#/$defs/decimal"
+            },
+            "sentido_impacto": {
+              "$ref": "#/$defs/sentido_impacto"
+            },
+            "norma": {
+              "$ref": "#/$defs/norma"
+            }
+          }
+        },
+        "advertencias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/advertencia"
+          }
+        }
+      }
+    },
+    "paso": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orden",
+        "descripcion",
+        "regla_id",
+        "norma",
+        "tipo_fuente"
+      ],
+      "properties": {
+        "orden": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "descripcion": {
+          "type": "string"
+        },
+        "entrada": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "salida": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "regla_id": {
+          "type": "string"
+        },
+        "norma": {
+          "$ref": "#/$defs/norma"
+        },
+        "tipo_fuente": {
+          "enum": [
+            "letra_ley",
+            "interpretacion"
+          ],
+          "description": "Distingue la letra de la ley de las interpretaciones del IPS, jurisprudencia o práctica administrativa (FR-040, Principio I)."
+        }
+      }
+    },
+    "procedencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dato",
+        "origen"
+      ],
+      "properties": {
+        "dato": {
+          "type": "string"
+        },
+        "origen": {
+          "enum": [
+            "manual",
+            "derivado"
+          ]
+        },
+        "derivado_de": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "difiere_del_catalogo": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "advertencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "codigo",
+        "mensaje",
+        "bloquea_calculo"
+      ],
+      "properties": {
+        "codigo": {
+          "enum": [
+            "dato_faltante",
+            "simultaneidad_computable_art47",
+            "simultaneidad_no_computable",
+            "posible_error_carga",
+            "servicios_no_docentes_sin_computar",
+            "prorrateo_podria_completar_requisitos",
+            "fuera_de_alcance_otra_caja",
+            "fuera_de_alcance_privado",
+            "fuera_de_alcance_promedio_36",
+            "regla_no_verificada",
+            "grilla_ausente",
+            "grilla_sin_acto_aprobatorio",
+            "cargo_fuera_de_catalogo",
+            "empate_jerarquia",
+            "lectura_literal_excedente",
+            "montos_a_valores_de_hoy",
+            "haber_movil_art_50",
+            "supuesto_continuidad",
+            "dato_corregido_a_mano",
+            "periodo_recortado_a_cese"
+          ]
+        },
+        "mensaje": {
+          "type": "string"
+        },
+        "norma": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/norma"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sentido_impacto": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sentido_impacto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bloquea_calculo": {
+          "type": "boolean",
+          "description": "true en los casos fuera de alcance. Impide emitir haber en el escenario (invariante I7) pero NO aborta el informe: el motor devuelve el análisis parcial que sí puede sostener (FR-045a). La CLI emite exit 3 cuando existe al menos una advertencia bloqueante (FR-045b)."
+        }
+      }
+    },
+    "condicionante": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clase",
+        "referencia",
+        "sentido_impacto",
+        "que_falta_verificar"
+      ],
+      "description": "Lo que impide que un monto sea definitivo: una regla NO_VERIFICADA o una situación del caso (FR-046b).",
+      "properties": {
+        "clase": {
+          "enum": [
+            "regla_no_verificada",
+            "situacion_del_caso"
+          ]
+        },
+        "referencia": {
+          "type": "string",
+          "description": "regla_id cuando clase=regla_no_verificada; código de situación (grilla_ausente, cargo_fuera_de_catalogo, override_manual, supuesto_continuidad) cuando clase=situacion_del_caso."
+        },
+        "norma": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/norma"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sentido_impacto": {
+          "$ref": "#/$defs/sentido_impacto"
+        },
+        "magnitud_estimada": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "que_falta_verificar": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

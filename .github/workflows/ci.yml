@@ -1,0 +1,348 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Pipeline de CI de Último Timbre.
+# Los gates existen desde el primer commit, antes del código de dominio:
+# un hallazgo alto o crítico bloquea el merge (Principio VII).
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.5.11"
+
+jobs:
+  # -------------------------------------------------------------------------
+  # T008 — tests y cobertura en las tres plataformas
+  # -------------------------------------------------------------------------
+  tests:
+    name: tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Instalar dependencias
+        run: uv sync --all-extras --dev
+
+      - name: Tests y cobertura global (>=80 %)
+        run: uv run pytest
+
+      # T007 — el umbral reforzado del motor no se puede expresar en pyproject
+      # (--cov-fail-under es un único valor global), así que se verifica acá.
+      - name: Cobertura de motor y reglas (>=95 %)
+        run: >-
+          uv run coverage report
+          --include="src/ultimo_timbre/engine/*,src/ultimo_timbre/rules/*"
+          --fail-under=95
+
+      - name: Subir reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-${{ matrix.os }}
+          path: .coverage
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+      # T188 — el informe canónico de este sistema, para enfrentarlo con el de
+      # los otros dos. El caso declara su `fecha_de_calculo`, así que lo único
+      # que puede diferir entre sistemas es lo que no debería: fines de línea,
+      # separadores de ruta, orden de iteración, codificación.
+      #
+      # Tiene que ser el mismo caso que usa tests/test_determinismo_plataforma.py.
+      - name: Emitir el informe canónico
+        run: >-
+          uv run ultimo-timbre calcular examples/caso-inc-b.yaml
+          --formato json --salida informe-canonico.json
+
+      - name: Subir el informe canónico
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-canonico-${{ matrix.os }}
+          path: informe-canonico.json
+          if-no-files-found: error
+
+  # -------------------------------------------------------------------------
+  # T009 — calidad: lint, formato y tipos
+  # -------------------------------------------------------------------------
+  calidad:
+    name: calidad (ruff + mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      - name: ruff check
+        run: uv run ruff check .
+
+      - name: ruff format --check
+        run: uv run ruff format --check .
+
+      - name: mypy --strict
+        run: uv run mypy
+
+  # -------------------------------------------------------------------------
+  # T010 — seguridad: SAST, dependencias y secretos (Principio VII)
+  # -------------------------------------------------------------------------
+  seguridad:
+    name: seguridad (bandit + pip-audit + gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks necesita el historial completo
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # -ll: solo severidad media y alta. Un hallazgo alto o crítico bloquea.
+      - name: bandit (SAST)
+        run: uv run bandit -r src/ -ll
+
+      - name: pip-audit (dependencias)
+        run: uv run pip-audit
+
+      - name: gitleaks (secretos)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # -------------------------------------------------------------------------
+  # T011 — licencia y SBOM (Principios V y VII)
+  # -------------------------------------------------------------------------
+  licencia-y-sbom:
+    name: licencia (reuse) + SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # reuse no respeta .gitignore en todos los entornos y marcaría los .pyc
+      # como archivos sin licencia. Se limpian antes para que el gate sea
+      # determinista y no dependa de si algo se ejecutó en este runner.
+      - name: Limpiar artefactos de bytecode
+        run: find . -name __pycache__ -type d -not -path "./.venv/*" -prune -exec rm -rf {} +
+
+      - name: reuse lint (todo archivo con encabezado SPDX)
+        run: uv run reuse lint
+
+      - name: Generar SBOM CycloneDX
+        run: uv run cyclonedx-py environment --output-format JSON --output-file sbom.cdx.json
+
+      - name: Subir SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+  # -------------------------------------------------------------------------
+  # T012 — validación de los datos normativos versionados (Principio I)
+  # -------------------------------------------------------------------------
+  validate-schemas:
+    name: validate-schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --all-extras --dev
+
+      # Los schemas y los YAML aparecen en la Fase 2 (T025-T027, T039-T042).
+      # Hasta entonces estos pasos no tienen nada que validar y se saltan solo:
+      # no se marcan como éxito falso.
+      # `rule.schema.json` describe **una** regla; los documentos son
+      # `{reglas: [...]}`. Lo que se valida acá es el documento, con
+      # `ruleset.schema.json`, que referencia al de la regla. `cargos.yaml`
+      # queda afuera: tiene su propia forma y su propio paso.
+      - name: Reglas del régimen
+        run: |
+          validadas=0
+          if [ -f schemas/ruleset.schema.json ]; then
+            for f in rules/*/*.yaml; do
+              [ -f "$f" ] || continue
+              case "$f" in */cargos.yaml) continue ;; esac
+              uv run check-jsonschema --schemafile schemas/ruleset.schema.json "$f"
+              validadas=1
+            done
+          fi
+          if [ "$validadas" = 0 ]; then
+            echo "::notice::sin reglas ni schema todavía (llegan en la Fase 2) — nada que validar"
+          fi
+
+      - name: Catálogo de cargos
+        run: |
+          if [ -f schemas/cargo.schema.json ] && compgen -G "rules/*/cargos.yaml" > /dev/null; then
+            uv run check-jsonschema --schemafile schemas/cargo.schema.json rules/*/cargos.yaml
+          else
+            echo "::notice::sin catálogo ni schema todavía — nada que validar"
+          fi
+
+      - name: Grillas salariales
+        run: |
+          if [ -f schemas/grid.schema.json ] && compgen -G "grids/*.yaml" > /dev/null; then
+            uv run check-jsonschema --schemafile schemas/grid.schema.json grids/*.yaml
+          else
+            echo "::notice::sin grillas ni schema todavía — nada que validar"
+          fi
+
+      # Una grilla ficticia nunca puede vivir en grids/ (T024, T036, T038).
+      - name: Ninguna grilla ficticia en grids/
+        run: |
+          if grep -rl 'ficticia:[[:space:]]*true' grids/ 2>/dev/null; then
+            echo "::error::hay una grilla con 'ficticia: true' en grids/ — solo puede vivir en tests/fixtures/"
+            exit 1
+          fi
+          echo "ok: grids/ sin grillas ficticias"
+
+  # -------------------------------------------------------------------------
+  # T136 — aprobación de las grillas (Principio IX, research R4)
+  #
+  # El PR que agrega una grilla ES el acto de aprobación. Este check es lo que
+  # impide que ese acto quede implícito: una grilla sin aprobador identificado
+  # no puede valuar un informe, porque nadie se hizo responsable de sus valores.
+  #
+  # Con un solo mantenedor, GitHub no puede exigir la revisión de un tercero
+  # (CODEOWNERS no bloquea al dueño del repo). El sustituto auditable es atar
+  # `aprobada_por` a quien fusiona. El escalón a dos personas y su disparador
+  # están en docs/adr/0002-aprobacion-de-grillas.md.
+  # -------------------------------------------------------------------------
+  validate-grid-approval:
+    name: validate-grid-approval
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # hace falta el historial para saber qué cambió
+
+      - name: Verificar la aprobación de las grillas
+        env:
+          # Quien fusiona. En un PR es el actor que dispara el workflow; con un
+          # solo mantenedor es también quien aprueba (ver ADR-0002).
+          QUIEN_FUSIONA: ${{ github.actor }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Qué grillas toca el cambio. Sin PR no hay base contra la que
+          # comparar: se revisan todas, que es más estricto y nunca menos.
+          if [ -n "$BASE" ]; then
+            tocadas=$(git diff --name-only --diff-filter=d "$BASE" HEAD -- 'grids/*.yaml' || true)
+          else
+            tocadas=$(ls grids/*.yaml 2>/dev/null || true)
+          fi
+
+          if [ -z "$tocadas" ]; then
+            echo "::notice::este cambio no toca ninguna grilla"
+            exit 0
+          fi
+
+          fallo=0
+          for f in $tocadas; do
+            echo "revisando $f"
+            for campo in aprobada_por aprobada_en; do
+              valor=$(sed -n "s/^${campo}:[[:space:]]*//p" "$f" | head -1 | tr -d "\"' ")
+              if [ -z "$valor" ] || [ "$valor" = "null" ]; then
+                echo "::error file=$f::${campo} está vacío; una grilla sin aprobador no puede valuar un informe"
+                fallo=1
+              fi
+            done
+
+            aprobador=$(sed -n "s/^aprobada_por:[[:space:]]*//p" "$f" | head -1 | tr -d "\"' ")
+            if [ -n "$aprobador" ] && [ "$aprobador" != "null" ] && [ "$aprobador" != "$QUIEN_FUSIONA" ]; then
+              echo "::error file=$f::aprobada_por dice «$aprobador» y quien fusiona es «$QUIEN_FUSIONA»; con un solo mantenedor tienen que coincidir"
+              fallo=1
+            fi
+          done
+
+          if [ "$fallo" = 0 ]; then
+            echo "ok: toda grilla tocada declara quién la aprobó y cuándo"
+          fi
+          exit $fallo
+
+  # -------------------------------------------------------------------------
+  # T188 — determinismo multiplataforma (SC-003, SC-007)
+  #
+  # El invariante I3 dice que el mismo caso con las mismas versiones produce el
+  # mismo informe byte a byte. Dentro de un solo sistema eso lo verifica
+  # `tests/properties/test_determinismo.py`. Lo que no puede verificar desde un
+  # solo sistema es la parte que depende del sistema, y es justo la que falla
+  # sin que nadie se entere: CRLF contra LF, `\` contra `/`, una codificación
+  # de consola distinta, un orden de iteración que cambió.
+  #
+  # Acá se enfrentan los tres informes. Si uno difiere, el job imprime el diff
+  # y falla: un informe que no se puede reproducir en otra máquina no sirve
+  # para auditar nada.
+  # -------------------------------------------------------------------------
+  determinismo-multiplataforma:
+    name: determinismo-multiplataforma
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: informe-canonico-*
+          path: informes
+
+      - name: Enfrentar los tres informes byte a byte
+        run: |
+          encontrados=$(find informes -name 'informe-canonico.json' | sort)
+          cantidad=$(printf '%s\n' "$encontrados" | grep -c . || true)
+          echo "informes recibidos: $cantidad"
+          printf '%s\n' "$encontrados"
+
+          if [ "$cantidad" -lt 3 ]; then
+            echo "::error::se esperaban 3 informes (ubuntu, macos, windows) y llegaron $cantidad"
+            exit 1
+          fi
+
+          referencia=$(printf '%s\n' "$encontrados" | head -1)
+          huella=$(sha256sum "$referencia" | cut -d' ' -f1)
+          echo "huella de referencia: $huella  ($referencia)"
+
+          fallo=0
+          for f in $encontrados; do
+            actual=$(sha256sum "$f" | cut -d' ' -f1)
+            if [ "$actual" != "$huella" ]; then
+              echo "::error file=$f::huella $actual, se esperaba $huella"
+              diff -u "$referencia" "$f" | head -40 || true
+              fallo=1
+            fi
+          done
+
+          if [ "$fallo" = 0 ]; then
+            echo "ok: los tres sistemas producen el mismo informe byte a byte"
+          fi
+          exit $fallo

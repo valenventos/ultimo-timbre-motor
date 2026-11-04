@@ -1,0 +1,282 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T042 — Las Cuestiones abiertas #1 a #6 de la constitución, como reglas.
+#
+# Todas llevan `valor: null`. Ninguna lleva un valor tentativo: el motor emite
+# el resultado marcado como provisional y explica qué falta verificar
+# (FR-046 a FR-046c), que es preferible a un número que parece correcto.
+
+reglas:
+  # Cuestión abierta #1
+  # La escala del Decreto 818/13 está transcripta literalmente de su Anexo
+  # Único (https://normas.gba.gob.ar/documentos/BgAzqgfp.html), que el propio
+  # decreto dicta en función del art. 33 de la Ley 10.579. Los once tramos se
+  # verificaron uno por uno contra esa fuente, incluido el salto irregular de
+  # 84 % a 105 % a los 20 años, que no es un error de transcripción.
+  #
+  # Lo que queda `no_verificada` **no son los valores sino su vigencia**: el
+  # decreto es de 2013 y no se pudo comprobar que ninguna norma posterior lo
+  # haya modificado. Por eso el porcentaje se aplica y el haber sale
+  # provisional, con la escala original de la Ley 10.579 informada como
+  # lectura alternativa a la baja (`antiguedad.escala_ley_10579`).
+  #
+  # El decreto no declara tope: el último tramo es el de 24 años. Más allá de
+  # esa antigüedad el porcentaje se mantiene en 125 %.
+  - id: antiguedad.escala_y_tope
+    norma:
+      texto: >-
+        Decreto 818/13, Anexo Único (escala de bonificación por antigüedad,
+        dictado en función del art. 33 de la Ley 10.579)
+      ley: "Decreto 818/13"
+      articulo: "Anexo Único"
+      enlace: "https://normas.gba.gob.ar/documentos/BgAzqgfp.html"
+    tipo: letra_ley
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      125 % contra 120 % en el tramo más alto, y 13 puntos de diferencia en el
+      primer tramo; sobre la parte bonificable del cargo
+    que_falta_verificar: >-
+      si la escala del Decreto 818/13, vigente desde el 1º de julio de 2013,
+      sigue siendo la aplicable, y si existe un tope distinto del último tramo.
+      Los once tramos están transcriptos de su Anexo Único; lo que no se pudo
+      verificar es que ninguna norma posterior los haya modificado. La escala
+      original de la Ley 10.579, art. 33, con tope 120 %, queda informada como
+      lectura alternativa a la baja.
+    cuestion_abierta: 1
+    valor_por_defecto_aplicado: true
+    valor:
+      escala:
+        - anios: 0
+          porcentaje: "0.13"
+        - anios: 2
+          porcentaje: "0.23"
+        - anios: 4
+          porcentaje: "0.33"
+        - anios: 7
+          porcentaje: "0.43"
+        - anios: 10
+          porcentaje: "0.54"
+        - anios: 12
+          porcentaje: "0.64"
+        - anios: 15
+          porcentaje: "0.74"
+        - anios: 17
+          porcentaje: "0.84"
+        - anios: 20
+          porcentaje: "1.05"
+        - anios: 22
+          porcentaje: "1.15"
+        - anios: 24
+          porcentaje: "1.25"
+
+  # Cuestión abierta #2
+  - id: remuneracion.conceptos_del_cargo
+    norma:
+      texto: "DL 9650/80, art. 40 (concepto de remuneración)"
+      ley: "DL 9650/80"
+      articulo: "40"
+    tipo: letra_ley
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      qué conceptos del recibo integran la «remuneración asignada al cargo» que
+      toma el IPS: básico, antigüedad, sumas fijas remunerativas no
+      bonificables, códigos específicos, y cuáles quedan afuera. Mientras siga
+      abierta, todo haber sale provisional.
+
+      El motor aplica por defecto **la letra del art. 40**: todos los
+      componentes del cargo, incluidos los no remunerativos, salvo los que el
+      artículo excluye expresamente —horas extras, asignaciones familiares,
+      viáticos, gastos de residencia y becas—. Qué componente concreto de la
+      grilla corresponde a cada concepto excluido lo declara la grilla con
+      `excluido_art40`, no el motor.
+
+      La lectura más restrictiva —solo los componentes remunerativos— queda
+      informada como alternativa a la baja (`remuneracion.solo_remunerativos`).
+    cuestion_abierta: 2
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "todos_los_componentes_del_cargo"
+      excluidos:
+        - "horas extras"
+        - "asignaciones familiares"
+        - "viáticos"
+        - "gastos de residencia"
+        - "becas"
+
+  # Cuestión abierta #3
+  - id: horas_catedra.como_carrera
+    norma:
+      texto: "Res. HD IPS 8/14"
+      ley: "Res. HD IPS 8/14"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      el contenido de la Res. HD IPS 8/14 y su aplicación a las horas cátedra y
+      los módulos a los efectos del cargo base.
+    cuestion_abierta: 3
+    valor: null
+
+  # Cuestión abierta #4
+  - id: jerarquia.criterio_comparacion
+    norma:
+      texto: >-
+        Res. IPS 995/2021, Anexo, definición de CARGO BASE (cargo mejor
+        remunerado); Res. IPS 14/10 (acreditación de mayor jerarquía)
+      ley: "Res. IPS 995/2021"
+      articulo: "Anexo, definición de CARGO BASE"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      cambia qué cargo resulta base y, con él, el artículo y el porcentaje:
+      hasta 70 % contra 85 % según el inciso de acceso
+    que_falta_verificar: >-
+      el criterio para comparar la jerarquía entre cargos —puntaje, índice
+      escalafonario o remuneración— y su acreditación. El motor aplica por
+      defecto el **mejor remunerado** del Anexo de la Res. IPS 995/2021, que
+      tiene la ventaja de ser verificable contra la grilla sin necesitar el
+      escalafón. Sin grilla usa el índice escalafonario del nomenclador como
+      desempate, y sin ninguno de los dos declara el empate.
+    cuestion_abierta: 4
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "mejor_remunerado"
+
+  # Cuestión abierta #5 (incluye la ampliación sobre situación de revista)
+  - id: computo.licencias_suplencias_y_revista
+    norma:
+      texto: "DL 9650/80, art. 41 (cargo «de que era titular»)"
+      ley: "DL 9650/80"
+      articulo: "41"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      el tratamiento de licencias con y sin goce, suplencias e interinatos en el
+      cómputo de los 36/60 meses y de los años de servicio, y si la situación de
+      revista (titular, provisional, suplente) condiciona la elección del cargo
+      base, dado que el art. 41 se refiere al cargo «de que era titular».
+    cuestion_abierta: 5
+    valor: null
+
+  # Cuestión abierta #5 — la convención de conteo del tiempo de servicio.
+  #
+  # A diferencia de las demás reglas de este archivo, acá `valor` NO va en null:
+  # el motor no puede *no* contar el tiempo. Tuvo que elegir una convención, y
+  # la elección se declara —con `valor_por_defecto_aplicado: true`— en lugar de
+  # quedar escondida en el código. El resultado de todo requisito que dependa
+  # de ella y esté cerca del umbral sale provisional (FR-046b).
+  - id: computo.convencion_de_conteo
+    norma:
+      texto: "DL 9650/80, art. 24 (cómputo de años de servicio) — convención no documentada"
+      ley: "DL 9650/80"
+      articulo: "24"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la convención con que el IPS computa el tiempo de servicio: días
+      calendario reales o meses de 30 días; si la fecha final del período es
+      inclusiva o exclusiva; y si los días residuales de cada tramo se arrastran
+      a meses. El motor aplica por defecto días reales con fecha final inclusiva
+      y sin arrastre, y marca como provisional todo requisito cuyo margen al
+      umbral sea menor o igual que el desplazamiento que el cambio de convención
+      puede producir.
+    cuestion_abierta: 5
+    valor_por_defecto_aplicado: true
+    valor:
+      convencion: "dias_reales"
+      fecha_final: "inclusiva"
+      arrastre_de_dias: false
+      dias_por_mes_alternativa: 30
+
+  # Cuestión abierta #6
+  - id: redondeo.politica_ips
+    norma:
+      texto: "Política de redondeo aplicada por el IPS en la liquidación del haber"
+      ley: "Práctica administrativa IPS"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    que_falta_verificar: >-
+      la política de redondeo que aplica el IPS. El motor usa un único
+      `quantize()` centralizado con ROUND_HALF_UP declarado por defecto, y el
+      último decimal no está garantizado hasta verificarlo.
+    cuestion_abierta: 6
+    valor_por_defecto_aplicado: true
+    valor:
+      politica_aplicada: "ROUND_HALF_UP"
+      decimales: 2
+
+  # Cuestión abierta #9
+  #
+  # La docente cumple el art. 24 inc. b por sus años al frente de alumnos, pero
+  # su cargo base del art. 41 es un cargo que no cuenta al frente —un
+  # directivo—. Las dos lecturas son defendibles: el art. 43 rige «el personal
+  # del art. 24 inc. b», y ella lo es; pero su 75 % se pensó para el cargo al
+  # frente de alumnos, que no es el cargo base.
+  #
+  # Se aplica el 70 % del art. 41 por ser el criterio más conservador. De los
+  # dos errores posibles, prometer un haber mayor que el que el IPS liquida es
+  # el que le cuesta plata al docente.
+  - id: porcentaje.art43.cargo_base_no_al_frente
+    norma:
+      texto: >-
+        DL 9650/80, arts. 41 y 43 (acceso por el inc. b con cargo base que no
+        cuenta al frente de alumnos)
+      ley: "DL 9650/80"
+      articulo: "41-43"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: "70 % vs 75 % sobre el cargo base"
+    que_falta_verificar: >-
+      si cuando la docente cumple el art. 24 inc. b por sus años al frente de
+      alumnos, pero el cargo base del art. 41 es un cargo que no cuenta al
+      frente, corresponde el 75 % del art. 43 sobre ese cargo base o el 70 %
+      del art. 41. El motor aplica el 70 % por ser el criterio más
+      conservador, y lo declara como valor por defecto aplicado.
+    cuestion_abierta: 9
+    valor_por_defecto_aplicado: true
+    valor:
+      criterio_aplicado: "art_41"
+
+  # Cuestión abierta #4, segunda mitad: los **valores** de los índices.
+  #
+  # La #4 tiene dos partes y conviene distinguirlas. Una es el **criterio** para
+  # comparar cargos —puntaje, índice escalafonario o remuneración—, que es
+  # `jerarquia.criterio_comparacion`. La otra es que, aun eligiendo el índice
+  # como criterio, los índices vigentes por cargo **no están publicados**: el
+  # Anexo del art. 9º del Decreto 2397/2005, que aprueba el texto ordenado del
+  # nomenclador, no figura en la versión en línea de la norma.
+  #
+  # Lo que sí se encontró, con sus citas, y por qué no alcanza, está en
+  # `docs/datos-pendientes/relevamiento-2026-11.md`.
+  - id: jerarquia.indices_escalafonarios
+    norma:
+      texto: >-
+        Decreto 2397/2005, art. 9º (texto ordenado del nomenclador de cargos
+        docentes); Decreto 1301/2005, Anexo I
+      ley: "Decreto 2397/2005"
+      articulo: "9"
+    tipo: interpretacion
+    estado: no_verificada
+    impacto_si_no_verificada: indeterminado
+    magnitud_estimada: >-
+      cambia qué cargo resulta base y, con él, el artículo y el porcentaje:
+      hasta 70 % contra 85 % según el inciso de acceso
+    que_falta_verificar: >-
+      el índice escalafonario vigente de cada cargo. El Anexo del art. 9º del
+      Decreto 2397/2005 no está publicado en línea. El Decreto 1301/2005,
+      Anexo I, trae índices de abril de 2005 que el Decreto 2397/2005 modificó
+      —art. 2º los lleva de 1 a 1,1 y art. 3º incrementa 20 % los jerárquicos—,
+      y para Director, Vicedirector y Bibliotecario da **rangos** según
+      categoría del establecimiento y cantidad de secciones, no un valor único.
+      Sin los índices el motor no puede comparar cargos ni por jerarquía ni por
+      remuneración, y el cargo base queda provisional.
+    cuestion_abierta: 4
+    valor: null

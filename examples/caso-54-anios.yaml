@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# CASO DE EJEMPLO — datos inventados.
+# No corresponde a ninguna persona real. Sirve para probar el motor y para
+# mostrar el formato de entrada que espera `ultimo-timbre calcular`.
+#
+# Escenario de referencia de la US3 nº 6: completa sus 25 años de servicio a
+# los 54 años de edad. Tiene cuatro años de edad por encima de los 50 que pide
+# el inc. b, pero excedente CERO, porque recién ese día reúne todas las
+# condiciones (Res. IPS 995/2021, Anexo, punto 2.1.a).
+#
+# Esperado: 75 % al habilitarse y 80 % tres años después, con la advertencia de
+# que bajo la lectura literal de los arts. 42 y 43 el porcentaje inicial sería
+# mayor (FR-027a, FR-027b).
+schema_version: "1.0.0"
+fecha_de_calculo: 2023-01-02
+fecha_nacimiento: 1969-06-15
+fechas_cese:
+  - 2023-12-31
+  - 2026-12-31
+historia:
+  periodos:
+    - cargo: maestro_de_grado
+      establecimiento:
+        tipo: estatal_dgcye
+      desde: 1999-01-01
+      hasta: 2026-12-31
+      caja_aportes: ips
+      situacion_revista: titular

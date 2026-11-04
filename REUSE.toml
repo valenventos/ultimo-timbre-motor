@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Configuración REUSE 3.2. Los archivos de código llevan su encabezado SPDX
+# inline (T004); acá se declaran únicamente los que no admiten comentarios o
+# cuya anotación individual no aporta nada (datos, fixtures, specs).
+#
+# Verificar con:  uv run reuse lint
+
+version = 1
+SPDX-PackageName = "ultimo-timbre"
+SPDX-PackageSupplier = "Último Timbre <valentinventos@gmail.com>"
+SPDX-PackageDownloadLocation = "https://github.com/valenventos/ultimo-timbre-motor"
+
+[[annotations]]
+path = [
+  "rules/**",
+  "grids/**",
+  "schemas/**",
+  "examples/**",
+  "tests/fixtures/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Último Timbre"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = [
+  "specs/**",
+  ".specify/**",
+  "docs/**",
+  "README.md",
+  "SECURITY.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Último Timbre"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = [
+  "**/.gitkeep",
+  "uv.lock",
+  ".gitignore",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Último Timbre"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+# Andamiaje de Spec Kit y de las skills de Claude Code: se distribuye con el
+# repositorio pero no es código del proyecto. Se anota en bloque.
+[[annotations]]
+path = [
+  ".claude/**",
+  "LICENSES/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Último Timbre"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

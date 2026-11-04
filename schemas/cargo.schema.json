@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Catálogo de cargos docentes",
+  "description": "La forma de rules/<version>/cargos.yaml: las reglas que respaldan la condición de al frente de alumnos y el catálogo de cargos propiamente dicho. Es la fuente de verdad de esa condición y de la naturaleza del servicio (FR-002a, FR-002d). Un cargo ausente del catálogo no se asume: queda indeterminado, se advierte cargo_fuera_de_catalogo y el resultado sale provisional. La versión no viaja en el documento: es el nombre del directorio (rules/v1).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reglas",
+    "entradas"
+  ],
+  "properties": {
+    "reglas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "rule.schema.json"
+      },
+      "description": "Las reglas que las entradas citan por `regla_id` o `regla_umbral`. Viven en el mismo documento que el catálogo porque solo lo condicionan a él."
+    },
+    "entradas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/entrada"
+      }
+    }
+  },
+  "$defs": {
+    "norma": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "texto",
+        "ley"
+      ],
+      "properties": {
+        "texto": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ley": {
+          "type": "string",
+          "minLength": 1
+        },
+        "articulo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inciso": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enlace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "entrada": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cargo",
+        "jerarquia",
+        "al_frente_de_alumnos",
+        "naturaleza",
+        "norma",
+        "estado",
+        "indice_escalafonario"
+      ],
+      "properties": {
+        "cargo": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "jerarquia": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Orden de jerarquía del cargo, donde **mayor entero = mayor jerarquía**. La dirección del número es una convención de representación, no un valor normativo. null = sin orden documentado: el criterio de comparación entre cargos es la Cuestión abierta #4 y no hay ningún orden numérico verificado que transcribir, así que no se inventa. Con jerarquía nula el motor no puede rankear: emite `empate_jerarquia` y marca el cargo base provisional (FR-022)."
+        },
+        "al_frente_de_alumnos": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "null = indeterminado. No equivale a false."
+        },
+        "naturaleza": {
+          "enum": [
+            "docente",
+            "no_docente",
+            null
+          ]
+        },
+        "norma": {
+          "$ref": "#/$defs/norma"
+        },
+        "estado": {
+          "enum": [
+            "verificado",
+            "no_verificada"
+          ]
+        },
+        "regla_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Regla que condiciona esta entrada, incluso si el estado es verificado. Director y vicedirector son al_frente false por la letra del art. 24 inc. b, pero la extensión discutida de la Ley 13469 (Cuestión abierta #8) podría cambiarlo al alza."
+        },
+        "condicion": {
+          "enum": [
+            "directa",
+            "por_horas_catedra"
+          ],
+          "default": "directa",
+          "description": "Cómo se resuelve la condición. `por_horas_catedra` para los profesores que el art. 24 inc. b asimila al reunir veinte horas cátedra: es un umbral sobre el total de horas simultáneas, no un booleano del cargo."
+        },
+        "regla_umbral": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Regla de la que sale el umbral. El valor nunca se escribe acá: vive en la regla (Principio I)."
+        },
+        "indice_escalafonario": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]+(\\.[0-9]+)?$",
+          "description": "Índice escalafonario del nomenclador, como string numérico y nunca number (research R1): los índices son decimales exactos y un float binario arruinaría un 1.32. Es el multiplicador del sueldo básico del cargo testigo, y por eso sirve a la vez como criterio de «mejor remunerado» (Res. IPS 995/2021) y como desempate verificable del art. 41. null = no verificado, que no equivale a 1: en la v1 está null en todas las entradas porque el Anexo del art. 9 del Decreto 2397/2005 no está publicado."
+        },
+        "indice_es_por_hora": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si el índice se aplica por hora cátedra en lugar de por cargo. Un índice por hora no es comparable con uno por cargo: sin esta marca el comparador mezclaría dos magnitudes distintas y el resultado parecería válido."
+        },
+        "regla_indice": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Regla que condiciona el índice cuando no está verificado. Obligatoria si indice_escalafonario es null."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "estado": {
+                "const": "no_verificada"
+              }
+            },
+            "required": [
+              "estado"
+            ]
+          },
+          "then": {
+            "required": [
+              "regla_id"
+            ],
+            "properties": {
+              "regla_id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "condicion": {
+                "const": "por_horas_catedra"
+              }
+            },
+            "required": [
+              "condicion"
+            ]
+          },
+          "then": {
+            "required": [
+              "regla_umbral"
+            ],
+            "properties": {
+              "regla_umbral": {
+                "type": "string"
+              },
+              "al_frente_de_alumnos": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "indice_escalafonario": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "indice_escalafonario"
+            ]
+          },
+          "then": {
+            "required": [
+              "regla_indice"
+            ],
+            "properties": {
+              "regla_indice": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

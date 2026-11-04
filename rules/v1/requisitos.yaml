@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: Último Timbre
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# T039 — Requisitos de acceso a la jubilación ordinaria docente.
+#
+# Todos los umbrales de este archivo están documentados literalmente en
+# spec.md y en la constitución. No hay ningún valor inferido.
+
+reglas:
+  - id: requisitos.art24.inc_b
+    norma:
+      texto: "DL 9650/80, art. 24 inc. b"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "b"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      edad: 50
+      anios_servicio: 25
+      anios_al_frente: 25
+      horas_catedra: 20
+
+  - id: requisitos.art24.inc_c
+    norma:
+      texto: "DL 9650/80, art. 24 inc. c"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "c"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      edad: 50
+      anios_servicio: 25
+      anios_al_frente: 10
+
+  - id: requisitos.art24.inc_d
+    norma:
+      texto: "DL 9650/80, art. 24 inc. d"
+      ley: "DL 9650/80"
+      articulo: "24"
+      inciso: "d"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      edad: 55
+      anios_servicio: 30
+
+  - id: requisitos.art24.minimo_con_aportes
+    norma:
+      texto: "DL 9650/80, art. 24 (mínimo general con aportes)"
+      ley: "DL 9650/80"
+      articulo: "24"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_con_aportes: 22
+
+  # Fuera de alcance de la v1: se detecta y se advierte, no se computa.
+  - id: requisitos.art27.prorrateo
+    norma:
+      texto: "DL 9650/80, art. 27 (prorrateo con servicios de distinta naturaleza)"
+      ley: "DL 9650/80"
+      articulo: "27"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      fuera_de_alcance_v1: "se detecta y se advierte como vía posible, no se computa"
+
+  - id: requisitos.arts71_72.cierre_de_computos
+    norma:
+      texto: "DL 9650/80, arts. 71 y 72 (cese definitivo y cierre de cómputos)"
+      ley: "DL 9650/80"
+      articulo: "71-72"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      cierra_en: "fecha_de_cese"
+
+  # Fuera de alcance de la v1 (art. 47). El mínimo de 3 años continuos sí está
+  # documentado; el cálculo del incremento no se hace.
+  - id: simultaneidad.art47.minimo_continuo
+    norma:
+      texto: "DL 9650/80, art. 47; Res. IPS 995/2021"
+      ley: "DL 9650/80"
+      articulo: "47"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      anios_continuos: 3
+      fuera_de_alcance_v1: "se detecta y se advierte el impacto posible, no se calcula"
+
+  - id: alcance.arts66_67.otras_cajas
+    norma:
+      texto: "DL 9650/80, arts. 66 y 67 (caja otorgante y reciprocidad)"
+      ley: "DL 9650/80"
+      articulo: "66-67"
+    tipo: letra_ley
+    estado: verificado
+    verificada_en: "2026-10-30"
+    valor:
+      fuera_de_alcance_v1: "los servicios con aportes a otra caja no se computan"

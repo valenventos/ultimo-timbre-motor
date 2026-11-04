@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ultimotimbre.ar/schemas/caso/v1.json",
+  "title": "Caso — entrada del motor de cálculo",
+  "description": "Archivo de caso en YAML o JSON. Ni la condición 'al frente de alumnos' ni la naturaleza del servicio se cargan: se derivan del cargo vía el catálogo versionado (FR-002a, FR-002d), y solo pueden sobrescribirse con sus override, que dejan rastro en la procedencia y condicionan el monto. La fecha de cálculo es una entrada explícita: el motor nunca consulta el reloj (FR-001a).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "fecha_de_calculo",
+    "fecha_nacimiento",
+    "historia",
+    "fechas_cese"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "fecha_de_calculo": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha respecto de la cual se evalúa todo lo relativo a 'hoy' (FR-001a). La CLI la completa con la fecha del sistema si no se provee; la librería la exige. El motor nunca llama al reloj."
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date"
+    },
+    "fechas_cese": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "date"
+      },
+      "description": "Una o más fechas de cese a evaluar (FR-001). El motor agrega además los escenarios de habilitación y de excedentes de 3 y 5 años (FR-036)."
+    },
+    "historia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "periodos"
+      ],
+      "properties": {
+        "periodos": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/periodo"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "periodo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cargo",
+        "establecimiento",
+        "desde",
+        "caja_aportes",
+        "situacion_revista"
+      ],
+      "properties": {
+        "cargo": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nombre del cargo tal como lo nombra el catálogo de cargos versionado (CargoRef es un string, no un objeto). Se valida contra el catálogo, pero un cargo ausente NO invalida el caso: se advierte cargo_fuera_de_catalogo, su condición de al frente de alumnos y su naturaleza quedan indeterminadas y el resultado sale provisional."
+        },
+        "horas_catedra": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cantidad de horas cátedra o módulos, cuando el desempeño es por horas y no por cargo. Su tratamiento como carrera es NO_VERIFICADA (Res. HD IPS 8/14, Cuestión abierta #3)."
+        },
+        "establecimiento": {
+          "$ref": "#/$defs/establecimiento"
+        },
+        "desde": {
+          "type": "string",
+          "format": "date"
+        },
+        "hasta": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "default": null,
+          "description": "Opcional. Ausente = período en curso: se proyecta hasta cada fecha de cese bajo supuesto de continuidad en el mismo cargo, con advertencia supuesto_continuidad (FR-002e). Un período que supera la fecha de cese NO se rechaza: se recorta (FR-018a)."
+        },
+        "situacion_revista": {
+          "enum": [
+            "titular",
+            "provisional",
+            "suplente"
+          ],
+          "description": "Su incidencia en la elección del cargo base es NO_VERIFICADA (art. 41 'de que era titular', Cuestión abierta #5)."
+        },
+        "licencias": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/licencia"
+          },
+          "default": []
+        },
+        "al_frente_override": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "default": null,
+          "description": "Corrección manual de la condición derivada del catálogo (FR-002b). Su uso marca el dato como manual, el informe señala que difiere del catálogo, y condiciona el monto (override_manual)."
+        },
+        "caja_aportes": {
+          "enum": [
+            "ips",
+            "anses",
+            "otra_caja"
+          ],
+          "description": "Se carga en el período, no en el establecimiento: depende de la relación de empleo y no del cargo. Distinto de ips dispara fuera de alcance v1 (FR-044, DL 9650/80 arts. 66 y 67)."
+        },
+        "naturaleza_override": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "docente",
+            "no_docente",
+            null
+          ],
+          "default": null,
+          "description": "Corrección manual de la naturaleza derivada del catálogo (FR-002d). Su uso marca el dato como manual y condiciona el monto (override_manual)."
+        }
+      }
+    },
+    "establecimiento": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tipo"
+      ],
+      "properties": {
+        "nombre": {
+          "type": "string"
+        },
+        "tipo": {
+          "enum": [
+            "estatal_dgcye",
+            "privado",
+            "otra_jurisdiccion"
+          ],
+          "description": "Distinto de estatal_dgcye dispara fuera de alcance v1 (FR-045)."
+        }
+      },
+      "description": "El establecimiento describe dónde se prestó el servicio. La caja de aportes se declara en el período (depende de la relación de empleo) y la naturaleza docente/no docente se deriva del cargo (FR-002d)."
+    },
+    "licencia": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tipo",
+        "desde",
+        "hasta"
+      ],
+      "properties": {
+        "tipo": {
+          "enum": [
+            "con_goce",
+            "sin_goce"
+          ]
+        },
+        "desde": {
+          "type": "string",
+          "format": "date"
+        },
+        "hasta": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}
